@@ -20,7 +20,6 @@
                 </span>
             </a>
 
-            <!-- Sidebar Mobile Button -->
             <a id="mobile_btn" class="mobile-btn" href="#sidebar">
                 <i class="ti ti-menu-deep fs-24"></i>
             </a>
@@ -29,7 +28,6 @@
                 <i class="ti ti-arrow-right"></i>
             </button>
 
-            <!-- Search -->
             <div class="me-auto d-flex align-items-center header-search d-lg-flex d-none">
                 <!-- Search -->
                 <div class="input-icon-start position-relative me-2">
@@ -40,7 +38,6 @@
                     <span class="input-icon-addon text-dark shadow fs-18 d-inline-flex p-0 header-search-icon"><i
                             class="ti ti-command"></i></span>
                 </div>
-                <!-- /Search -->
             </div>
 
         </div>
@@ -85,9 +82,18 @@
                     </button>
                 </div>
 
+                {{-- @component('components.modal-popup')
+                @endcomponent --}}
+
+                <a href="{{ route('tickets') }}"
+                    class="btn btn-liner-gradient me-3 d-lg-flex d-none">
+                     Ticket
+                </a>
+
+
                 <!-- AI Assistance -->
-                <a href="javascript:void(0);" class="btn btn-liner-gradient me-3 d-lg-flex d-none">AI Assistance<i
-                        class="ti ti-chart-bubble-filled ms-1"></i></a>
+                {{-- <a href="javascript:void(0);" class="btn btn-liner-gradient me-3 d-lg-flex d-none">AI Assistance<i
+                        class="ti ti-chart-bubble-filled ms-1"></i></a> --}}
                 <!-- AI Assistance -->
 
                 <!-- Appointment -->

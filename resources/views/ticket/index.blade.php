@@ -24,151 +24,57 @@
             </div>
             <!-- End Page Header -->
 
-            <div class=" d-flex align-items-center justify-content-between flex-wrap row-gap-3">
-                <div class="search-set mb-3">
-                    <div class="d-flex align-items-center flex-wrap gap-2">
-                        <div class="table-search d-flex align-items-center mb-0">
-                            <div class="search-input">
-                                <a href="javascript:void(0);" class="btn-searchset"></a>
-                            </div>
+
+            <div class="toolbar-card">
+                <div class="ticket-toolbar">
+                    <div class="toolbar-group">
+                        <div class="toolbar-field">
+                            <label for="searchInput">Search</label>
+                            <input id="searchInput" class="form-control" placeholder="Search ticket / reg no / issue">
+                        </div>
+                        <div class="toolbar-field">
+                            <label for="statusFilter">Status</label>
+                            <select id="statusFilter" class="form-select">
+                                <option value="">All Status</option>
+                                <option value="Closed">Closed</option>
+                                <option value="Resolved">Resolved</option>
+                                <option value="Pending">Pending</option>
+                                <option value="In Progress">In Progress</option>
+                            </select>
+                        </div>
+                        <div class="toolbar-field">
+                            <label for="typeFilter">Type</label>
+                            <select id="typeFilter" class="form-select">
+                                <option value="">All Type</option>
+                                <option value="complaint">Complaint</option>
+                                <option value="request">Request</option>
+                            </select>
+                        </div>
+                        <div class="toolbar-field">
+                            <label for="branchFilter">Branch</label>
+                            <select id="branchFilter" class="form-select"></select>
+                        </div>
+                        <div class="toolbar-field">
+                            <label>&nbsp;</label>
+                            <button class="btn toolbar-btn" id="clearFilters">Clear</button>
+                        </div>
+                    </div>
+                    <div class="toolbar-group">
+                        <div class="toolbar-field">
+                            <label for="sortSelect">Sort By</label>
+                            <select id="sortSelect" class="form-select">
+                                <option value="recent">Recent</option>
+                                <option value="oldest">Oldest</option>
+                                <option value="status">Status</option>
+                            </select>
                         </div>
                     </div>
                 </div>
-                <div class="d-flex table-dropdown mb-3 pb-1 right-content align-items-center flex-wrap row-gap-3">
-                    <div class="dropdown me-2">
-                        <a href="javascript:void(0);"
-                            class="dropdown-toggle btn bg-white btn-md d-inline-flex align-items-center fw-normal rounded border text-dark px-2 py-1 fs-14"
-                            data-bs-toggle="dropdown" data-bs-auto-close="outside">
-                            <i class="ti ti-filter me-2 fs-14"></i>Filter
-                        </a>
-                        <div class="dropdown-menu dropdown-lg dropdown-menu-end filter-dropdown" id="filter-dropdown">
-                            <div class="d-flex align-items-center justify-content-between border-bottom filter-header">
-                                <h4 class="fs-18 fw-bold">Filter</h4>
-                                <div class="d-flex align-items-center">
-                                    <a href="javascript:void(0);" class="link-danger text-decoration-underline me-3">Clear
-                                        All</a>
-                                </div>
-                            </div>
-                            <form action="#">
-                                <div class="filter-body pb-1">
-                                    <div class="mb-3">
-                                        <label class="form-label">Name</label>
-                                        <div class="dropdown">
-                                            <a href="javascript:void(0);"
-                                                class="dropdown-toggle btn bg-white  d-flex align-items-center justify-content-start fs-13 p-2 fw-normal border"
-                                                data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="true">
-                                                Select
-                                            </a>
-                                            <div class="dropdown-menu shadow-lg w-100 dropdown-info p-3">
-                                                <div class="mb-3">
-                                                    <div class="input-icon-start position-relative">
-                                                        <span class="input-icon-addon fs-12">
-                                                            <i class="isax isax-search-normal"></i>
-                                                        </span>
-                                                        <input type="text" class="form-control form-control-sm"
-                                                            placeholder="Search">
-                                                    </div>
-                                                </div>
-                                                <ul class="mb-3">
-                                                    <li class="d-flex align-items-center justify-content-between mb-3">
-                                                        <label class="d-inline-flex align-items-center text-gray-9">
-                                                            <input class="form-check-input select-all m-0 me-2"
-                                                                type="checkbox"> Select All
-                                                        </label>
-                                                        <a href="javascript:void(0);"
-                                                            class="link-danger fw-medium text-decoration-underline">Reset</a>
-                                                    </li>
-                                                    <li>
-                                                        <label
-                                                            class="dropdown-item px-2 d-flex align-items-center text-dark">
-                                                            <input class="form-check-input m-0 me-2" type="checkbox">
-                                                            <span class="avatar avatar-sm rounded-circle me-2"><img
-                                                                    src="{{ URL::asset('build/img/users/user-33.jpg') }}"
-                                                                    class="flex-shrink-0 rounded-circle"
-                                                                    alt="img"></span>Alberto Ripley
-                                                        </label>
-                                                    </li>
-                                                    <li>
-                                                        <label
-                                                            class="dropdown-item px-2 d-flex align-items-center text-dark">
-                                                            <input class="form-check-input m-0 me-2" type="checkbox">
-                                                            <span class="avatar avatar-sm rounded-circle me-2"><img
-                                                                    src="{{ URL::asset('build/img/users/user-12.jpg') }}"
-                                                                    class="flex-shrink-0 rounded-circle"
-                                                                    alt="img"></span>Bernard Griffith
-                                                        </label>
-                                                    </li>
-                                                    <li>
-                                                        <label
-                                                            class="dropdown-item px-2 d-flex align-items-center text-dark">
-                                                            <input class="form-check-input m-0 me-2" type="checkbox">
-                                                            <span class="avatar avatar-sm rounded-circle me-2"><img
-                                                                    src="{{ URL::asset('build/img/users/user-02.jpg') }}"
-                                                                    class="flex-shrink-0 rounded-circle"
-                                                                    alt="img"></span>Carol Lam
-                                                        </label>
-                                                    </li>
-                                                    <li>
-                                                        <label
-                                                            class="dropdown-item px-2 d-flex align-items-center text-dark">
-                                                            <input class="form-check-input m-0 me-2" type="checkbox">
-                                                            <span class="avatar avatar-sm rounded-circle me-2"><img
-                                                                    src="{{ URL::asset('build/img/users/user-08.jpg') }}"
-                                                                    class="flex-shrink-0 rounded-circle"
-                                                                    alt="img"></span>Ezra Belcher
-                                                        </label>
-                                                    </li>
-                                                </ul>
-                                                <div class="row g-2">
-                                                    <div class="col-6">
-                                                        <a href="javascript:void(0);"
-                                                            class="btn btn-outline-white w-100 close-filter">Cancel</a>
-                                                    </div>
-                                                    <div class="col-6">
-                                                        <a href="javascript:void(0);"
-                                                            class="btn btn-primary w-100">Select</a>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="mb-3">
-                                        <div class="d-flex align-items-center justify-content-between">
-                                            <label class="form-label">Date</label>
-                                        </div>
-                                        <div class="input-group position-relative">
-                                            <input type="text"
-                                                class="form-control date-range bookingrange rounded-end h-auto py-2 bg-white">
-                                            <span class="input-icon-addon fs-16 text-gray-9">
-                                                <i class="ti ti-calendar"></i>
-                                            </span>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="filter-footer d-flex align-items-center justify-content-end border-top">
-                                    <a href="javascript:void(0);" class="btn btn-light btn-md me-2"
-                                        id="close-filter">Close</a>
-                                    <button type="submit" class="btn btn-primary btn-md">Filter</button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                    <div class="dropdown">
-                        <a href="javascript:void(0);"
-                            class="dropdown-toggle btn bg-white btn-md d-inline-flex align-items-center fw-normal rounded border text-dark px-2 py-1 fs-14"
-                            data-bs-toggle="dropdown">
-                            <span class="me-1"> Sort By : </span> Recent
-                        </a>
-                        <ul class="dropdown-menu  dropdown-menu-end p-2">
-                            <li>
-                                <a href="javascript:void(0);" class="dropdown-item rounded-1">Recent</a>
-                            </li>
-                            <li>
-                                <a href="javascript:void(0);" class="dropdown-item rounded-1">Oldest</a>
-                            </li>
-                        </ul>
-                    </div>
-                </div>
+                {{-- <div class="master-note">
+                    Master data ready in code: Issue Master, Category Master, Branch, Department, Role, Permission,
+                    Designation, Patients, Staff.
+                    Assign To and Follow Up now use the <strong>Staff</strong> master list as a dropdown selection.
+                </div> --}}
             </div>
             <ul class="nav nav-tabs nav-bordered mb-3">
                 <li class="nav-item">
@@ -196,9 +102,11 @@
                     </a>
                 </li>
             </ul>
-            <div class="table-responsive">
+            {{-- <div class="table-responsive">
                 <table class="table table-nowrap datatable">
-                    <thead class="thead-light">
+                            <table class="table ticket-table mb-0">
+
+                    <thead>
                         <tr>
                             <th>Ticket ID</th>
                             <th>Department</th>
@@ -215,15 +123,15 @@
                             <tr>
                                 <td>
                                     <a href="{{ url('ticket-details/' . $t->ticketId) }}">
-                                        #TKT{{ str_pad($t->ticketId, 3, '0', STR_PAD_LEFT) }}
+                                        <strong>#TKT{{ str_pad($t->ticketId, 3, '0', STR_PAD_LEFT) }}</strong>
                                     </a>
                                 </td>
                                 <td>{{ $t->department->DepartmentName ?? '-' }}</td>
                                 <td>{{ $t->location->LocationName ?? '-' }}</td>
                                 <td>
                                     <div class="d-flex align-items-center">
-                                        <a href="javascript:void(0);"
-                                            class="fw-medium">{{ $t->customer->RegistrationNo ?? '-' }}</a>
+                                        <strong><a href="javascript:void(0);"
+                                                class="fw-medium">{{ $t->customer->RegistrationNo ?? '-' }}</a></strong>
                                     </div>
                                 </td>
                                 <td>{{ $t->Subject ?? '' }}</td>
@@ -258,8 +166,371 @@
                         @endforeach
                     </tbody>
                 </table>
-            </div>
+            </div> --}}
+            <div class="ticket-card">
+                <div class="table-responsive">
+                    <table class="table ticket-table mb-0">
+                        <thead>
+                            <tr>
+                                <th>Ticket ID</th>
+                                <th>Department</th>
+                                <th>Branch</th>
+                                <th>Reg No</th>
+                                <th>Issues</th>
+                                <th>Type</th>
+                                <th>Status</th>
+                                {{-- <th>Follow Up</th> --}}
+                                <th>Action</th>
+                            </tr>
+                        </thead>
 
+                        <tbody id="ticketTableBody">
+                            @forelse ($tickets as $t)
+                                <tr data-ticket="#TKT{{ $t->ticketId }}"
+                                    data-department="{{ $t->department->DepartmentName ?? '-' }}"
+                                    data-branch="{{ $t->location->LocationName ?? '-' }}"
+                                    data-reg="{{ $t->customer->RegistrationNo ?? '-' }}"
+                                    data-issue="{{ $t->Subject ?? '' }}" data-type="{{ $t->type ?? 'Ticket' }}"
+                                    data-status="{{ $t->Status }}">
+
+                                    {{-- Ticket ID --}}
+                                    <td>
+                                        <strong>
+                                            #TKT{{ str_pad($t->ticketId, 3, '0', STR_PAD_LEFT) }}
+                                        </strong>
+                                    </td>
+
+                                    {{-- Department --}}
+                                    <td>{{ $t->department->DepartmentName ?? '-' }}</td>
+
+                                    {{-- Branch --}}
+                                    <td>{{ $t->location->LocationName ?? '-' }}</td>
+
+                                    {{-- Reg No --}}
+                                    <td>
+                                        <strong>{{ $t->customer->RegistrationNo ?? '-' }}</strong>
+                                    </td>
+
+                                    {{-- Issue --}}
+                                    <td>{{ $t->Subject ?? '-' }}</td>
+
+                                    {{-- Type --}}
+                                    <td>{{ $t->type ?? 'Ticket' }}</td>
+
+                                    {{-- Status --}}
+                                    <td>
+                                        <span
+                                            class="status-badge
+                @if ($t->Status == 0) status-pending
+                @elseif ($t->Status == 1) status-progress
+                @elseif ($t->Status == 2) status-resolved
+                @else status-closed @endif
+              ">
+                                            @if ($t->Status == 0)
+                                                Pending
+                                            @elseif ($t->Status == 1)
+                                                In Progress
+                                            @elseif ($t->Status == 2)
+                                                Resolved
+                                            @else
+                                                Closed
+                                            @endif
+                                        </span>
+                                    </td>
+
+                                    {{-- Follow Up --}}
+                                    {{-- <td>
+                                        <button class="followup-btn" data-ticket="#TKT{{ $t->ticketId }}"
+                                            data-bs-toggle="modal" data-bs-target="#followupModal">
+                                            <i class="ti ti-message-plus"></i> Follow Up
+                                        </button>
+                                    </td> --}}
+
+                                    {{-- Action --}}
+                                    <td>
+                                        <div class="d-flex gap-1">
+                                            <a class="action-btn" href="{{ route('ticket.view', $t->ticketId) }}">
+                                                <i class="ti ti-eye"></i>
+                                            </a>
+
+                                            {{-- <button class="action-btn edit-ticket-btn" type="button"
+                                                data-bs-toggle="modal" data-bs-target="#editTicketModal">
+                                                <i class="ti ti-edit"></i>
+                                            </button> --}}
+                                        </div>
+                                    </td>
+
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="9" class="text-center text-muted py-4">
+                                        No tickets found
+                                    </td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+
+                    <div id="emptyState" class="empty-state">
+                        No tickets found for the selected filter.
+                    </div>
+                </div>
+            </div>
+            <style>
+                .toolbar-card,
+                .ticket-card {
+                    background: #fff;
+                    border: 1px solid #e7e8eb;
+                    border-radius: 6px;
+                    overflow: hidden;
+                }
+
+                .toolbar-card {
+                    padding: 14px;
+                    margin-bottom: 14px;
+                }
+
+                .ticket-toolbar {
+                    display: flex;
+                    align-items: end;
+                    justify-content: space-between;
+                    gap: 12px;
+                    flex-wrap: wrap;
+                }
+
+                .toolbar-group {
+                    display: flex;
+                    align-items: end;
+                    gap: 10px;
+                    flex-wrap: wrap;
+                }
+
+                .toolbar-field label {
+                    display: block;
+                    font-size: 12px;
+                    font-weight: 600;
+                    color: #6f7790;
+                    margin-bottom: 6px;
+                }
+
+                .toolbar-field .form-control,
+                .toolbar-field .form-select {
+                    min-width: 160px;
+                    height: 38px;
+                    border-color: #e0e3ea;
+                    font-size: 13px;
+                }
+
+                .toolbar-btn {
+                    height: 38px;
+                    padding: 6px 12px;
+                    border: 1px solid #dfe3eb;
+                    background: #fff;
+                    color: #22304d;
+                    border-radius: 6px;
+                    font-size: 13px;
+                    font-weight: 500;
+                }
+
+                .raise-btn {
+                    background: #3947b8;
+                    border-color: #3947b8;
+                    color: #fff;
+                }
+
+                .ticket-table thead th {
+                    background: #fff;
+                    color: #18284d;
+                    font-size: 13px;
+                    font-weight: 700;
+                    padding: 11px 14px;
+                    border-bottom: 1px solid #e7e8eb;
+                    white-space: nowrap;
+                }
+
+                .ticket-table tbody td {
+                    font-size: 13px;
+                    color: #677189;
+                    padding: 10px 14px;
+                    vertical-align: middle;
+                    border-color: #e7e8eb;
+                }
+
+                .ticket-table tbody td strong {
+                    color: #1e2b4a;
+                    font-weight: 700;
+                }
+
+                .status-badge {
+                    display: inline-block;
+                    min-width: 78px;
+                    text-align: center;
+                    padding: 4px 10px;
+                    border-radius: 5px;
+                    font-size: 11px;
+                    font-weight: 700;
+                    color: #fff;
+                }
+
+                .status-closed {
+                    background: #14c6c4;
+                }
+
+                .status-resolved {
+                    background: #2eb85c;
+                }
+
+                .status-pending {
+                    background: #f2b21b;
+                }
+
+                .status-progress {
+                    background: #2f80ed;
+                }
+
+                .action-btn {
+                    width: 30px;
+                    height: 30px;
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    border: 1px solid #e7e8eb;
+                    border-radius: 6px;
+                    color: #9098a8;
+                    background: #fff;
+                    text-decoration: none;
+                }
+
+                .followup-btn {
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 6px;
+                    padding: 5px 10px;
+                    border-radius: 6px;
+                    background: linear-gradient(180deg, #37a3d6, #2f6bcf);
+                    color: #fff;
+                    font-size: 12px;
+                    font-weight: 700;
+                    text-decoration: none;
+                    border: none;
+                }
+
+                .table-footer-bar {
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    font-size: 12px;
+                    color: #687389;
+                    padding: 16px 0 0;
+                    flex-wrap: wrap;
+                    gap: 10px;
+                }
+
+                .pagination-box a {
+                    width: 28px;
+                    height: 28px;
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    border: 1px solid #e0e3ea;
+                    border-radius: 6px;
+                    color: #8b93a6;
+                    text-decoration: none;
+                    background: #fff;
+                    margin-left: 6px;
+                }
+
+                .pagination-box a.active {
+                    background: #3947b8;
+                    border-color: #3947b8;
+                    color: #fff;
+                }
+
+                .footer-line {
+                    text-align: center;
+                    font-size: 12px;
+                    color: #6f7790;
+                    padding: 20px 0 10px;
+                }
+
+                .empty-state {
+                    text-align: center;
+                    padding: 24px;
+                    color: #7d8598;
+                    display: none;
+                }
+
+                .float-settings {
+                    position: fixed;
+                    right: 10px;
+                    top: 50%;
+                    transform: translateY(-50%);
+                    width: 28px;
+                    height: 28px;
+                    border-radius: 4px;
+                    background: #3741b0;
+                    color: #fff;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    z-index: 5;
+                }
+
+                .modal .form-label {
+                    font-size: 13px;
+                    font-weight: 600;
+                    color: #22304d;
+                }
+
+                .upload-box {
+                    border: 1px dashed #d7dbe4;
+                    background: #f8f9fb;
+                    border-radius: 8px;
+                    text-align: center;
+                    padding: 22px 15px;
+                    color: #73809a;
+                    font-size: 13px;
+                }
+
+                .master-note {
+                    font-size: 12px;
+                    color: #7a8295;
+                    background: #f8f9fc;
+                    border: 1px solid #e7e8eb;
+                    border-radius: 6px;
+                    padding: 10px 12px;
+                    margin-top: 12px;
+                }
+
+                @media (max-width: 991.98px) {
+                    .page-wrapper {
+                        margin-left: 0;
+                    }
+
+                    .sidebar {
+                        left: -230px;
+                    }
+                }
+            </style>
+            </style>
+            {{-- Footer --}}
+            <div class="table-footer-bar">
+                <div>
+                    Row Per Page
+                    <select class="form-select form-select-sm d-inline-block" style="width:60px;">
+                        <option>10</option>
+                        <option>25</option>
+                        <option>50</option>
+                    </select>
+                    Entries
+                </div>
+
+                <div class="pagination-box">
+                    <a href="#"><i class="ti ti-chevron-left"></i></a>
+                    <a href="#" class="active">1</a>
+                    <a href="#"><i class="ti ti-chevron-right"></i></a>
+                </div>
+            </div>
         </div>
         @component('components.footer')
         @endcomponent
@@ -365,6 +636,8 @@
                     },
 
                     success: function(response) {
+                        Livewire.emit('notificationAdded');
+                        Livewire.emit('refreshNotification');
                         Swal.fire({
                             // position: "top-end",
                             icon: "success", // fixed (was type)

@@ -1,161 +1,338 @@
 <?php $page = 'tickets'; ?>
 @extends('layout.mainlayout')
 @section('content')
+    <style>
+        .crumb-back {
+            color: #22304d;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 14px;
+            font-weight: 600
+        }
+
+        .details-card {
+            background: #fff;
+            border: 1px solid #e7e8eb;
+            border-radius: 6px;
+            overflow: hidden
+        }
+
+        .details-card-header {
+            padding: 12px 16px;
+            border-bottom: 1px solid #e7e8eb;
+            font-size: 17px;
+            font-weight: 700;
+            color: #132144;
+            display: flex;
+            align-items: center;
+            gap: 8px
+        }
+
+        .client-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 18px;
+            padding: 16px
+        }
+
+        .client-item {
+            display: flex;
+            gap: 14px;
+            align-items: flex-start
+        }
+
+        .client-icon {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            background: #f3f4f8;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #6b738a;
+            flex-shrink: 0
+        }
+
+        .client-label {
+            font-size: 13px;
+            font-weight: 700;
+            color: #18284d;
+            margin-bottom: 2px
+        }
+
+        .client-value {
+            font-size: 13px;
+            color: #737b90
+        }
+
+        .table-title-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin: 18px 0 10px
+        }
+
+        .table-title {
+            font-size: 15px;
+            font-weight: 700;
+            color: #132144;
+            margin: 0
+        }
+
+        .blue-table thead th {
+            background: #3741b0;
+            color: #fff;
+            border-bottom: none;
+            padding: 9px 12px;
+            font-size: 13px
+        }
+
+        .blue-table tbody td {
+            padding: 10px 12px;
+            font-size: 13px;
+            color: #4f5d7c;
+            border-color: #e7e8eb
+        }
+
+        .pill {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 5px;
+            font-size: 12px;
+            font-weight: 700;
+            color: #fff
+        }
+
+        .pill-red {
+            background: #ff1e1e
+        }
+
+        .pill-green {
+            background: #32b35f
+        }
+
+        .pill-blue {
+            background: linear-gradient(180deg, #37a3d6, #2f6bcf)
+        }
+
+        .pill-yellow {
+            background: #f2b21b
+        }
+
+        .toolbar-inline {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap
+        }
+
+        .toolbar-inline .form-select,
+        .toolbar-inline .form-control {
+            min-width: 180px;
+            height: 38px;
+            font-size: 13px
+        }
+
+        .float-settings {
+            position: fixed;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 28px;
+            height: 28px;
+            border-radius: 4px;
+            background: #3741b0;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 5
+        }
+
+        .footer-line {
+            text-align: center;
+            font-size: 12px;
+            color: #6f7790;
+            padding: 20px 0 10px
+        }
+
+        .empty-row {
+            text-align: center;
+            color: #7d8598;
+            padding: 18px
+        }
+
+        .attach-name {
+            font-size: 12px;
+            color: #7a8295;
+            margin-top: 6px
+        }
+
+        @media (max-width:991.98px) {
+            .page-wrapper {
+                margin-left: 0
+            }
+
+            .sidebar {
+                left: -230px
+            }
+
+            .client-grid {
+                grid-template-columns: 1fr
+            }
+        }
+    </style>
     <div class="page-wrapper">
 
         <!-- Start Content -->
         <div class="content">
 
-            <!-- page header start -->
-            <div class="mb-4">
-                <h6 class="fw-bold mb-0 d-flex align-items-center"> <a href="{{ route('tickets') }}" class="text-dark"> <i
-                            class="ti ti-chevron-left me-1"></i>View Ticket</a></h6>
-            </div>
-            <!-- page header end -->
 
+            <a href="{{ route('tickets') }}" class="crumb-back">
+                <i class="ti ti-chevron-left">
+                </i>
+                View Ticket
+            </a>
 
-            <div class="row">
-                <div class="col-xl-12 d-flex">
-                    <div class="card shadow-sm flex-fill w-100">
-                        <div class="card-header">
-                            <h5 class="fw-bold mb-0"><i class="ti ti-user-star me-1"></i>Client Details</h5>
+            <div class="details-card">
+                <div class="details-card-header">
+                    <i class="ti ti-user">
+                    </i>
+                    Client Details
+                </div>
+                <div class="client-grid">
+                    <div>
+                        <div class="client-item">
+                            <div class="client-icon">
+                                <i class="ti ti-user">
+                                </i>
+                            </div>
+                            <div>
+                                <div class="client-label">
+                                    Client Name
+                                </div>
+                                <div class="client-value">
+                                    {{ $ticket->customer->FirstName ?? '-' }}
+                                </div>
+                            </div>
                         </div>
-                        <div class="card-body pb-0">
-                            <div class="row">
-                                <div class="col-sm-4">
-                                    <div class="d-flex align-items-center mb-3">
-                                        <span class="avatar rounded-circle bg-light text-dark flex-shrink-0 me-2"> <i
-                                                class="ion-person" data-bs-toggle="tooltip" title="ion-person"></i></span>
-                                        <div>
-                                            <h6 class="fs-13 fw-bold mb-1">Client Name</h6>
-                                            <p class="mb-0" id="view_customer_name">
-                                                {{ $ticket->customer->FirstName ?? '-' }}</p>
-                                        </div>
-                                    </div>
+                        <div class="client-item mt-3">
+                            <div class="client-icon">
+                                <i class="ti ti-mail">
+                                </i>
+                            </div>
+                            <div>
+                                <div class="client-label">
+                                    Email
                                 </div>
-                                <div class="col-sm-4">
-                                    <div class="d-flex align-items-center mb-3">
-                                        <span class="avatar rounded-circle bg-light text-dark flex-shrink-0 me-2"><i
-                                                class="ti ti-droplet text-body fs-16"></i></span>
-                                        <div>
-                                            <h6 class="fs-13 fw-bold mb-1">Branch</h6>
-                                            <p class="mb-0">{{ $ticket->location->LocationName ?? '-' }}</p>
-                                        </div>
-                                    </div>
+                                <div class="client-value">
+                                    {{ $ticket->customer->EMail ?? '-' }}
                                 </div>
-                                <div class="col-sm-4">
-                                    <div class="d-flex align-items-center mb-3">
-                                        <span class="avatar rounded-circle bg-light text-dark flex-shrink-0 me-2"><i
-                                                class="ti ti-droplet text-body fs-16"></i></span>
-                                        <div>
-                                            <h6 class="fs-13 fw-bold mb-1">Gender</h6>
-                                            <p class="mb-0">{{ $ticket->customer->Sex ?? '-' }}</p>
-                                        </div>
-                                    </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="client-item">
+                            <div class="client-icon">
+                                <i class="ti ti-building">
+                                </i>
+                            </div>
+                            <div>
+                                <div class="client-label">
+                                    Branch
                                 </div>
-                                <div class="col-sm-4">
-                                    <div class="d-flex align-items-center mb-3">
-                                        <span class="avatar rounded-circle bg-light text-dark flex-shrink-0 me-2"><i
-                                                class="ti ti-droplet text-body fs-16"></i></span>
-                                        <div>
-                                            <h6 class="fs-13 fw-bold mb-1">Email</h6>
-                                            <p class="mb-0">{{ $ticket->customer->EMail ?? '-' }}</p>
-                                        </div>
-                                    </div>
+                                <div class="client-value">
+                                    {{ $ticket->location->LocationName ?? '-' }}
                                 </div>
-                                <div class="col-sm-4">
-                                    <div class="d-flex align-items-center mb-3">
-                                        <span class="avatar rounded-circle bg-light text-dark flex-shrink-0 me-2"><i
-                                                class="ti ti-gender-male text-body fs-16"></i></span>
-                                        <div>
-                                            <h6 class="fs-13 fw-bold mb-1">Mobile No</h6>
-                                            <p class="mb-0">{{ $ticket->customer->Mobile ?? '-' }}</p>
-
-                                        </div>
-                                    </div>
+                            </div>
+                        </div>
+                        <div class="client-item mt-3">
+                            <div class="client-icon">
+                                <i class="ti ti-phone">
+                                </i>
+                            </div>
+                            <div>
+                                <div class="client-label">
+                                    Mobile No
                                 </div>
-                                <div class="col-sm-4">
-                                    <div class="d-flex align-items-center mb-3">
-                                        <span class="avatar rounded-circle bg-light text-dark flex-shrink-0 me-2"><i
-                                                class="ti ti-mail text-body fs-16"></i></span>
-                                        <div>
-                                            <h6 class="fs-13 fw-bold mb-1">Reg No.</h6>
-                                            <p class="mb-0 text-break">{{ $ticket->customer->RegistrationNo ?? '-' }}</p>
-                                        </div>
-                                    </div>
+                                <div class="client-value">
+                                    {{ $ticket->customer->Mobile ?? '-' }}
                                 </div>
-
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="client-item">
+                            <div class="client-icon">
+                                <i class="ti ti-user-scan">
+                                </i>
+                            </div>
+                            <div>
+                                <div class="client-label">
+                                    Gender
+                                </div>
+                                <div class="client-value">
+                                    {{ $ticket->customer->Sex ?? '-' }}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="client-item mt-3">
+                            <div class="client-icon">
+                                <i class="ti ti-id-badge-2">
+                                </i>
+                            </div>
+                            <div>
+                                <div class="client-label">
+                                    Reg No.
+                                </div>
+                                <div class="client-value">
+                                    {{ $ticket->customer->RegistrationNo ?? '-' }}
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-            </div>
-            <!-- row end -->
 
-            <!-- tab start -->
-
-            <!-- tab end -->
-
-            <!-- tab content start -->
-            <div class="tab-content">
-
-                <div class="tab-pane show active" id="transactions">
-                    <!--  Start Filter -->
-                    <div class=" d-flex align-items-center justify-content-between flex-wrap">
-                        <div class="d-flex align-items-center gap-2">
-                            <div class="search-set mb-3">
-                                <div class="d-flex align-items-center flex-wrap gap-2">
-                                    <div class="table-search d-flex align-items-center mb-0">
-                                        <div class="search-input">
-                                            <a href="javascript:void(0);" class="btn-searchset"></a>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {{-- <div class="d-flex right-content align-items-center flex-wrap mb-3">
-                                <div class="reportrange-picker d-flex align-items-center reportrange">
-                                    <i class="ti ti-calendar text-gray-5 fs-14 me-1"></i><span
-                                        class="reportrange-picker-field">16 Apr 25 - 16 Apr 25</span>
-                                </div>
-                            </div> --}}
-                        </div>
-
-
+                <div class="table-title-row px-3">
+                    <div class="table-title">
+                        Ticket History
                     </div>
-                    <div class="table-responsive">
-                        <table class="table table-nowrap datatable">
-                            <thead class="thead-light ">
-                                <thead class="thead-light ">
 
-                                    <tr>
-                                        <th class="bg-primary text-white p-2 mb-2">#</th>
-                                        <th class="bg-primary text-white p-2 mb-2">Date</th>
-                                        <th class="bg-primary text-white p-2 mb-2">Raised By</th>
-                                        <th class="bg-primary text-white p-2 mb-2">Assigned To</th>
-                                        <th class="bg-primary text-white p-2 mb-2">Escalation</th>
+                </div>
+                <div class="table-responsive">
+                    <table class="table blue-table mb-0">
+                        <thead class="thead-light ">
 
-                                        <th class="bg-primary text-white p-2 mb-2">Type of Escalation</th>
-                                        <th class="bg-primary text-white p-2 mb-2">Source</th>
-                                        {{-- <th class="bg-primary text-white p-2 mb-2">Feedback</th> --}}
-                                        {{-- <th class="bg-primary text-white p-2 mb-2">Status</th> --}}
-                                        <th class="bg-primary text-white p-2 mb-2">Action</th>
-                                    </tr>
-                                </thead>
-                            <tbody>
-                                @if ($firstComplaint)
-                                    <tr>
-                                        <td>1</td>
-                                        <td class="text-dark">
-                                            {{ \Carbon\Carbon::parse($firstComplaint->CreatedDate)->format('d M Y') }}</td>
-                                        <td class="text-dark">{{ $firstComplaint->createdUser->FullName ?? 'N/A' }}</td>
-                                        <td class="text-dark">
-                                            {{ $firstComplaint->acceptedUser->FullName ?? 'Not Assigned' }}</td>
-                                        <td class="text-dark">{{ $firstComplaint->Complaint ?? '-' }}</td>
-                                        <td class="text-dark">{{ $firstComplaint->TypeofEscalation ?? '-' }}</td>
-                                        <td class="text-dark">{{ $firstComplaint->sources ?? '-' }}</td>
-                                        {{-- <td>
+                            <tr>
+                                <th class="">#</th>
+                                <th class="">Date</th>
+                                <th class="">Raised By</th>
+                                <th class="">Assigned To</th>
+                                <th class="">Escalation</th>
+                                <th class="">Type of Escalation</th>
+                                <th class="">Source</th>
+                                {{-- <th class="">Feedback</th> --}}
+                                {{-- <th class="">Status</th> --}}
+                                <th class="">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="followupBody">
+                            @if ($firstComplaint)
+                                <tr>
+                                    <td>1</td>
+                                    <td class="text-dark">
+                                        {{ \Carbon\Carbon::parse($firstComplaint->CreatedDate)->format('d M Y') }}</td>
+                                    <td class="text-dark">{{ $firstComplaint->createdUser->FullName ?? 'N/A' }}</td>
+                                    <td class="text-dark">
+                                        {{ $firstComplaint->acceptedUser->FullName ?? 'Not Assigned' }}</td>
+                                    <td class="text-dark">{{ $firstComplaint->Complaint ?? '-' }}</td>
+                                    <td class="text-dark">{{ $firstComplaint->TypeofEscalation ?? '-' }}</td>
+                                    <td class="text-dark">{{ $firstComplaint->sources ?? '-' }}</td>
+                                    {{-- <td>
 
                                             @if ($currentStatus == 'Resolved')
 
@@ -173,132 +350,150 @@
                                             @endif
 
                                         </td> --}}
-                                        <td>
+                                    <td>
 
-                                            @if ($currentStatus == 'Closed')
-                                                <span class="badge bg-secondary">Closed</span>
-                                            @elseif($isAdmin)
-                                                @if ($currentStatus === 'Resolved')
-                                                    <button class="btn bg-danger-gradient btn-danger"
-                                                        onclick="closeComplaint({{ $firstComplaint->complaintid }}, {{ $ticket->ticketId }})">
-                                                        Closed
-                                                    </button>
-                                                @else
-                                                    <button class="btn  bg-primary-gradient btn-primary btn-effect"
-                                                        onclick="openFollowupModal({{ $firstComplaint->complaintid }})">
-                                                        Follow-up
-                                                    </button>
-                                                @endif
-                                            @elseif($isAuditTeam)
-                                                <!-- Audit: only close -->
-                                                @if ($currentStatus == 'Resolved')
-                                                    <button class="btn bg-danger-gradient btn-danger"
-                                                        onclick="closeComplaint({{ $firstComplaint->complaintid }}, {{ $ticket->ticketId }})">
-                                                        Closed
-                                                    </button>
-                                                @else
-                                                    <span class="badge bg-warning">Waiting for resolution</span>
-                                                @endif
-                                            @elseif($isAssignee && !$isCreator)
-                                                <!-- Only current assigned person can act -->
-                                                @if ($currentStatus != 'Resolved')
-                                                    <button class="btn  bg-primary-gradient btn-primary btn-effect"
-                                                        onclick="openFollowupModal({{ $firstComplaint->complaintid }})">
-                                                        Follow-up
-                                                    </button>
-                                                @else
-                                                    {{-- <button class="btn btn-danger"
+                                        @if ($currentStatus == 'Closed')
+                                            <span class="badge bg-secondary">Closed</span>
+                                        @elseif($isAdmin)
+                                            @if ($currentStatus === 'Resolved')
+                                                <button class="btn bg-danger-gradient btn-danger"
+                                                    onclick="closeComplaint({{ $firstComplaint->complaintid }}, {{ $ticket->ticketId }})">
+                                                    Closed
+                                                </button>
+                                            @else
+                                                <button class="btn btn-primary"
+                                                    onclick="openFollowupModal({{ $firstComplaint->complaintid }})">
+                                                    <i class="ti ti-message-plus"></i> Add Follow up
+                                                </button>
+                                            @endif
+                                        @elseif($isAuditTeam)
+                                            <!-- Audit: only close -->
+                                            @if ($currentStatus == 'Resolved')
+                                                <button class="btn bg-danger-gradient btn-danger"
+                                                    onclick="closeComplaint({{ $firstComplaint->complaintid }}, {{ $ticket->ticketId }})">
+                                                    Closed
+                                                </button>
+                                            @else
+                                                <span class="badge bg-warning">Waiting for resolution</span>
+                                            @endif
+                                        @elseif($isAssignee && !$isCreator)
+                                            <!-- Only current assigned person can act -->
+                                            @if ($currentStatus != 'Resolved')
+                                                <button class="btn  bg-primary-gradient btn-primary btn-effect"
+                                                    onclick="openFollowupModal({{ $firstComplaint->complaintid }})">
+                                                    Follow-up
+                                                </button>
+                                            @else
+                                                {{-- <button class="btn btn-danger"
                                                         onclick="closeComplaint({{ $firstComplaint->complaintid }}, {{ $ticket->ticketId }})">
                                                         Close
                                                     </button> --}}
-                                                @endif
-                                            @else
-                                                <!-- Creator / previous handlers -->
-                                                <span class="text-muted">No actions available</span>
                                             @endif
+                                        @else
+                                            <!-- Creator / previous handlers -->
+                                            <span class="text-muted">No actions available</span>
+                                        @endif
 
-                                        </td>
-                                    </tr>
-                                @endif
-                            </tbody>
-                        </table>
+                                    </td>
+                                </tr>
+                            @endif
+                        </tbody>
+                    </table>
+                </div>
+                <br>
+                <div class="table-title-row px-3">
+                    <div class="table-title">
+                        Follow-Up List
                     </div>
-                    <br>
-                    <!--  End Filter -->
-                    <div class="mb-4">
-                        <h4 class="fw-bold mb-0 d-flex align-items-center"> <a href="patients.html"
-                                class="text-dark">Follow-Up List
-                            </a></h4>
-                    </div>
-                    <!--  Start Table -->
-                    <div class="table-responsive">
-                        <table class="table table-nowrap datatable">
+
+                </div>
+                <div class="table-responsive">
+                    <table class="table blue-table mb-0">
+                        <thead class="thead-light ">
                             <thead class="thead-light ">
-                                <thead class="thead-light ">
 
-                                    <tr>
-                                        <th class="bg-primary text-white p-2 mb-2">#</th>
-                                        <th class="bg-primary text-white p-2 mb-2">Date</th>
-                                        <th class="bg-primary text-white p-2 mb-2">Raised By</th>
-                                        <th class="bg-primary text-white p-2 mb-2">Assigned To</th>
+                                <tr>
+                                    <th class="">#</th>
+                                    <th class="">Date</th>
+                                    <th class="">Raised By</th>
+                                    <th class="">Assigned To</th>
 
-                                        <th class="bg-primary text-white p-2 mb-2">Source</th>
-                                        <th class="bg-primary text-white p-2 mb-2">Feedback</th>
-                                        <th class="bg-primary text-white p-2 mb-2">Status</th>
-                                    </tr>
-                                </thead>
-                            <tbody>
-                                @forelse($ticket->complaints as $key => $complaint)
-                                    <tr>
-                                        <td class="text-dark">{{ $key + 1 }}</td>
-                                        <!-- Date -->
-                                        <td class="text-dark">
-                                            {{ \Carbon\Carbon::parse($complaint->CreatedDate)->format('d M Y') }}</td>
+                                    <th class="">Source</th>
+                                    <th class="">Feedback</th>
+                                    <th class="">Status</th>
+                                </tr>
+                            </thead>
+                        <tbody>
+                            @forelse($ticket->complaints as $key => $complaint)
+                                <tr>
+                                    <td class="text-dark">{{ $key + 1 }}</td>
+\                                    <td class="text-dark">
+                                        {{ \Carbon\Carbon::parse($complaint->CreatedDate)->format('d M Y') }}</td>
 
-                                        <td class="text-dark">{{ $complaint->createdUser->FullName ?? 'N/A' }}</td>
-                                        <td class="text-dark">{{ $complaint->acceptedUser->FullName ?? 'Not Assigned' }}
-                                        </td>
+                                    <td class="text-dark">{{ $complaint->createdUser->FullName ?? 'N/A' }}</td>
+                                    <td class="text-dark">{{ $complaint->acceptedUser->FullName ?? 'Not Assigned' }}
+                                    </td>
 
-                                        <td class="text-dark">{{ $complaint->sources ?? '-' }}</td>
+                                    <td class="text-dark">{{ $complaint->sources ?? '-' }}</td>
 
-                                        <td class="text-dark" style="max-width:800px;">
-                                            <div style="white-space: normal;">
-                                                <small>{{ $complaint->feedback }}</small>
-                                            </div>
-                                        </td>
-                                        <!-- Status -->
-                                        <td>
-                                            <span
-                                                class="badge
+                                    <td class="text-dark" style="max-width:800px;">
+                                        <div style="white-space: normal;">
+                                            <small>{{ $complaint->feedback }}</small>
+                                        </div>
+                                    </td>
+                                    <!-- Status -->
+                                    <td>
+                                        <span
+                                            class="badge
                                            @if ($complaint->callStatus == 'Pending') bg-warning
                                            @elseif($complaint->callStatus == 'InProgress') bg-info
                                             @elseif($complaint->callStatus == 'Resolved') bg-success
                                            @else bg-danger @endif">
-                                                {{ $complaint->callStatus }}
-                                            </span>
-                                        </td>
+                                            {{ $complaint->callStatus }}
+                                        </span>
+                                    </td>
 
-                                        <!-- Action -->
-                                        <td class="text-dark">
-                                            <div class="icons-list-item d-flex gap-2">
+                                    <!-- Action -->
+                                    {{-- <td class="text-dark">
+                                        <div class="icons-list-item d-flex gap-2">
 
 
 
-                                            </div>
-                                        </td>
-                                    </tr>
-                                @empty
-                                    <tr>
-                                        <td colspan="11" class="text-center">No complaints found</td>
-                                    </tr>
-                                @endforelse
-                            </tbody>
-                        </table>
+                                        </div>
+                                    </td> --}}
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="11" class="text-center">No complaints found</td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+
+
+            </div>
+
+
+            {{-- <div class="tab-content">
+                <div class="tab-pane show active" id="transactions">
+                    <div class=" d-flex align-items-center justify-content-between flex-wrap">
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="search-set mb-3">
+                                <div class="d-flex align-items-center flex-wrap gap-2">
+                                    <div class="table-search d-flex align-items-center mb-0">
+                                        <div class="search-input">
+                                            <a href="javascript:void(0);" class="btn-searchset"></a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <!--  End Table -->
+
 
                 </div>
-            </div>
+            </div> --}}
             <!-- tab content end -->
 
         </div>

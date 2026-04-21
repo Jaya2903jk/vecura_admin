@@ -50,20 +50,30 @@
 
     <!-- Start Logo -->
     <div class="sidebar-logo">
-        <div>
-            <!-- Logo Normal -->
+        {{-- <div>
             <a href="{{ url('index') }}" class="logo logo-normal">
                 <img src="{{ URL::asset('build/img/logo.svg') }}" alt="Logo">
             </a>
 
-            <!-- Logo Small -->
             <a href="{{ url('index') }}" class="logo-small">
                 <img src="{{ URL::asset('build/img/logo-small.svg') }}" alt="Logo">
             </a>
 
-            <!-- Logo Dark -->
             <a href="{{ url('index') }}" class="dark-logo">
                 <img src="{{ URL::asset('build/img/logo-white.svg') }}" alt="Logo">
+            </a>
+        </div> --}}
+        <div>
+            <a href="{{ url('index') }}" class="logo logo-normal">
+                <img src="{{ URL::asset('build/img/logo.png') }}" alt="Logo">
+            </a>
+
+            <a href="{{ url('index') }}" class="logo-small">
+                <img src="{{ URL::asset('build/img/logo-small.png') }}" alt="Logo">
+            </a>
+
+            <a href="{{ url('index') }}" class="dark-logo">
+                <img src="{{ URL::asset('build/img/logo-white.png') }}" alt="Logo">
             </a>
         </div>
         <button class="sidenav-toggle-btn btn border-0 p-0 active" id="toggle_btn">
@@ -118,8 +128,8 @@
                                 <span class="avatar rounded-circle flex-shrink-0 p-2"><img
                                         src="{{ URL::asset('./build/img/icons/trustcare.svg') }}" alt="img"></span>
                                 <div class="ms-2">
-                                    <h6 class="fs-14 fw-semibold mb-0">Trustcare Clinic</h6>
-                                    <p class="fs-13 mb-0">Lasvegas</p>
+                                    <h6 class="fs-14 fw-semibold mb-0">Dashbaord</h6>
+                                    <p class="fs-13 mb-0">Branch</p>
                                 </div>
                             </div>
                             <i class="ti ti-arrows-transfer-up"></i>
@@ -131,7 +141,7 @@
                                 <span class="d-flex align-items-center">
                                     <span class="me-2"><img src="{{ URL::asset('build/img/icons/clinic-01.svg') }}"
                                             alt=""></span>
-                                    <span class="fw-semibold text-dark">CureWell Medical Hub<small
+                                    <span class="fw-semibold text-dark">Coorperate<small
                                             class="d-block text-muted fw-normal fs-13">Ohio</small></span>
                                 </span>
                                 <input class="form-check-input m-0 me-2" type="checkbox">
@@ -168,6 +178,60 @@
                 </div>
 
                 <ul>
+                    <li class="menu-title"><span>Staff</span></li>
+                    <li>
+                        <ul>
+
+                            <li class="{{ Request::is('staff', 'staff') ? 'active' : '' }}">
+                                <a href="{{ route('staff.index') }}">
+                                    <i class="ti ti-users-group"></i><span>Staff</span>
+                                </a>
+
+                            </li>
+
+
+
+                        </ul>
+                    </li>
+                    <li class="menu-title"><span>Masters</span></li>
+                    <li>
+                        <ul>
+
+                            <li class="submenu">
+                                <a href="javascript:void(0);"
+                                    class="{{ Request::is('organization-settings', 'localization-settings', 'prefixes-settings', 'seo-setup-settings', 'language-settings', 'language-settings2', 'language-settings3', 'maintenance-mode-settings', 'login-and-register-settings', 'preferences-settings') ? 'active subdrop' : '' }}">
+                                    <i class="ti ti-world-cog"></i><span>All Masters</span>
+                                    <span class="menu-arrow"></span>
+                                </a>
+                                <ul>
+                                    <li><a href="{{ route('branch.index') }}"
+                                            class="{{ Request::is('organization-settings') ? 'active' : '' }}">Branch</a>
+                                    </li>
+                                    <li><a href="{{ route('department.index') }}"
+                                            class="{{ Request::is('localization-settings') ? 'active' : '' }}">Department</a>
+                                    </li>
+                                    <li><a href="{{ route('designation.index') }}"
+                                            class="{{ Request::is('prefixes-settings') ? 'active' : '' }}">Designation</a>
+                                    </li>
+                                    <li><a href="{{ route('category.index') }}"
+                                            class="{{ Request::is('seo-setup-settings') ? 'active' : '' }}">Issues
+                                            Category</a></li>
+
+                                    <li><a href="{{ route('role-permission.index') }}"
+                                            class="{{ Request::is('maintenance-mode-settings') ? 'active' : '' }}">Roles
+                                        </a></li>
+                                    <li><a href="{{ route('permission.index') }}"
+                                            class="{{ Request::is('login-and-register-settings') ? 'active' : '' }}">Permission
+                                        </a></li>
+
+                                </ul>
+                            </li>
+
+
+
+                        </ul>
+                    </li>
+
                     {{-- <li class="menu-title"><span>Main Menu</span></li>
                     <li>
                         <ul>
@@ -578,13 +642,14 @@
                                     <i class="ti ti-message-dots"></i><span>Contact Messages</span>
                                 </a>
                             </li> --}}
+
                             <li class="{{ Request::is('tickets', 'ticket-details') ? 'active' : '' }}">
                                 <a href="{{ route('tickets') }}">
                                     <i class="ti ti-ticket"></i><span>Tickets</span>
                                 </a>
 
                             </li>
-                             {{-- <li class="{{ Request::is('tickets', 'ticket-details') ? 'active' : '' }}">
+                            {{-- <li class="{{ Request::is('tickets', 'ticket-details') ? 'active' : '' }}">
                                 <a href="{{ route('vsupport') }}">
                                     <i class="ti ti-ticket"></i><span>Vsupport</span>
                                 </a>
@@ -601,7 +666,7 @@
                                 </a>
                             </li> --}}
                         </ul>
-                    {{-- </li>
+                        {{-- </li>
                     <li class="menu-title"><span>Pages</span></li>
                     <li>
                         <ul>
@@ -736,7 +801,7 @@
                                     <li><a href="{{ url('error-404') }}">404 Error</a></li>
                                     <li><a href="{{ url('error-500') }}">500 Error</a></li>
                                 </ul>
-                            </li>--}}
+                            </li> --}}
                         </ul>
                     </li>
                     <li class="menu-title"><span>Settings</span></li>

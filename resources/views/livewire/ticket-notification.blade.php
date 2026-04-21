@@ -22,7 +22,7 @@
             </div>
 
             <div class="notification-body position-relative z-2 rounded-0" data-simplebar>
-                @forelse($tickets as $t)
+                {{-- @forelse($tickets as $t)
                     <div class="dropdown-item notification-item py-3 text-wrap border-bottom" id="notification-1">
                         <div class="d-flex">
                             <div class="me-2 position-relative flex-shrink-0">
@@ -55,9 +55,62 @@
                     <div class="p-3 text-center text-muted">
                         No Notifications
                     </div>
+                @endforelse --}}
+
+                @forelse($notifications as $n)
+                    <div class="dropdown-item notification-item py-3 border-bottom">
+
+                        <div class="d-flex">
+
+                            <div class="me-2">
+                                <img src="{{ URL::asset('build/img/doctors/doctor-01.jpg') }}"
+                                    class="avatar-md rounded-circle">
+                            </div>
+
+                            <div class="flex-grow-1">
+
+                                <p class="mb-0 fw-medium text-dark">
+                                    {{ $n->title }}
+                                </p>
+
+                                <p class="mb-1 text-wrap">
+                                    {{ $n->message }}
+                                </p>
+
+                                <div class="d-flex justify-content-between align-items-center">
+
+                                    <span class="fs-12 text-muted">
+                                        <i class="ti ti-clock"></i>
+                                        {{ $n->created_at->diffForHumans() }}
+                                    </span>
+
+                                    <div class="d-flex gap-2">
+
+                                        <button wire:click="markAsRead({{ $n->id }})"
+                                            class="btn btn-sm btn-success">
+                                            Read
+                                        </button>
+
+                                        <button wire:click="deleteNotification({{ $n->id }})"
+                                            class="btn btn-sm btn-danger">
+                                            X
+                                        </button>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                @empty
+                    <div class="p-3 text-center text-muted">
+                        No Notifications
+                    </div>
                 @endforelse
-
-
 
             </div>
 

@@ -46,3 +46,14 @@ CREATE TABLE complaint_followups (
     status VARCHAR(50),
     created_at DATETIME DEFAULT GETDATE()
 );
+CREATE TABLE notifications (
+    id BIGINT IDENTITY(1,1) PRIMARY KEY,
+    user_id BIGINT NOT NULL,
+    title NVARCHAR(255) NOT NULL,
+    message NVARCHAR(MAX) NULL,
+    type NVARCHAR(255) NOT NULL, -- ticket, complaint, followup, system
+    reference_id BIGINT NULL,
+    is_read BIT NOT NULL DEFAULT 0,
+    created_at DATETIME NULL,
+    updated_at DATETIME NULL
+);

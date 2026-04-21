@@ -17,7 +17,7 @@ use App\Models\ComplaintActionLog;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use App\Models\ComplaintFollowup;
-
+use App\Services\NotificationService;
 use Carbon\Carbon;
 
 class TicketController extends Controller
@@ -104,12 +104,14 @@ class TicketController extends Controller
                 return $item->designation->Designation ?? '';
             })
             ->values();
-            // dd($tickets);
+        // dd($tickets);
         return view('ticket.index', compact('tickets', 'assignList', 'totalTickets'));
     }
 
     public function store(Request $request)
     {
+
+
         $validator = Validator::make($request->all(), [
             'Department'        => 'required',
             'Complaint'         => 'required',
@@ -128,6 +130,7 @@ class TicketController extends Controller
             ], 422);
         }
 
+     $user   = UserMaster::where('UserCode',$request->assign_to)->first();
         DB::beginTransaction();
 
         try {
@@ -246,9 +249,22 @@ class TicketController extends Controller
                 'status'       => 'Pending',
                 'created_at'   => now()
             ]);
-
+            // $user->UserID
             DB::commit();
-
+            NotificationService::send(
+                23900,
+                'New Ticket Created',
+                'Ticket #' . $ticket->ticketId . ' created',
+                'ticket',
+                $ticket->ticketId
+            );
+            // NotificationService::send(
+            //     $request->assign_to,
+            //     'Ticket Assigned',
+            //     'You have been assigned Ticket #' . $ticket->ticketId,
+            //     'ticket',
+            //     $ticket->ticketId
+            // );
 
             return response()->json([
                 'status'  => true,

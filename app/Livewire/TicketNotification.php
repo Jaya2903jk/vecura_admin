@@ -3,14 +3,15 @@
 namespace App\Livewire;
 
 use Livewire\Component;
-use App\Models\IssueTicket;
+use App\Models\Notification;
 
 class TicketNotification extends Component {
-    public $tickets = [];
+    public $notifications = [];
     public $count = 0;
 
     protected $listeners = [
-        'ticketAdded' => 'refreshData'
+        'refreshNotification' => 'refreshData',
+        'notificationAdded' => 'onNotificationAdded'
     ];
 
     public function mount() {
@@ -18,27 +19,34 @@ class TicketNotification extends Component {
     }
 
     public function refreshData() {
-        $this->count = IssueTicket::where( 'type', 'complaint' )
-        ->where( 'Status', 0 )
+        $userId = session( 'user_id' );
+
+        $this->count = Notification::where( 'user_id', $userId )
+        ->where( 'is_read', 0 )
         ->count();
-     // dd($this->count);
-        $this->tickets = IssueTicket::where( 'type', 'complaint' )
-        ->where( 'Status', 0 )
-        ->orderBy( 'ticketId', 'desc' )
+
+        $this->notifications = Notification::where( 'user_id', $userId )
+        ->latest()
         ->take( 10 )
         ->get();
     }
 
-    public function markAsRead( $id ) {
-        IssueTicket::where( 'ticketId', $id )->update( [
-            'Status' => 0
-        ] );
+    public function onNotificationAdded() {
+        $this->refreshData();
+        $this->dispatch( 'show-toast', message: 'New Notification 🔔' );
+    }
 
+    public function markAsRead( $id ) {
+        Notification::where( 'id', $id )->update( [ 'is_read' => 1 ] );
+
+        $this->dispatch( 'toast', 'Marked as read' );
         $this->refreshData();
     }
 
     public function deleteNotification( $id ) {
-        IssueTicket::where( 'ticketId', $id )->delete();
+        Notification::where( 'id', $id )->delete();
+
+        $this->dispatch( 'toast', 'Deleted' );
         $this->refreshData();
     }
 

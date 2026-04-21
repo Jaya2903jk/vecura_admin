@@ -155,7 +155,39 @@
 
 @include('layout.partials.footer-scripts')
 @livewireScripts
+<script>
+    window.addEventListener('show-toast', (event) => {
+        alert(event.detail.message);
+    });
+</script>
+<script>
+    document.addEventListener('livewire:init', () => {
 
+        Livewire.on('show-toast', (data) => {
+
+            let toast = document.createElement('div');
+            toast.innerText = data.message;
+
+            toast.style.position = 'fixed';
+            toast.style.top = '20px';
+            toast.style.right = '20px';
+            toast.style.background = '#28a745';
+            toast.style.color = '#fff';
+            toast.style.padding = '12px 20px';
+            toast.style.borderRadius = '6px';
+            toast.style.zIndex = '9999';
+            toast.style.boxShadow = '0 2px 10px rgba(0,0,0,0.2)';
+
+            document.body.appendChild(toast);
+
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                setTimeout(() => toast.remove(), 500);
+            }, 2500);
+        });
+
+    });
+</script>
 </body>
 
 </html>
