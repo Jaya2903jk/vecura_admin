@@ -27,29 +27,60 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr>
-                                    <td>Support</td>
-                                    <td>General support and operational concerns</td>
-                                    <td>Front Office</td>
-                                    <td><span class="badge badge-soft-success border border-success">Active</span></td>
-                                </tr>
-                                <tr>
-                                    <td>Finance</td>
-                                    <td>Billing, receipts and payments</td>
-                                    <td>Billing</td>
-                                    <td><span class="badge badge-soft-success border border-success">Active</span></td>
-                                </tr>
-                                <tr>
-                                    <td>Technical</td>
-                                    <td>Software and access related issues</td>
-                                    <td>IT</td>
-                                    <td><span class="badge badge-soft-info border border-info">Active</span></td>
-                                </tr>
+                                @forelse($categories as $cat)
+                                    <tr>
+                                        <td>{{ $cat->category_name }}</td>
+                                        <td>{{ $cat->description ?? '-' }}</td>
+                                        <td>{{ $cat->department->DepartmentName ?? '-' }}</td>
+                                        <td>
+                                            @if ($cat->status == 'Active')
+                                                <span class="badge badge-soft-success border border-success">Active</span>
+                                            @else
+                                                <span class="badge badge-soft-warning border border-warning">Inactive</span>
+                                            @endif
+                                        </td>
+                                    </tr>
+                                @empty
+                                    <tr>
+                                        <td colspan="4" class="text-center">No data found</td>
+                                    </tr>
+                                @endforelse
                             </tbody>
                         </table>
                     </div>
                 </div>
             </div>
+            <div class="table-footer-bar d-flex justify-content-between align-items-center">
+                <div class="d-flex align-items-center gap-3">
+
+                    <div>
+                        Row Per Page
+                        <select id="perPageDept" class="form-select form-select-sm d-inline-block" style="width:70px;">
+                            <option value="10" {{ $perPage == 10 ? 'selected' : '' }}>10</option>
+                            <option value="25" {{ $perPage == 25 ? 'selected' : '' }}>25</option>
+                            <option value="50" {{ $perPage == 50 ? 'selected' : '' }}>50</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        Showing {{ $categories->firstItem() }} to {{ $categories->lastItem() }}
+                        of {{ $categories->total() }} entries
+                    </div>
+
+                </div>
+                <div class="pagination-box">
+                    {{ $categories->appends(['per_page' => $perPage])->links('pagination::bootstrap-5') }}
+                </div>
+
+            </div>
+            <script>
+                document.getElementById('perPageDept').addEventListener('change', function() {
+                    let perPage = this.value;
+                    let url = new URL(window.location.href);
+                    url.searchParams.set('per_page', perPage);
+                    window.location.href = url.toString();
+                });
+            </script>
 
             <div id="add_modal" class="modal fade">
                 <div class="modal-dialog modal-dialog-centered">
@@ -59,36 +90,39 @@
                             <button type="button" class="btn-close btn-close-modal custom-btn-close"
                                 data-bs-dismiss="modal" aria-label="Close"><i class="ti ti-x"></i></button>
                         </div>
-                        <form action="category-master-fixed.html">
+
+                        <form id="categoryForm" class="needs-validation" novalidate>
+                            @csrf
                             <div class="modal-body">
                                 <div class="mb-3">
                                     <label class="form-label">Category Name</label>
-                                    <input type="text" class="form-control" placeholder="Enter category name">
+                                    <input type="text" name="category_name" id="category_name" class="form-control"
+                                        placeholder="Enter category name">
                                 </div>
-                                <div class="mb-3">
-                                    <label class="form-label">Description</label>
-                                    <textarea class="form-control" rows="3" placeholder="Enter description"></textarea>
-                                </div>
+
                                 <div class="mb-3">
                                     <label class="form-label">Linked Department</label>
-                                    <select class="form-control">
-                                        <option>Front Office</option>
-                                        <option>Billing</option>
-                                        <option>IT</option>
-                                        <option>Nursing</option>
+
+                                    <select name="department_id" class="form-control">
+                                        <option value="">Select Department</option>
+                                        @foreach ($departments as $dept)
+                                            <option value="{{ $dept->Departmentid }}">
+                                                {{ $dept->DepartmentName }}
+                                            </option>
+                                        @endforeach
                                     </select>
                                 </div>
                                 <div class="mb-3">
                                     <label class="form-label">Status</label>
-                                    <select class="form-control">
-                                        <option>Active</option>
-                                        <option>Inactive</option>
+                                    <select name="status" class="form-control">
+                                        <option value="Active">Active</option>
+                                        <option value="Inactive">Inactive</option>
                                     </select>
                                 </div>
                             </div>
                             <div class="modal-footer d-flex align-items-center gap-1">
                                 <button type="button" class="btn btn-white border" data-bs-dismiss="modal">Cancel</button>
-                                <button type="submit" class="btn btn-primary">Add New Category</button>
+                                <button type="submit" id="submitBtn" class="btn btn-primary">Add New Category</button>
                             </div>
                         </form>
                     </div>
@@ -102,4 +136,95 @@
     </div>
     <script src="{{ asset('build/plugins/sweetalert2/sweetalert2.min.js') }}"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function() {
+
+            $('#categoryForm').on('submit', function(e) {
+                e.preventDefault();
+
+                let form = this;
+                let formData = new FormData(form);
+                let submitBtn = $('#submitBtn');
+
+                submitBtn.prop('disabled', true).text('Processing...');
+
+                $('.is-invalid').removeClass('is-invalid');
+                $('.invalid-feedback.dynamic').remove();
+
+                $.ajax({
+                    url: "{{ url('category/store') }}",
+                    type: "POST",
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    headers: {
+                        'X-CSRF-TOKEN': $('input[name="_token"]').val()
+                    },
+
+                    success: function(response) {
+
+                        submitBtn.prop('disabled', false).text('Add New Category');
+
+                        if (response.status) {
+
+                            $('#add_modal').modal('hide');
+                            form.reset();
+
+                            Swal.fire({
+                                icon: "success",
+                                title: "Category Created Successfully",
+                                showConfirmButton: false,
+                                timer: 1500
+                            });
+
+                            setTimeout(function() {
+                                location.reload();
+                            }, 1500);
+                        }
+                    },
+
+                    error: function(xhr) {
+
+                        submitBtn.prop('disabled', false).text('Add New Category');
+
+                        if (xhr.status === 422) {
+
+                            let errors = xhr.responseJSON.errors;
+
+                            $.each(errors, function(key, value) {
+
+                                let input = $('[name="' + key + '"]');
+
+                                input.addClass('is-invalid');
+
+                                if (input.next('.invalid-feedback').length) {
+                                    input.next('.invalid-feedback').text(value[0]);
+                                } else {
+                                    input.after(
+                                        '<div class="invalid-feedback dynamic">' +
+                                        value[0] + '</div>'
+                                    );
+                                }
+                            });
+
+                            $('html, body').animate({
+                                scrollTop: $('.is-invalid:first').offset().top - 100
+                            }, 500);
+
+                        } else {
+
+                            Swal.fire({
+                                icon: "error",
+                                title: "Error",
+                                text: "Something went wrong!",
+                            });
+
+                            console.log(xhr.responseText);
+                        }
+                    }
+                });
+            });
+
+        });
+    </script>
 @endsection

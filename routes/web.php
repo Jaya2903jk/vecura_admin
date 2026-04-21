@@ -33,13 +33,18 @@ Route::middleware(['auth.custom', 'nocache'])->group(function () {
         return view('dashboard');
     });
     Route::get('/staff', [StaffController::class, 'index'])->name('staff.index');
-    Route::get('/category', [CategoryController::class, 'index'])->name('category.index');
-    Route::get('/department', [DepartmentController::class, 'index'])->name('department.index');
     Route::get('/designation', [DesginationController::class, 'index'])->name('designation.index');
+    Route::get('/issues-master', [DesginationController::class, 'index'])->name('designation.index');
+
     Route::get('/branch', [BranchController::class, 'index'])->name('branch.index');
     Route::get('/role', [RoleController::class, 'index'])->name('role-permission.index');
-        Route::get('/permission', [PermissionController::class, 'index'])->name('permission.index');
+    Route::get('/permission', [PermissionController::class, 'index'])->name('permission.index');
 
+    Route::get('/category', [CategoryController::class, 'index'])->name('category.index');
+    Route::post('/category/store', [CategoryController::class, 'store'])->name('category.store');
+
+    Route::get('/department', [DepartmentController::class, 'index'])->name('department.index');
+        Route::post('/department/store', [DepartmentController::class, 'store'])->name('department.store');
 
     Route::get('/tickets', [TicketController::class, 'index'])->name('tickets');
     Route::post('/tickets', [TicketController::class, 'store']);

@@ -44,12 +44,22 @@
                         </div>
                         <div class="toolbar-field">
                             <label for="typeFilter">Type</label>
-                            <select id="typeFilter" class="form-select">
+                            {{-- <select id="typeFilter" class="form-select">
                                 <option value="">All Type</option>
                                 <option value="complaint">Complaint</option>
                                 <option value="request">Request</option>
+                            </select> --}}
+                            <select id="typeFilter" class="form-select">
+                                <option value="">All Type</option>
+                                <option value="complaint" {{ request('type') == 'complaint' ? 'selected' : '' }}>
+                                    Complaint
+                                </option>
+                                <option value="request" {{ request('type') == 'request' ? 'selected' : '' }}>
+                                    Request
+                                </option>
                             </select>
                         </div>
+
                         <div class="toolbar-field">
                             <label for="branchFilter">Branch</label>
                             <select id="branchFilter" class="form-select"></select>
@@ -77,96 +87,48 @@
                 </div> --}}
             </div>
             <ul class="nav nav-tabs nav-bordered mb-3">
+
+                <!-- ALL -->
+                <li class="nav-item">
+                    <a href="{{ route('tickets') }}" class="nav-link {{ request()->has('status') ? '' : 'active' }}">
+                        <span>ALL</span>
+                    </a>
+                </li>
+
+                <!-- Pending -->
                 <li class="nav-item">
                     <a href="{{ route('tickets', ['status' => 0]) }}"
-                        class="nav-link {{ request('status', 0) == 0 ? 'active' : '' }}">
+                        class="nav-link {{ request('status') === '0' ? 'active' : '' }}">
                         <span>Pending</span>
                     </a>
                 </li>
+
+                <!-- Inprogress -->
                 <li class="nav-item">
                     <a href="{{ route('tickets', ['status' => 1]) }}"
                         class="nav-link {{ request('status') == 1 ? 'active' : '' }}">
                         <span>Inprogress</span>
                     </a>
                 </li>
+
+                <!-- Resolved -->
                 <li class="nav-item">
                     <a href="{{ route('tickets', ['status' => 2]) }}"
                         class="nav-link {{ request('status') == 2 ? 'active' : '' }}">
                         <span>Resolved</span>
                     </a>
                 </li>
+
+                <!-- Closed -->
                 <li class="nav-item">
                     <a href="{{ route('tickets', ['status' => 3]) }}"
                         class="nav-link {{ request('status') == 3 ? 'active' : '' }}">
                         <span>Closed</span>
                     </a>
                 </li>
+
             </ul>
-            {{-- <div class="table-responsive">
-                <table class="table table-nowrap datatable">
-                            <table class="table ticket-table mb-0">
 
-                    <thead>
-                        <tr>
-                            <th>Ticket ID</th>
-                            <th>Department</th>
-                            <th>Branch</th>
-                            <th>Reg No</th>
-                            <th>Issues</th>
-                            <th>Type</th>
-                            <th>Status</th>
-                            <th></th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach ($tickets as $t)
-                            <tr>
-                                <td>
-                                    <a href="{{ url('ticket-details/' . $t->ticketId) }}">
-                                        <strong>#TKT{{ str_pad($t->ticketId, 3, '0', STR_PAD_LEFT) }}</strong>
-                                    </a>
-                                </td>
-                                <td>{{ $t->department->DepartmentName ?? '-' }}</td>
-                                <td>{{ $t->location->LocationName ?? '-' }}</td>
-                                <td>
-                                    <div class="d-flex align-items-center">
-                                        <strong><a href="javascript:void(0);"
-                                                class="fw-medium">{{ $t->customer->RegistrationNo ?? '-' }}</a></strong>
-                                    </div>
-                                </td>
-                                <td>{{ $t->Subject ?? '' }}</td>
-                                <td>{{ $t->type ?? 'Ticket' }}</td>
-                                <td>
-                                    <span
-                                        class="badge
-                  @if ($t->Status == 0) bg-warning
-                  @elseif($t->Status == 1) bg-info
-                  @elseif($t->Status == 2) bg-success
-                  @else bg-secondary @endif">
-
-                                        @if ($t->Status == 0)
-                                            Pending
-                                        @elseif($t->Status == 1)
-                                            In Progress
-                                        @elseif($t->Status == 2)
-                                            Resolved
-                                        @else
-                                            Closed
-                                        @endif
-
-                                    </span>
-                                </td>
-                                <td class="action-item">
-                                    <a href="{{ route('ticket.view', $t->ticketId) }}">
-                                        <i class="ti ti-eye"></i>
-                                    </a>
-                                </td>
-
-                            </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            </div> --}}
             <div class="ticket-card">
                 <div class="table-responsive">
                     <table class="table ticket-table mb-0">
@@ -192,7 +154,6 @@
                                     data-reg="{{ $t->customer->RegistrationNo ?? '-' }}"
                                     data-issue="{{ $t->Subject ?? '' }}" data-type="{{ $t->type ?? 'Ticket' }}"
                                     data-status="{{ $t->Status }}">
-
                                     {{-- Ticket ID --}}
                                     <td>
                                         <strong>
@@ -512,7 +473,6 @@
                     }
                 }
             </style>
-            </style>
             {{-- Footer --}}
             <div class="table-footer-bar">
                 <div>
@@ -691,18 +651,14 @@
                     }
                 });
             });
-            // Set customer name
-            $('#customerSelect').on('change', function() {
-                let selected = this.options[this.selectedIndex];
-                $('#customerName').val(selected.getAttribute('data-name') || '');
-            });
+            $('#customerSelect, #department, #category').on('change', function() {
 
-            // Load tickets
-            $('#customerSelect').on('change', function() {
+                let customerCode = $('#customerSelect').val();
+                let department = $('#department').val();
+                let category = $('#category').val();
 
-                let customerCode = $(this).val();
-
-                if (!customerCode) {
+                // ✅ validation
+                if (!customerCode || !department || !category) {
                     $('#customerTicketsBlock').hide();
                     return;
                 }
@@ -711,7 +667,9 @@
                     url: "/customer-tickets",
                     type: "GET",
                     data: {
-                        customer_code: customerCode
+                        customer_code: customerCode,
+                        department: department,
+                        category: category
                     },
 
                     success: function(res) {
@@ -729,18 +687,17 @@
 
                                 let statusBadge = '';
 
-                                if (t.Status === "0") {
+                                if (t.Status == 0) {
                                     statusBadge =
                                         '<span class="badge bg-warning">Pending</span>';
                                     hasOpen = true;
-                                } else if (t.Status === "1") {
+                                } else if (t.Status == 1) {
                                     statusBadge =
                                         '<span class="badge bg-info">InProgress</span>';
                                     hasOpen = true;
-                                } else if (t.Status === "2") {
+                                } else if (t.Status == 2) {
                                     statusBadge =
                                         '<span class="badge bg-success">Resolved</span>';
-                                    hasOpen = true;
                                 } else {
                                     statusBadge =
                                         '<span class="badge bg-danger">Closed</span>';
@@ -768,10 +725,12 @@
 
                                 table.append(row);
                             });
+
+                            // ✅ block duplicate ticket
                             // if (hasOpen) {
                             //     $('#submitBtn')
                             //         .prop('disabled', true)
-                            //         .text('Already Active Ticket Exists');
+                            //         .text('Active Ticket Exists');
                             // } else {
                             //     $('#submitBtn')
                             //         .prop('disabled', false)
@@ -780,11 +739,32 @@
 
                         } else {
                             $('#customerTicketsBlock').hide();
-                            $('#submitBtn').prop('disabled', false).text('Add Ticket');
+                            $('#submitBtn')
+                                .prop('disabled', false)
+                                .text('Add Ticket');
                         }
                     }
                 });
             });
+
+        });
+    </script>
+    <script>
+        document.getElementById('typeFilter').addEventListener('change', function() {
+            let type = this.value;
+
+            let url = new URL(window.location.href);
+
+            if (type) {
+                url.searchParams.set('type', type);
+            } else {
+                url.searchParams.delete('type');
+            }
+
+            window.location.href = url.toString();
+        });
+        document.getElementById('clearFilters').addEventListener('click', function() {
+            window.location.href = "{{ route('tickets') }}";
         });
     </script>
     <script>

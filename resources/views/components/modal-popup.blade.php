@@ -14414,8 +14414,10 @@
                             <div class="row" id="vsupport_block" style="display:none;">
                                 <div class="col-lg-6">
                                     <div class="mb-2">
-                                        <label class="form-label">Alternate Mobile<span
-                                                class="text-danger ms-1">*</span></label>
+                                        <label class="form-label">Alternate Mobile
+                                            {{-- <span
+                                                class="text-danger ms-1">*</span> --}}
+                                            </label>
                                         <input type="number" class="form-control" name="alternateMobile"
                                             placeholder="" required>
                                         <div class="invalid-feedback">
@@ -14511,6 +14513,28 @@
 
                                 </div>
                             </div><!-- end col -->
+                            <br>
+                               <div id="customerTicketsBlock" style="display:none;">
+    <hr>
+    <h6 class="fw-bold text-primary">Customer Previous Tickets</h6>
+
+    <div class="table-responsive" style="max-height: 250px; overflow-y: auto;">
+        <table class="table table-bordered table-sm mb-0">
+            <thead class="table-light" style="position: sticky; top: 0; z-index: 1;">
+                <tr>
+                    <th>Ticket No</th>
+                    <th>Subject</th>
+                    <th>Status</th>
+                    <th>Date</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody id="customerTicketsTable"></tbody>
+        </table>
+    </div>
+</div>
+
+                        <!-- end row -->
                             <div class="col-lg-12">
                                 <div class="mb-2">
                                     <label class="form-label">File</label>
@@ -14527,13 +14551,13 @@
                                 </div>
                             </div><!-- end col -->
                         </div>
-                        
-                        <div id="customerTicketsBlock" style="display:none;">
+
+                        {{-- <div id="customerTicketsBlock" style="display:none;">
                             <hr>
                             <h6 class="fw-bold text-primary">Customer Previous Tickets</h6>
 
                             <div class="table-responsive">
-                            <table class="table table-bordered table-sm">        
+                            <table class="table table-bordered table-sm">
                                 <thead>
                                         <tr>
                                             <th>Ticket No</th>
@@ -14546,9 +14570,8 @@
                                     <tbody id="customerTicketsTable"></tbody>
                                 </table>
                             </div>
-                        </div>
-
-                        <!-- end row -->
+                        </div> --}}
+                     
                     </div>
                     <div class="modal-footer d-flex align-items-center gap-1">
                         <button type="button" class="btn btn-white border"

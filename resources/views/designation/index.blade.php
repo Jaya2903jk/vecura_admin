@@ -69,87 +69,92 @@
                         <table class="table datatable mb-0">
                             <thead>
                                 <tr>
-                                    <th>Designation Name</th>
-                                    <th>Department</th>
-                                    <th>Description</th>
+                                    <th>Designation Code</th>
+                                    <th>Designation</th>
+                                    {{-- <th>Description</th> --}}
                                     <th>Status</th>
                                     <th>Action</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr>
-                                    <td>Nurse</td>
-                                    <td>Nursing</td>
-                                    <td>Provides patient care and supports treatment.</td>
-                                    <td><span class="badge badge-soft-success border border-success">Active</span></td>
-                                    <td>
-                                        <div class="action-item">
-                                            <a href="javascript:void(0);" data-bs-toggle="dropdown">
-                                                <i class="ti ti-dots-vertical"></i>
-                                            </a>
-                                            <ul class="dropdown-menu p-2">
-                                                <li><a href="javascript:void(0);"
-                                                        class="dropdown-item d-flex align-items-center"
-                                                        data-bs-toggle="modal" data-bs-target="#edit_modal">Edit</a></li>
-                                                <li><a href="javascript:void(0);"
-                                                        class="dropdown-item d-flex align-items-center"
-                                                        data-bs-toggle="modal" data-bs-target="#delete_modal">Delete</a>
-                                                </li>
-                                            </ul>
-                                        </div>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>Receptionist</td>
-                                    <td>Front Office</td>
-                                    <td>Handles appointments and visitors.</td>
-                                    <td><span class="badge badge-soft-success border border-success">Active</span></td>
-                                    <td>
-                                        <div class="action-item">
-                                            <a href="javascript:void(0);" data-bs-toggle="dropdown">
-                                                <i class="ti ti-dots-vertical"></i>
-                                            </a>
-                                            <ul class="dropdown-menu p-2">
-                                                <li><a href="javascript:void(0);"
-                                                        class="dropdown-item d-flex align-items-center"
-                                                        data-bs-toggle="modal" data-bs-target="#edit_modal">Edit</a></li>
-                                                <li><a href="javascript:void(0);"
-                                                        class="dropdown-item d-flex align-items-center"
-                                                        data-bs-toggle="modal" data-bs-target="#delete_modal">Delete</a>
-                                                </li>
-                                            </ul>
-                                        </div>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>Technician</td>
-                                    <td>Diagnostics</td>
-                                    <td>Supports equipment and test operations.</td>
-                                    <td><span class="badge badge-soft-warning border border-warning">Pending</span></td>
-                                    <td>
-                                        <div class="action-item">
-                                            <a href="javascript:void(0);" data-bs-toggle="dropdown">
-                                                <i class="ti ti-dots-vertical"></i>
-                                            </a>
-                                            <ul class="dropdown-menu p-2">
-                                                <li><a href="javascript:void(0);"
-                                                        class="dropdown-item d-flex align-items-center"
-                                                        data-bs-toggle="modal" data-bs-target="#edit_modal">Edit</a></li>
-                                                <li><a href="javascript:void(0);"
-                                                        class="dropdown-item d-flex align-items-center"
-                                                        data-bs-toggle="modal" data-bs-target="#delete_modal">Delete</a>
-                                                </li>
-                                            </ul>
-                                        </div>
-                                    </td>
-                                </tr>
+                                @forelse($designations as $des)
+                                    <tr>
+                                        <td>{{ $des->DesignationCode }}</td>
+                                        <td>{{ $des->Designation }}</td>
+
+                                        <td>
+                                            @if ($des->status == 0)
+                                                <span class="badge badge-soft-success border border-success">Active</span>
+                                            @else
+                                                <span class="badge badge-soft-danger border border-danger">Inactive</span>
+                                            @endif
+                                        </td>
+
+                                        <td>
+                                            <div class="action-item">
+                                                <a href="javascript:void(0);" data-bs-toggle="dropdown">
+                                                    <i class="ti ti-dots-vertical"></i>
+                                                </a>
+                                                <ul class="dropdown-menu p-2">
+                                                    <li>
+                                                        <a href="#" class="dropdown-item" data-bs-toggle="modal"
+                                                            data-bs-target="#edit_modal">
+                                                            Edit
+                                                        </a>
+                                                    </li>
+                                                    <li>
+                                                        <a href="#" class="dropdown-item" data-bs-toggle="modal"
+                                                            data-bs-target="#delete_modal">
+                                                            Delete
+                                                        </a>
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                @empty
+                                    <tr>
+                                        <td colspan="4" class="text-center">No data found</td>
+                                    </tr>
+                                @endforelse
                             </tbody>
+
                         </table>
                     </div>
 
                 </div>
             </div>
+            <div class="table-footer-bar d-flex justify-content-between align-items-center">
+                <div class="d-flex align-items-center gap-3">
 
+                    <div>
+                        Row Per Page
+                        <select id="perPageDept" class="form-select form-select-sm d-inline-block" style="width:70px;">
+                            <option value="10" {{ $perPage == 10 ? 'selected' : '' }}>10</option>
+                            <option value="25" {{ $perPage == 25 ? 'selected' : '' }}>25</option>
+                            <option value="50" {{ $perPage == 50 ? 'selected' : '' }}>50</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        Showing {{ $designations->firstItem() }} to {{ $designations->lastItem() }}
+                        of {{ $designations->total() }} entries
+                    </div>
+
+                </div>
+                <div class="pagination-box">
+                    {{ $designations->appends(['per_page' => $perPage])->links('pagination::bootstrap-5') }}
+                </div>
+
+            </div>
+            <script>
+                document.getElementById('perPageDept').addEventListener('change', function() {
+                    let perPage = this.value;
+                    let url = new URL(window.location.href);
+                    url.searchParams.set('per_page', perPage);
+                    window.location.href = url.toString();
+                });
+            </script>
             <div id="add_modal" class="modal fade">
                 <div class="modal-dialog modal-dialog-centered">
                     <div class="modal-content">

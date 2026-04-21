@@ -27,26 +27,9 @@ class TicketController extends Controller
     {
         $totalTickets = IssueTicket::where('type', 'complaint')->count();
 
-        // $q = IssueTicket::with(['department', 'customer', 'location', 'complaints'])
-        //     ->withCount([
-        //         'complaints',
-        //         'complaints as pending_count' => function ($query) {
-        //             $query->where('callStatus', 'pending');
-        //         },
-        //         'complaints as inprogress_count' => function ($query) {
-        //             $query->where('callStatus', 'InProgress');
-        //         },
-        //         'complaints as closed_count' => function ($query) {
-        //             $query->where('callStatus', 'Closed');
-        //         },
-        //     ])
-        //     ;
 
-        // $tickets = $q
-        //     ->where('type', 'complaint')
-        //     ->orderBy('ticketId', 'desc')
-        //     ->paginate(10);
         $status     = $request->status;
+        $type   = $request->type;
         $q = IssueTicket::with(['department', 'customer', 'location', 'complaints'])
             ->withCount([
                 'complaints',
@@ -63,7 +46,13 @@ class TicketController extends Controller
             ->where('type', 'complaint');
 
         //  Status filter (from tabs)
-        if ($status !== null && $status !== '') {
+        // if ($status !== null && $status !== '') {
+        //     $q->where('Status', $status);
+        // }
+        if ($request->has('type') && $type != '') {
+            $q->where('type', $type);
+        }
+        if ($request->has('status')) {
             $q->where('Status', $status);
         }
         $tickets = $q->paginate(10)->appends($request->all());
@@ -110,8 +99,6 @@ class TicketController extends Controller
 
     public function store(Request $request)
     {
-
-
         $validator = Validator::make($request->all(), [
             'Department'        => 'required',
             'Complaint'         => 'required',
@@ -121,7 +108,7 @@ class TicketController extends Controller
             'assign_to'         => 'required',
             'source'            => 'required',
             'feedback'          => 'required',
-            'alternateMobile'   => 'required|digits:10',
+            'alternateMobile'   => 'nullable|digits:10',
         ]);
 
         if ($validator->fails()) {
@@ -130,7 +117,7 @@ class TicketController extends Controller
             ], 422);
         }
 
-     $user   = UserMaster::where('UserCode',$request->assign_to)->first();
+        $user   = UserMaster::where('UserCode', $request->assign_to)->first();
         DB::beginTransaction();
 
         try {
@@ -284,7 +271,12 @@ class TicketController extends Controller
     }
     public function customerTickets(Request $request)
     {
+        $category = IssueCategory::where('category_id', $request->category)->value('category_name');
+
         $tickets = IssueTicket::where('CustomerCode', $request->customer_code)
+            ->where('Department', $request->department)
+            ->where('Subject',  $category)
+            ->whereIn('Status', [0]) // 0 = Pending, 1 = InProgress
             ->orderBy('ticketId', 'desc')
             ->get(['ticketId', 'Subject', 'Status', 'CreatedDate']);
 

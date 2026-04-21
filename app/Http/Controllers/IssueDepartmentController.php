@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use App\Models\IssueCategory;
 
 class IssueDepartmentController extends Controller {
     //
@@ -18,6 +19,7 @@ class IssueDepartmentController extends Controller {
             'data' => $data
         ] );
     }
+   
 
     public function store( Request $request ) {
 

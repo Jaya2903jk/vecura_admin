@@ -70,90 +70,88 @@
                             <thead>
                                 <tr>
                                     <th>Branch Name</th>
-                                    <th>City</th>
+                                    {{-- <th>City</th> --}}
                                     <th>Pincode</th>
-                                    <th>Manager</th>
+                                    {{-- <th>Manager</th> --}}
                                     <th>Status</th>
                                     <th>Action</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr>
-                                    <td>Trustcare Trichy</td>
-                                    <td>Trichy</td>
-                                    <td>620001</td>
-                                    <td>Murali</td>
-                                    <td><span class="badge badge-soft-success border border-success">Active</span></td>
-                                    <td>
-                                        <div class="action-item">
-                                            <a href="javascript:void(0);" data-bs-toggle="dropdown">
-                                                <i class="ti ti-dots-vertical"></i>
-                                            </a>
-                                            <ul class="dropdown-menu p-2">
-                                                <li><a href="javascript:void(0);"
-                                                        class="dropdown-item d-flex align-items-center"
-                                                        data-bs-toggle="modal" data-bs-target="#edit_modal">Edit</a></li>
-                                                <li><a href="javascript:void(0);"
-                                                        class="dropdown-item d-flex align-items-center"
-                                                        data-bs-toggle="modal" data-bs-target="#delete_modal">Delete</a>
-                                                </li>
-                                            </ul>
-                                        </div>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>Trustcare Chennai</td>
-                                    <td>Chennai</td>
-                                    <td>600001</td>
-                                    <td>Pallavi A</td>
-                                    <td><span class="badge badge-soft-success border border-success">Active</span></td>
-                                    <td>
-                                        <div class="action-item">
-                                            <a href="javascript:void(0);" data-bs-toggle="dropdown">
-                                                <i class="ti ti-dots-vertical"></i>
-                                            </a>
-                                            <ul class="dropdown-menu p-2">
-                                                <li><a href="javascript:void(0);"
-                                                        class="dropdown-item d-flex align-items-center"
-                                                        data-bs-toggle="modal" data-bs-target="#edit_modal">Edit</a></li>
-                                                <li><a href="javascript:void(0);"
-                                                        class="dropdown-item d-flex align-items-center"
-                                                        data-bs-toggle="modal" data-bs-target="#delete_modal">Delete</a>
-                                                </li>
-                                            </ul>
-                                        </div>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>Trustcare Madurai</td>
-                                    <td>Madurai</td>
-                                    <td>625001</td>
-                                    <td>Haseena</td>
-                                    <td><span class="badge badge-soft-warning border border-warning">Pending</span></td>
-                                    <td>
-                                        <div class="action-item">
-                                            <a href="javascript:void(0);" data-bs-toggle="dropdown">
-                                                <i class="ti ti-dots-vertical"></i>
-                                            </a>
-                                            <ul class="dropdown-menu p-2">
-                                                <li><a href="javascript:void(0);"
-                                                        class="dropdown-item d-flex align-items-center"
-                                                        data-bs-toggle="modal" data-bs-target="#edit_modal">Edit</a></li>
-                                                <li><a href="javascript:void(0);"
-                                                        class="dropdown-item d-flex align-items-center"
-                                                        data-bs-toggle="modal" data-bs-target="#delete_modal">Delete</a>
-                                                </li>
-                                            </ul>
-                                        </div>
-                                    </td>
-                                </tr>
+                                @forelse($branches as $branch)
+                                    <tr>
+                                        <td>{{ $branch->Branchname }}</td>
+                                        {{-- <td>{{ $branch->ERPLocation ?? '-' }}</td> --}}
+                                        <td>{{ $branch->LocId ?? '-' }}</td>
+                                        {{-- <td>{{ $branch->CreatedBy ?? '-' }}</td> --}}
+                                        <td>
+                                            @if ($branch->Status == 0)
+                                                <span class="badge badge-soft-success border border-success">Active</span>
+                                            @else
+                                                <span class="badge badge-soft-warning border border-warning">Pending</span>
+                                            @endif
+                                        </td>
+                                        <td>
+                                            <div class="action-item">
+                                                <a href="javascript:void(0);" data-bs-toggle="dropdown">
+                                                    <i class="ti ti-dots-vertical"></i>
+                                                </a>
+                                                <ul class="dropdown-menu p-2">
+                                                    <li>
+                                                        <a href="#" class="dropdown-item" data-bs-toggle="modal"
+                                                            data-bs-target="#edit_modal">
+                                                            Edit
+                                                        </a>
+                                                    </li>
+                                                    <li>
+                                                        <a href="#" class="dropdown-item" data-bs-toggle="modal"
+                                                            data-bs-target="#delete_modal">
+                                                            Delete
+                                                        </a>
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                @empty
+                                    <tr>
+                                        <td colspan="6" class="text-center">No data found</td>
+                                    </tr>
+                                @endforelse
                             </tbody>
                         </table>
+
                     </div>
 
-                </div>
-            </div>
 
+                </div>
+
+            </div>
+            <div class="table-footer-bar d-flex justify-content-between align-items-center">
+                <div>
+                    Row Per Page
+                    <select id="perPage" class="form-select form-select-sm d-inline-block" style="width:70px;">
+                        <option value="10" {{ $perPage == 10 ? 'selected' : '' }}>10</option>
+                        <option value="25" {{ $perPage == 25 ? 'selected' : '' }}>25</option>
+                        <option value="50" {{ $perPage == 50 ? 'selected' : '' }}>50</option>
+                    </select>
+                    Entries
+                </div>
+
+                <!-- Pagination -->
+                <div class="pagination-box">
+                    {{ $branches->appends(['per_page' => $perPage])->links('pagination::bootstrap-5') }}
+                </div>
+
+            </div>
+            <script>
+                document.getElementById('perPage').addEventListener('change', function() {
+                    let perPage = this.value;
+                    let url = new URL(window.location.href);
+                    url.searchParams.set('per_page', perPage);
+                    window.location.href = url.toString();
+                });
+            </script>
             <div id="add_modal" class="modal fade">
                 <div class="modal-dialog modal-dialog-centered">
                     <div class="modal-content">

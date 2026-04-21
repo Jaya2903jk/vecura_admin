@@ -12,34 +12,7 @@ class IssuesMasterController extends Controller
     /**
      * GET ALL RECORDS
      */
-    // public function index()
-    // {
-    //     $data = DB::connection('sqlsrv')
-    //         ->table('IssueMasterTest as im')
-    //         ->leftJoin('issueDepartmentMaster as d', 'im.DepartmentId', '=', 'd.Departmentid')
-    //         ->leftJoin('issue_categories as c', 'im.CategoryId', '=', 'c.category_id')
-    //         ->leftJoin('User_Group_Master as r1', 'im.Level1Role', '=', 'r1.UserGroupID')
-    //         ->leftJoin('User_Group_Master as r2', 'im.Level2Role', '=', 'r2.UserGroupID')
-    //         ->leftJoin('User_Group_Master as r3', 'im.Level3Role', '=', 'r3.UserGroupID')
-    //         ->leftJoin('User_Group_Master as r4', 'im.Level4Role', '=', 'r4.UserGroupID')
-    //         ->leftJoin('User_Group_Master as r5', 'im.Level5Role', '=', 'r5.UserGroupID')
-    //         ->select(
-    //             'im.*',
-    //             'd.DepartmentName',
-    //             'c.category_name',
-    //             'r1.UserGroupName as Level1Name',
-    //             'r2.UserGroupName as Level2Name',
-    //             'r3.UserGroupName as Level3Name',
-    //             'r4.UserGroupName as Level4Name',
-    //             'r5.UserGroupName as Level5Name'
-    //         )
-    //         ->get();
-
-    //     return response()->json([
-    //         'status' => true,
-    //         'data' => $data
-    //     ]);
-    // }
+   
     public function index()
     {
         $issues = IssueMaster::with('approvalFlows')->get();

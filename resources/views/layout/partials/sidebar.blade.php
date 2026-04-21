@@ -181,41 +181,39 @@
                     <li class="menu-title"><span>Staff</span></li>
                     <li>
                         <ul>
-
                             <li class="{{ Request::is('staff', 'staff') ? 'active' : '' }}">
                                 <a href="{{ route('staff.index') }}">
                                     <i class="ti ti-users-group"></i><span>Staff</span>
                                 </a>
 
                             </li>
-
-
-
                         </ul>
                     </li>
                     <li class="menu-title"><span>Masters</span></li>
                     <li>
                         <ul>
-
                             <li class="submenu">
                                 <a href="javascript:void(0);"
-                                    class="{{ Request::is('organization-settings', 'localization-settings', 'prefixes-settings', 'seo-setup-settings', 'language-settings', 'language-settings2', 'language-settings3', 'maintenance-mode-settings', 'login-and-register-settings', 'preferences-settings') ? 'active subdrop' : '' }}">
+                                    class="{{ Request::is('category', 'branch', 'department', 'designation', 'language-settings', 'language-settings2', 'language-settings3', 'maintenance-mode-settings', 'login-and-register-settings', 'preferences-settings') ? 'active subdrop' : '' }}">
                                     <i class="ti ti-world-cog"></i><span>All Masters</span>
                                     <span class="menu-arrow"></span>
                                 </a>
                                 <ul>
                                     <li><a href="{{ route('branch.index') }}"
-                                            class="{{ Request::is('organization-settings') ? 'active' : '' }}">Branch</a>
+                                            class="{{ Request::is('branch') ? 'active' : '' }}">Branch</a>
                                     </li>
                                     <li><a href="{{ route('department.index') }}"
-                                            class="{{ Request::is('localization-settings') ? 'active' : '' }}">Department</a>
+                                            class="{{ Request::is('department') ? 'active' : '' }}">Department</a>
                                     </li>
                                     <li><a href="{{ route('designation.index') }}"
-                                            class="{{ Request::is('prefixes-settings') ? 'active' : '' }}">Designation</a>
+                                            class="{{ Request::is('designation') ? 'active' : '' }}">Designation</a>
                                     </li>
                                     <li><a href="{{ route('category.index') }}"
-                                            class="{{ Request::is('seo-setup-settings') ? 'active' : '' }}">Issues
+                                            class="{{ Request::is('category') ? 'active' : '' }}">Issues
                                             Category</a></li>
+                                    <li><a href="{{ route('category.index') }}"
+                                            class="{{ Request::is('category') ? 'active' : '' }}">Issues Master
+                                        </a></li>
 
                                     <li><a href="{{ route('role-permission.index') }}"
                                             class="{{ Request::is('maintenance-mode-settings') ? 'active' : '' }}">Roles
