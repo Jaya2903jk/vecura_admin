@@ -16,7 +16,7 @@ class DepartmentController extends Controller {
     }
 
     public function store( Request $request ) {
-        dd($request->all());
+        // dd( $request->all() );
         try {
 
             $validator = Validator::make( $request->all(), [
@@ -29,10 +29,11 @@ class DepartmentController extends Controller {
                     'errors' => $validator->errors()
                 ], 422 );
             }
+            $status = strtolower( $request->status ) === 'active' ? 1 : 0;
 
             IssueDepartment::create( [
                 'DepartmentName' => $request->department_name,
-                'status'        => $request->status,
+                'Status'        => 1,
             ] );
 
             return response()->json( [

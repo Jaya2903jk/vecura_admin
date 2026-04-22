@@ -12,6 +12,6 @@ class IssueDepartment extends Model {
 
     public $timestamps = false;
     protected $fillable = [
-        'DepartmentName'
+        'DepartmentName','Status'
     ];
 }

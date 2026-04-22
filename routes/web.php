@@ -11,8 +11,7 @@ use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\BranchController;
 use App\Http\Controllers\DesginationController;
-
-
+use App\Http\Controllers\IssuesMasterController;
 use App\Http\Controllers\VsupportController;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -34,7 +33,6 @@ Route::middleware(['auth.custom', 'nocache'])->group(function () {
     });
     Route::get('/staff', [StaffController::class, 'index'])->name('staff.index');
     Route::get('/designation', [DesginationController::class, 'index'])->name('designation.index');
-    Route::get('/issues-master', [DesginationController::class, 'index'])->name('designation.index');
 
     Route::get('/branch', [BranchController::class, 'index'])->name('branch.index');
     Route::get('/role', [RoleController::class, 'index'])->name('role-permission.index');
@@ -44,7 +42,10 @@ Route::middleware(['auth.custom', 'nocache'])->group(function () {
     Route::post('/category/store', [CategoryController::class, 'store'])->name('category.store');
 
     Route::get('/department', [DepartmentController::class, 'index'])->name('department.index');
-        Route::post('/department/store', [DepartmentController::class, 'store'])->name('department.store');
+    Route::post('/department/store', [DepartmentController::class, 'store'])->name('department.store');
+
+    Route::get('/issues-master', [IssuesMasterController::class, 'index'])->name('issues-master.index');
+    Route::post('/issues-master/store', [IssuesMasterController::class, 'store'])->name('issues-master.store');
 
     Route::get('/tickets', [TicketController::class, 'index'])->name('tickets');
     Route::post('/tickets', [TicketController::class, 'store']);

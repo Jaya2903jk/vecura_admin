@@ -283,41 +283,28 @@
                     headers: {
                         'X-CSRF-TOKEN': $('input[name="_token"]').val()
                     },
-
                     success: function(response) {
-
                         submitBtn.prop('disabled', false).text('Add New Department');
-
                         if (response.status) {
-
                             $('#add_modal').modal('hide');
                             form.reset();
-
                             Swal.fire({
                                 icon: "success",
                                 title: "Department Created Successfully",
                                 showConfirmButton: false,
                                 timer: 1500
                             });
-
                             setTimeout(function() {
                                 location.reload();
                             }, 1500);
                         }
                     },
-
                     error: function(xhr) {
-
                         submitBtn.prop('disabled', false).text('Add New Department');
-
                         if (xhr.status === 422) {
-
                             let errors = xhr.responseJSON.errors;
-
                             $.each(errors, function(key, value) {
-
                                 let input = $('[name="' + key + '"]');
-
                                 input.addClass('is-invalid');
 
                                 if (input.next('.invalid-feedback').length) {

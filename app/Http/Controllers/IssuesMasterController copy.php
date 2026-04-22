@@ -6,26 +6,42 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Models\ApprovalFlow;
 use App\Models\IssueMaster;
-use App\Models\IssueCategory;
-use App\Models\IssueDepartment;
 
 class IssuesMasterController extends Controller
 {
     /**
      * GET ALL RECORDS
      */
-
-    public function index(Request $request)
+   
+    public function index()
     {
-        $perPage = $request->get('per_page', 10);
+        $issues = IssueMaster::with('approvalFlows')->get();
 
-        $issues = IssueMaster::with(['department', 'category'])
-            ->orderBy('IssueId', 'desc')
-            ->paginate($perPage);
+        $data = $issues->map(function ($issue) {
+            return [
+                'IssueId' => $issue->IssueId,
+                'DepartmentId' => $issue->DepartmentId,
+                'CategoryId' => $issue->CategoryId,
+                'IssueName' => $issue->IssueName,
+                'Status' => $issue->Status,
+                'DepartmentName' => optional($issue->department)->DepartmentName,
+                'category_name' => optional($issue->category)->category_name,
+                'approvalFlow' => $issue->approvalFlows->map(function ($flow) {
+                    return [
+                        'levelOrder' => $flow->levelOrder,
+                        'roleId' => $flow->roleId,
+                        'levelName' => $flow->levelName,
+                        'status' => $flow->status,
+                        'note' => $flow->note,
+                    ];
+                }),
+            ];
+        });
 
-        $departments = IssueDepartment::all();
-
-        return view('issues-master.index', compact('issues', 'perPage', 'departments'));
+        return response()->json([
+            'status' => true,
+            'data' => $data
+        ]);
     }
     /**
      * CREATE NEW RECORD

@@ -194,7 +194,7 @@
                         <ul>
                             <li class="submenu">
                                 <a href="javascript:void(0);"
-                                    class="{{ Request::is('category', 'branch', 'department', 'designation', 'language-settings', 'language-settings2', 'language-settings3', 'maintenance-mode-settings', 'login-and-register-settings', 'preferences-settings') ? 'active subdrop' : '' }}">
+                                    class="{{ Request::is('category', 'branch', 'department', 'designation', 'issues-master', 'language-settings2', 'language-settings3', 'maintenance-mode-settings', 'login-and-register-settings', 'preferences-settings') ? 'active subdrop' : '' }}">
                                     <i class="ti ti-world-cog"></i><span>All Masters</span>
                                     <span class="menu-arrow"></span>
                                 </a>
@@ -211,8 +211,8 @@
                                     <li><a href="{{ route('category.index') }}"
                                             class="{{ Request::is('category') ? 'active' : '' }}">Issues
                                             Category</a></li>
-                                    <li><a href="{{ route('category.index') }}"
-                                            class="{{ Request::is('category') ? 'active' : '' }}">Issues Master
+                                    <li><a href="{{ route('issues-master.index') }}"
+                                            class="{{ Request::is('issues-master') ? 'active' : '' }}">Issues Master
                                         </a></li>
 
                                     <li><a href="{{ route('role-permission.index') }}"

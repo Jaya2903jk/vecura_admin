@@ -23,7 +23,7 @@ class CategoryController extends Controller
             $validator = Validator::make($request->all(), [
                 'category_name' => 'required|string|max:255',
                 'department_id' => 'required|exists:issueDepartmentMaster,Departmentid',
-                'status'        => 'required|in:0,1',
+                'status'        => 'required',
             ]);
 
             if ($validator->fails()) {
