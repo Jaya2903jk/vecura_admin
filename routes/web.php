@@ -60,6 +60,8 @@ Route::middleware(['auth.custom', 'nocache'])->group(function () {
         ->name('complaint.permanent');
     // Route::post('/followup', [TicketController::class, 'followup']);
     Route::get('/followup-history/{id}', [TicketController::class, 'followupHistory']);
+    Route::post('/hr/update-status', [TicketController::class, 'updateHrStatus'])
+        ->name('hr.update.status');
 
     Route::get('/search-customer', [MasterController::class, 'searchCustomer']);
     Route::get('/departments', [MasterController::class, 'departments']);

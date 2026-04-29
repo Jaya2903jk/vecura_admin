@@ -14533,6 +14533,21 @@
                                 </div>
 
                             </div>
+                            {{-- <div id="attendance_block" class="row mt-2" style="display:none;">
+
+    <div class="col-lg-12 mt-2">
+        <label class="form-label">Attendance Date <span class="text-danger">*</span></label>
+        <input type="date" name="attendance_date" class="form-control">
+    </div>
+
+   <div class="col-lg-12 mt-2">
+        <label>Employee <span class="text-danger">*</span></label>
+        <select name="employee_id" class="form-control" id="employee_id_attendance">
+            <option value="" selected disabled>Select Employee</option>
+        </select>
+    </div>
+
+</div> --}}
                             <div class="col-lg-12">
                                 <div class="mb-2">
                                     <label class="form-label">Feedback<span

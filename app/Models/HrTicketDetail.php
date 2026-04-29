@@ -7,8 +7,11 @@ use Illuminate\Database\Eloquent\Model;
 class HrTicketDetail extends Model
 {
     protected $connection = 'sqlsrv';
+
     protected $table = 'hr_ticket_details';
+
     protected $primaryKey = 'hrTicketId';
+
     public $timestamps = false;
 
     protected $fillable = [
@@ -25,7 +28,11 @@ class HrTicketDetail extends Model
         'attachmentPath',
         'originalFileName',
         'status',
-        'createdDate'
+        'createdDate',
+        'created_by',
+        'updated_by',
+        'updated_at',
+        'status_history',
     ];
 
     public function ticket()
@@ -40,11 +47,16 @@ class HrTicketDetail extends Model
 
     public function category()
     {
-        return $this->belongsTo(IssueCategory::class, 'categoryId', 'categoryId');
+        return $this->belongsTo(IssueCategory::class, 'categoryId', 'category_id');
     }
 
     public function escalationType()
     {
         return $this->belongsTo(IssueMaster::class, 'escalationTypeId', 'IssueId');
+    }
+
+    public function employee()
+    {
+        return $this->belongsTo(UserMaster::class, 'employeeId', 'UserID');
     }
 }

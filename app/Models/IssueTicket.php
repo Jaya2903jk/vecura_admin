@@ -8,7 +8,8 @@ use App\Models\LocationMaster;
 use App\Models\PatientPersonalDetail;
 use Illuminate\Database\Eloquent\Model;
 
-class IssueTicket extends Model {
+class IssueTicket extends Model
+{
     protected $connection = 'sqlsrv';
     // ✅ important
     protected $table = 'issueTicket';
@@ -99,12 +100,26 @@ class IssueTicket extends Model {
         'DiscountPaymentMode',
         'type'
     ];
-
-    public function complaints() {
-        return $this->hasMany( CustomerRefundComplaint::class, 'ticketId', 'ticketId' );
+    public function createdUser()
+    {
+        return $this->belongsTo(UserMaster::class, 'CreatedBy', 'UserCode');
+    }
+     public function get_employee()
+    {
+        return $this->belongsTo(UserMaster::class, 'UserId', 'UserID');
+    }
+    public function complaints()
+    {
+        return $this->hasMany(CustomerRefundComplaint::class, 'ticketId', 'ticketId');
+    }
+    public function hr()
+    {
+        return $this->hasMany(HrTicketDetail::class, 'ticketId', 'ticketId');
     }
 
-    public function customer() {
+
+    public function customer()
+    {
         return $this->belongsTo(
             PatientPersonalDetail::class,
             'CustomerCode',     // FK in issueTicket
@@ -112,7 +127,8 @@ class IssueTicket extends Model {
         );
     }
 
-    public function department() {
+    public function department()
+    {
         return $this->belongsTo(
             IssueDepartment::class,
             'Department',     // foreign key in issueTicket
@@ -120,10 +136,8 @@ class IssueTicket extends Model {
         );
     }
 
-    public function location() {
-        return $this->belongsTo( LocationMaster::class, 'Branch', 'LocationCode' );
+    public function location()
+    {
+        return $this->belongsTo(LocationMaster::class, 'Branch', 'LocationCode');
     }
-
-
-
 }

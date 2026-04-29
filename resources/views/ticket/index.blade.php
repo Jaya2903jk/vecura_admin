@@ -142,7 +142,7 @@
                                 <th>Type</th>
                                 <th>Status</th>
                                 {{-- <th>Created</th> --}}
-                                 <th>Date/Time</th>
+                                <th>Date/Time</th>
                                 {{-- <th>Follow Up</th> --}}
                                 <th>Action</th>
                             </tr>
@@ -167,11 +167,13 @@
                                     <td>{{ $t->department->DepartmentName ?? '-' }}</td>
 
                                     {{-- Branch --}}
-                                    <td>{{ $t->location->LocationName ?? '-' }}</td>
+                                    <td>{{ $t->location->LocationName ?? 'Coop' }}</td>
 
                                     {{-- Reg No --}}
                                     <td>
-                                        <strong>{{ $t->customer->RegistrationNo ?? '-' }}</strong>
+                                        <strong>
+                                            {{ $t->customer->RegistrationNo ?? ($t->get_employee->UserCode ?? '-') }}
+                                        </strong>
                                     </td>
 
                                     {{-- Issue --}}
@@ -692,7 +694,7 @@
                 let department = $('#department').val();
                 let category = $('#category').val();
 
-                // ✅ validation
+                //  validation
                 if (!customerCode || !department || !category) {
                     $('#customerTicketsBlock').hide();
                     return;
@@ -803,6 +805,50 @@
                     $("select[name='employee_id']").val('').prop('required', false);
                 }
             });
+            // $("#issue").on("change", function() {
+
+            //     let issueId = $(this).val();
+
+            //     // =========================
+            //     // LEAVE REQUEST (11)
+            //     // =========================
+            //     if (issueId == "{{ config('ticket.LEAVE_REQUEST') }}") {
+
+            //         $("#leave_request_block").slideDown();
+            //         $("#attendance_block").hide();
+
+            //         $("input[name='from_date']").prop('required', true);
+            //         $("input[name='to_date']").prop('required', true);
+            //         $("select[name='employee_id']").prop('required', true);
+
+            //         $("input[name='attendance_date']").prop('required', false);
+
+            //     }
+
+            //     // =========================
+            //     // ATTENDANCE ISSUE (13)
+            //     // =========================
+            //     else if (issueId == "{{ config('ticket.ATTENDANCE_ISSUE') }}") {
+
+            //         $("#attendance_block").slideDown();
+            //         $("#leave_request_block").hide();
+
+            //         $("input[name='attendance_date']").prop('required', true);
+            //         $("select[name='employee_id']").prop('required', true);
+
+            //         $("input[name='from_date']").prop('required', false);
+            //         $("input[name='to_date']").prop('required', false);
+
+            //     }
+
+            //     // =========================
+            //     // DEFAULT
+            //     // =========================
+            //     else {
+            //         $("#leave_request_block").hide();
+            //         $("#attendance_block").hide();
+            //     }
+            // });
 
 
         });

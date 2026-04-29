@@ -315,8 +315,6 @@
                                 <th class="">Escalation</th>
                                 <th class="">Type of Escalation</th>
                                 <th class="">Source</th>
-                                {{-- <th class="">Feedback</th> --}}
-                                {{-- <th class="">Status</th> --}}
                                 <th class="">Action</th>
                             </tr>
                         </thead>
@@ -332,24 +330,6 @@
                                     <td class="text-dark">{{ $firstComplaint->Complaint ?? '-' }}</td>
                                     <td class="text-dark">{{ $firstComplaint->TypeofEscalation ?? '-' }}</td>
                                     <td class="text-dark">{{ $firstComplaint->sources ?? '-' }}</td>
-                                    {{-- <td>
-
-                                            @if ($currentStatus == 'Resolved')
-
-                                                <button class="btn bg-danger-gradient btn-danger"
-                                                    onclick="closeComplaint({{ $firstComplaint->complaintid }}, {{ $ticket->ticketId }})">
-                                                    Closed
-                                                </button>
-                                            @elseif($currentStatus == 'Closed')
-                                                <span class="badge bg-secondary">Closed</span>
-                                            @else
-                                                <button class="btn  bg-primary-gradient btn-primary btn-effect"
-                                                    onclick="openFollowupModal({{ $firstComplaint->complaintid }})">
-                                                    Follow-up
-                                                </button>
-                                            @endif
-
-                                        </td> --}}
                                     <td>
 
                                         @if ($currentStatus == 'Closed')
@@ -413,14 +393,14 @@
                             <thead class="thead-light ">
 
                                 <tr>
-                                    <th class="">#</th>
-                                    <th class="">Date</th>
-                                    <th class="">Raised By</th>
-                                    <th class="">Assigned To</th>
+                                    <th class="text-light">#</th>
+                                    <th class="text-light">Date</th>
+                                    <th class="text-light">Raised By</th>
+                                    <th class="text-light">Assigned To</th>
 
-                                    <th class="">Source</th>
-                                    <th class="">Feedback</th>
-                                    <th class="">Status</th>
+                                    <th class="text-light">Source</th>
+                                    <th class="text-light">Feedback</th>
+                                    <th class="text-light">Status</th>
                                 </tr>
                             </thead>
                         <tbody>
