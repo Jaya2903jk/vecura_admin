@@ -8,166 +8,161 @@ use App\Models\ApprovalFlow;
 use App\Models\IssueMaster;
 use App\Models\IssueCategory;
 use App\Models\IssueDepartment;
+use Illuminate\Support\Facades\Validator;
 
-class IssuesMasterController extends Controller
-{
+class IssuesMasterController extends Controller {
     /**
-     * GET ALL RECORDS
-     */
+    * GET ALL RECORDS
+    */
 
-    public function index(Request $request)
-    {
-        $perPage = $request->get('per_page', 10);
+    public function index( Request $request ) {
+        $perPage = $request->get( 'per_page', 10 );
 
-        $issues = IssueMaster::with(['department', 'category'])
-            ->orderBy('IssueId', 'desc')
-            ->paginate($perPage);
+        $issues = IssueMaster::with( [ 'department', 'category' ] )
+        ->orderBy( 'IssueId', 'desc' )
+        ->paginate( $perPage );
 
         $departments = IssueDepartment::all();
-
-        return view('issues-master.index', compact('issues', 'perPage', 'departments'));
+        $categories = IssueCategory::all();
+        // IMPORTANT
+        return view( 'issues-master.index', compact( 'issues', 'perPage', 'departments', 'categories' ) );
     }
     /**
-     * CREATE NEW RECORD
-     */
+    * CREATE NEW RECORD
+    */
 
-    public function store(Request $request)
-    {
-        // return response()->json([$request->all()]);
-        $request->validate([
-            'DepartmentId' => 'required',
-            'CategoryId'   => 'required',
-            'IssueName'    => 'required',
-        ]);
-        $id = DB::connection('sqlsrv')
-            ->table('IssueMasterTest')
-            ->insertGetId([
-                'DepartmentId' => $request->DepartmentId,
-                'CategoryId'   => $request->CategoryId,
-                'IssueName'    => $request->IssueName,
-                'Status'       => $request->Status ?? 1,
-                'Level1Role' => $request->Level1Role,
-                'Level2Role' => $request->Level2Role,
-                'Level3Role' => $request->Level3Role,
-                'Level4Role' => $request->Level4Role,
-                'Level5Role' => $request->Level5Role,
+    public function store( Request $request ) {
+        // dd( $request->all() );
+        try {
 
-                // 'CreatedDate' => now(),
-                // 'ModifiedDate' => now(),
-            ]);
-        $approvalFlow = $request->approvalFlow ?? [];
-        foreach ($approvalFlow as $flow) {
-            ApprovalFlow::create([
-                'issueId'    => $id,
-                'levelOrder' => $flow['levelOrder'],
-                'roleId'     => $flow['roleId'],
-                'levelName'  => $flow['levelName'],
-                'status'     => $flow['status'] ?? 'Pending',
-                'note'       => $flow['note'] ?? '',
-            ]);
+            $validator = Validator::make( $request->all(), [
+                'issues_name'   => 'required|string|max:255',
+                'department_id' => 'required',
+                'category_id'   => 'required',
+                'status'        => 'required',
+            ] );
+
+            if ( $validator->fails() ) {
+                return response()->json( [
+                    'errors' => $validator->errors()
+                ], 422 );
+            }
+
+            $issue = IssueMaster::create( [
+                'DepartmentId' => $request->department_id,
+                'CategoryId'   => $request->category_id,
+                'IssueName'    => $request->issues_name,
+                'Status'       => $request->status,
+            ] );
+
+            return response()->json( [
+                'status' => true,
+                'message' => 'Issue Created Successfully',
+                'id' => $issue->IssueId
+            ] );
+
+        } catch ( \Exception $e ) {
+
+            return response()->json( [
+                'status' => false,
+                'message' => 'Something went wrong!',
+                'error' => $e->getMessage() // remove in production
+            ], 500 );
         }
-        return response()->json([
-            'status' => true,
-            'message' => 'Created Successfully',
-            'id' => $id
-        ]);
     }
     /**
-     * GET SINGLE RECORD
-     */
+    * GET SINGLE RECORD
+    */
 
-    public function show($id)
-    {
-        $data = DB::connection('sqlsrv')
-            ->table('issueMasterTest')
-            ->where('id', $id)
-            ->first();
+    public function show( $id ) {
+        $data = DB::connection( 'sqlsrv' )
+        ->table( 'issueMasterTest' )
+        ->where( 'id', $id )
+        ->first();
 
-        if (!$data) {
-            return response()->json([
+        if ( !$data ) {
+            return response()->json( [
                 'status' => false,
                 'message' => 'Not Found'
-            ], 404);
+            ], 404 );
         }
 
-        return response()->json([
+        return response()->json( [
             'status' => true,
             'data' => $data
-        ]);
+        ] );
     }
 
     /**
-     * UPDATE RECORD
-     */
+    * UPDATE RECORD
+    */
 
-    public function update(Request $request, $id)
-    {
-        $record = DB::connection('sqlsrv')
-            ->table('issueMasterTest')
-            ->where('IssueId', $id)
-            ->first();
+    public function update( Request $request, $id ) {
+        $record = DB::connection( 'sqlsrv' )
+        ->table( 'issueMasterTest' )
+        ->where( 'IssueId', $id )
+        ->first();
 
-        if (!$record) {
-            return response()->json([
+        if ( !$record ) {
+            return response()->json( [
                 'status' => false,
                 'message' => 'Not Found'
-            ], 404);
+            ], 404 );
         }
 
-        DB::connection('sqlsrv')
-            ->table('issueMasterTest')
-            ->where('IssueId', $id)
-            ->update([
-                'name' => $request->name ?? $record->name,
-                'status' => $request->status ?? $record->status,
-                'updated_at' => now()
-            ]);
+        DB::connection( 'sqlsrv' )
+        ->table( 'issueMasterTest' )
+        ->where( 'IssueId', $id )
+        ->update( [
+            'name' => $request->name ?? $record->name,
+            'status' => $request->status ?? $record->status,
+            'updated_at' => now()
+        ] );
 
-        ApprovalFlow::where('issueId', $id)->delete();
+        ApprovalFlow::where( 'issueId', $id )->delete();
         $approvalFlow = $request->approvalFlow ?? [];
-        foreach ($approvalFlow as $flow) {
-            ApprovalFlow::create([
+        foreach ( $approvalFlow as $flow ) {
+            ApprovalFlow::create( [
                 'issueId'    => $id,
-                'levelOrder' => $flow['levelOrder'],
-                'roleId'     => $flow['roleId'],
-                'levelName'  => $flow['levelName'],
-                'status'     => $flow['status'] ?? 'Pending',
-                'note'       => $flow['note'] ?? '',
-            ]);
+                'levelOrder' => $flow[ 'levelOrder' ],
+                'roleId'     => $flow[ 'roleId' ],
+                'levelName'  => $flow[ 'levelName' ],
+                'status'     => $flow[ 'status' ] ?? 'Pending',
+                'note'       => $flow[ 'note' ] ?? '',
+            ] );
         }
 
-        return response()->json([
+        return response()->json( [
             'status' => true,
             'message' => 'Updated successfully'
-        ]);
+        ] );
     }
 
     /**
-     * DELETE RECORD
-     */
+    * DELETE RECORD
+    */
 
-    public function destroy($id)
-    {
-        $record = DB::connection('sqlsrv')
-            ->table('issueMasterTest')
-            ->where('IssueId', $id)
-            ->first();
+    public function destroy( $id ) {
+        $record = DB::connection( 'sqlsrv' )
+        ->table( 'issueMasterTest' )
+        ->where( 'IssueId', $id )
+        ->first();
 
-        if (!$record) {
-            return response()->json([
+        if ( !$record ) {
+            return response()->json( [
                 'status' => false,
                 'message' => 'Not Found'
-            ], 404);
+            ], 404 );
         }
 
-        DB::connection('sqlsrv')
-            ->table('issueMasterTest')
-            ->where('IssueId', $id)
-            ->delete();
+        DB::connection( 'sqlsrv' )
+        ->table( 'issueMasterTest' )
+        ->where( 'IssueId', $id )
+        ->delete();
 
-        return response()->json([
+        return response()->json( [
             'status' => true,
             'message' => 'Deleted successfully'
-        ]);
+        ] );
     }
 }

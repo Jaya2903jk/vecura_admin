@@ -503,7 +503,8 @@
             <h6 class="bg-light py-2 px-3 text-dark fw-bold"> When & Where </h6>
             <div class="px-3 my-4">
                 <p class="text-dark mb-3 fw-semibold d-flex align-items-center justify-content-between"> Appointment On
-                    <span class="text-body fw-normal"> Saturday, 25 Apr 2025 </span> </p>
+                    <span class="text-body fw-normal"> Saturday, 25 Apr 2025 </span>
+                </p>
                 <p class="text-dark mb-3 fw-semibold d-flex align-items-center justify-content-between"> Time <span
                         class="text-body fw-normal"> 09:00 AM - 11:00 AM </span> </p>
                 <p class="text-dark mb-3 fw-semibold d-flex align-items-center justify-content-between"> Location <span
@@ -902,7 +903,8 @@
 
             <div class="px-3 my-4">
                 <p class="text-dark mb-3 fw-semibold d-flex align-items-center justify-content-between"> Appointment On
-                    <span class="text-body fw-normal"> Saturday, 25 Apr 2025 </span> </p>
+                    <span class="text-body fw-normal"> Saturday, 25 Apr 2025 </span>
+                </p>
                 <p class="text-dark mb-3 fw-semibold d-flex align-items-center justify-content-between"> Time <span
                         class="text-body fw-normal"> 09:00 AM - 11:00 AM </span> </p>
                 <p class="text-dark mb-3 fw-semibold d-flex align-items-center justify-content-between"> Location <span
@@ -3752,7 +3754,8 @@
                 <p class="text-dark mb-3 fw-semibold d-flex align-items-center justify-content-between"> Time <span
                         class="text-body fw-normal"> 09:00 AM - 11:00 AM </span> </p>
                 <p class="text-dark mb-3 fw-semibold d-flex align-items-center justify-content-between"> Location
-                    <span class="text-body fw-normal">Newyork , USA </span> </p>
+                    <span class="text-body fw-normal">Newyork , USA </span>
+                </p>
                 <p class="text-dark mb-3 fw-semibold d-flex align-items-center justify-content-between"> Appointment
                     Type <span class="text-body fw-normal"> Online Consultation </span> </p>
                 <div class="text-dark mb-3 fw-semibold d-flex align-items-center justify-content-between"> Patient
@@ -3906,7 +3909,8 @@
                 <p class="text-dark mb-3 fw-semibold d-flex align-items-center justify-content-between"> Time <span
                         class="text-body fw-normal"> 09:00 AM - 11:00 AM </span> </p>
                 <p class="text-dark mb-3 fw-semibold d-flex align-items-center justify-content-between"> Location
-                    <span class="text-body fw-normal">Newyork , USA </span> </p>
+                    <span class="text-body fw-normal">Newyork , USA </span>
+                </p>
                 <p class="text-dark mb-3 fw-semibold d-flex align-items-center justify-content-between"> Appointment
                     Type <span class="text-body fw-normal"> Online Consultation </span> </p>
                 <div class="text-dark mb-3 fw-semibold d-flex align-items-center justify-content-between"> Patient
@@ -4317,7 +4321,8 @@
                 <p class="text-dark mb-3 fw-semibold d-flex align-items-center justify-content-between"> Time <span
                         class="text-body fw-normal"> 09:00 AM - 11:00 AM </span> </p>
                 <p class="text-dark mb-3 fw-semibold d-flex align-items-center justify-content-between"> Location
-                    <span class="text-body fw-normal">Newyork , USA </span> </p>
+                    <span class="text-body fw-normal">Newyork , USA </span>
+                </p>
                 <p class="text-dark mb-3 fw-semibold d-flex align-items-center justify-content-between"> Appointment
                     Type <span class="text-body fw-normal"> Online Consultation </span> </p>
                 <div class="text-dark mb-3 fw-semibold d-flex align-items-center justify-content-between"> Patient
@@ -5975,7 +5980,8 @@
                 <p class="text-dark mb-3 fw-semibold d-flex align-items-center justify-content-between"> Time <span
                         class="text-body fw-normal"> 09:00 AM - 11:00 AM </span> </p>
                 <p class="text-dark mb-3 fw-semibold d-flex align-items-center justify-content-between"> Location
-                    <span class="text-body fw-normal">Newyork , USA </span> </p>
+                    <span class="text-body fw-normal">Newyork , USA </span>
+                </p>
                 <p class="text-dark mb-3 fw-semibold d-flex align-items-center justify-content-between"> Appointment
                     Type <span class="text-body fw-normal"> Online Consultation </span> </p>
                 <div class="text-dark mb-3 fw-semibold d-flex align-items-center justify-content-between"> Patient
@@ -6456,7 +6462,8 @@
                 <p class="text-dark mb-3 fw-semibold d-flex align-items-center justify-content-between"> Time <span
                         class="text-body fw-normal"> 09:00 AM - 11:00 AM </span> </p>
                 <p class="text-dark mb-3 fw-semibold d-flex align-items-center justify-content-between"> Location
-                    <span class="text-body fw-normal">Newyork , USA </span> </p>
+                    <span class="text-body fw-normal">Newyork , USA </span>
+                </p>
                 <p class="text-dark mb-3 fw-semibold d-flex align-items-center justify-content-between"> Appointment
                     Type <span class="text-body fw-normal"> Online Consultation </span> </p>
                 <div class="text-dark mb-3 fw-semibold d-flex align-items-center justify-content-between"> Patient
@@ -7425,7 +7432,8 @@
                 <p class="text-dark mb-3 fw-semibold d-flex align-items-center justify-content-between"> Time <span
                         class="text-body fw-normal"> 09:00 AM - 11:00 AM </span> </p>
                 <p class="text-dark mb-3 fw-semibold d-flex align-items-center justify-content-between"> Location
-                    <span class="text-body fw-normal">Newyork , USA </span> </p>
+                    <span class="text-body fw-normal">Newyork , USA </span>
+                </p>
                 <p class="text-dark mb-3 fw-semibold d-flex align-items-center justify-content-between"> Appointment
                     Type <span class="text-body fw-normal"> Online Consultation </span> </p>
             </div>
@@ -8232,7 +8240,8 @@
                 <p class="text-dark mb-3 fw-semibold d-flex align-items-center justify-content-between"> Time <span
                         class="text-body fw-normal"> 09:00 AM - 11:00 AM </span> </p>
                 <p class="text-dark mb-3 fw-semibold d-flex align-items-center justify-content-between"> Location
-                    <span class="text-body fw-normal">Newyork , USA </span> </p>
+                    <span class="text-body fw-normal">Newyork , USA </span>
+                </p>
                 <p class="text-dark mb-3 fw-semibold d-flex align-items-center justify-content-between"> Appointment
                     Type <span class="text-body fw-normal"> Online Consultation </span> </p>
                 <div class="text-dark mb-3 fw-semibold d-flex align-items-center justify-content-between"> Patient
@@ -14417,7 +14426,7 @@
                                         <label class="form-label">Alternate Mobile
                                             {{-- <span
                                                 class="text-danger ms-1">*</span> --}}
-                                            </label>
+                                        </label>
                                         <input type="number" class="form-control" name="alternateMobile"
                                             placeholder="" required>
                                         <div class="invalid-feedback">
@@ -14504,7 +14513,26 @@
                                     });
                                 </script>
                             </div>
+                            <div id="leave_request_block" class="row mt-2" style="display:none;">
 
+                                <div class="col-lg-6">
+                                    <label class="form-label">From Date <span class="text-danger">*</span></label>
+                                    <input type="date" name="from_date" class="form-control">
+                                </div>
+
+                                <div class="col-lg-6">
+                                    <label class="form-label">To Date <span class="text-danger">*</span></label>
+                                    <input type="date" name="to_date" class="form-control">
+                                </div>
+
+                                <div class="col-lg-12 mt-2">
+                                    <label>Employee <span class="text-danger">*</span></label>
+                                    <select name="employee_id" class="form-control" id="employee_id">
+                                        <option value="" selected disabled>Select Employee</option>
+                                    </select>
+                                </div>
+
+                            </div>
                             <div class="col-lg-12">
                                 <div class="mb-2">
                                     <label class="form-label">Feedback<span
@@ -14512,29 +14540,30 @@
                                     <textarea name="feedback" class="form-control" rows="3"></textarea>
 
                                 </div>
-                            </div><!-- end col -->
+                            </div>
+
                             <br>
-                               <div id="customerTicketsBlock" style="display:none;">
-    <hr>
-    <h6 class="fw-bold text-primary">Customer Previous Tickets</h6>
+                            <div id="customerTicketsBlock" style="display:none;">
+                                <hr>
+                                <h6 class="fw-bold text-primary">Customer Previous Tickets</h6>
 
-    <div class="table-responsive" style="max-height: 250px; overflow-y: auto;">
-        <table class="table table-bordered table-sm mb-0">
-            <thead class="table-light" style="position: sticky; top: 0; z-index: 1;">
-                <tr>
-                    <th>Ticket No</th>
-                    <th>Subject</th>
-                    <th>Status</th>
-                    <th>Date</th>
-                    <th>Action</th>
-                </tr>
-            </thead>
-            <tbody id="customerTicketsTable"></tbody>
-        </table>
-    </div>
-</div>
+                                <div class="table-responsive" style="max-height: 250px; overflow-y: auto;">
+                                    <table class="table table-bordered table-sm mb-0">
+                                        <thead class="table-light" style="position: sticky; top: 0; z-index: 1;">
+                                            <tr>
+                                                <th>Ticket No</th>
+                                                <th>Subject</th>
+                                                <th>Status</th>
+                                                <th>Date</th>
+                                                <th>Action</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="customerTicketsTable"></tbody>
+                                    </table>
+                                </div>
+                            </div>
 
-                        <!-- end row -->
+                            <!-- end row -->
                             <div class="col-lg-12">
                                 <div class="mb-2">
                                     <label class="form-label">File</label>
@@ -14552,26 +14581,7 @@
                             </div><!-- end col -->
                         </div>
 
-                        {{-- <div id="customerTicketsBlock" style="display:none;">
-                            <hr>
-                            <h6 class="fw-bold text-primary">Customer Previous Tickets</h6>
 
-                            <div class="table-responsive">
-                            <table class="table table-bordered table-sm">
-                                <thead>
-                                        <tr>
-                                            <th>Ticket No</th>
-                                            <th>Subject</th>
-                                            <th>Status</th>
-                                            <th>Date</th>
-                                            <th>Action</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="customerTicketsTable"></tbody>
-                                </table>
-                            </div>
-                        </div> --}}
-                     
                     </div>
                     <div class="modal-footer d-flex align-items-center gap-1">
                         <button type="button" class="btn btn-white border"

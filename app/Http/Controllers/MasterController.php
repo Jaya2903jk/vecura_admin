@@ -163,4 +163,24 @@ class MasterController extends Controller
             'data' => $data
         ]);
     }
+    public function employees(Request $request)
+    {
+        $userId = session('user_id');
+        $roleId = session('role_id');
+
+        $query = UserMaster::where('UserStatus', 'Active')
+            ->select('UserID', 'FullName', 'UserCode');
+// dd( $roleId, $userId);
+        // ✅ If NOT admin → only show logged-in user
+        if ($roleId != 13) {
+            $query->where('UserID', $userId);
+        }
+
+        $employees = $query->orderBy('FullName')->get();
+
+        return response()->json([
+            'status' => true,
+            'data' => $employees
+        ]);
+    }
 }

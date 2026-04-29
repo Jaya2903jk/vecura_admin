@@ -89,24 +89,20 @@
                 <div class="modal-dialog modal-dialog-centered">
                     <div class="modal-content">
                         <div class="modal-header">
-                            <h4 class="text-dark modal-title fw-bold">Add New Category</h4>
+                            <h4 class="text-dark modal-title fw-bold">Add Issues Name</h4>
                             <button type="button" class="btn-close btn-close-modal custom-btn-close"
                                 data-bs-dismiss="modal" aria-label="Close"><i class="ti ti-x"></i></button>
                         </div>
 
-                        <form id="categoryForm" class="needs-validation" novalidate>
+                        <form id="issuesForm" class="needs-validation" novalidate>
                             @csrf
                             <div class="modal-body">
-                                <div class="mb-3">
-                                    <label class="form-label">Category Name</label>
-                                    <input type="text" name="category_name" id="category_name" class="form-control"
-                                        placeholder="Enter category name">
-                                </div>
+
 
                                 <div class="mb-3">
                                     <label class="form-label">Linked Department</label>
 
-                                    <select name="department_id" class="form-control">
+                                    <select name="department_id" id="department_id" class="form-control">
                                         <option value="">Select Department</option>
                                         @foreach ($departments as $dept)
                                             <option value="{{ $dept->Departmentid }}">
@@ -116,16 +112,27 @@
                                     </select>
                                 </div>
                                 <div class="mb-3">
+                                    <label class="form-label">Category</label>
+                                    <select name="category_id" id="category_id" class="form-control">
+                                        <option value="">Select Category</option>
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Issues Name</label>
+                                    <input type="text" name="issues_name" id="issues_name" class="form-control"
+                                        placeholder="Enter Issues name">
+                                </div>
+                                <div class="mb-3">
                                     <label class="form-label">Status</label>
                                     <select name="status" class="form-control">
-                                        <option value="Active">Active</option>
-                                        <option value="Inactive">Inactive</option>
+                                        <option value="1">Active</option>
+                                        <option value="0">Inactive</option>
                                     </select>
                                 </div>
                             </div>
                             <div class="modal-footer d-flex align-items-center gap-1">
                                 <button type="button" class="btn btn-white border" data-bs-dismiss="modal">Cancel</button>
-                                <button type="submit" id="submitBtn" class="btn btn-primary">Add New Category</button>
+                                <button type="submit" id="submitBtn" class="btn btn-primary">Add New Issues</button>
                             </div>
                         </form>
                     </div>
@@ -139,10 +146,35 @@
     </div>
     <script src="{{ asset('build/plugins/sweetalert2/sweetalert2.min.js') }}"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <script>
+        $('#department_id').on('change', function() {
+            let deptId = $(this).val();
+            $('#category_id').html('<option>Loading...</option>');
+
+            if (deptId) {
+                $.ajax({
+                    url: '/get-categories/' + deptId,
+                    type: 'GET',
+                    success: function(data) {
+                        // console.log(data);
+                        let options = '<option value="">Select Category</option>';
+                        data.forEach(function(item) {
+                            options +=
+                                `<option value="${item.category_id}">${item.category_name}</option>`;
+                        });
+                        $('#category_id').html(options);
+                    }
+                });
+            } else {
+                $('#category_id').html('<option value="">Select Category</option>');
+            }
+        });
+    </script>
     <script>
         $(document).ready(function() {
 
-            $('#categoryForm').on('submit', function(e) {
+            $('#issuesForm').on('submit', function(e) {
                 e.preventDefault();
 
                 let form = this;
@@ -155,7 +187,7 @@
                 $('.invalid-feedback.dynamic').remove();
 
                 $.ajax({
-                    url: "{{ url('category/store') }}",
+                    url: "{{ url('issues-master/store') }}",
                     type: "POST",
                     data: formData,
                     processData: false,
@@ -163,10 +195,9 @@
                     headers: {
                         'X-CSRF-TOKEN': $('input[name="_token"]').val()
                     },
-
                     success: function(response) {
 
-                        submitBtn.prop('disabled', false).text('Add New Category');
+                        submitBtn.prop('disabled', false).text('Add New Issues');
 
                         if (response.status) {
 
@@ -175,7 +206,7 @@
 
                             Swal.fire({
                                 icon: "success",
-                                title: "Category Created Successfully",
+                                title: "Issues Created Successfully",
                                 showConfirmButton: false,
                                 timer: 1500
                             });
@@ -188,7 +219,7 @@
 
                     error: function(xhr) {
 
-                        submitBtn.prop('disabled', false).text('Add New Category');
+                        submitBtn.prop('disabled', false).text('Add New Issues');
 
                         if (xhr.status === 422) {
 

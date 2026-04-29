@@ -65,6 +65,10 @@ Route::middleware(['auth.custom', 'nocache'])->group(function () {
     Route::get('/departments', [MasterController::class, 'departments']);
     Route::get('/issue-categories', [MasterController::class, 'issueCategories']);
     Route::get('/issues/{id}', [MasterController::class, 'getIssuesByCategory']);
+    Route::get('/get-categories/{department_id}', function ($department_id) {
+        return \App\Models\IssueCategory::where('department_id', $department_id)->get();
+    });
+    Route::get('/employees', [MasterController::class, 'employees']);
 });
 Route::get('/test-db', function () {
     $data = DB::select('SELECT TOP 10 * FROM User_Master');

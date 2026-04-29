@@ -54,8 +54,8 @@
                                 <option value="complaint" {{ request('type') == 'complaint' ? 'selected' : '' }}>
                                     Complaint
                                 </option>
-                                <option value="request" {{ request('type') == 'request' ? 'selected' : '' }}>
-                                    Request
+                                <option value="hr" {{ request('type') == 'hr' ? 'selected' : '' }}>
+                                    Hr
                                 </option>
                             </select>
                         </div>
@@ -141,6 +141,8 @@
                                 <th>Issues</th>
                                 <th>Type</th>
                                 <th>Status</th>
+                                {{-- <th>Created</th> --}}
+                                 <th>Date/Time</th>
                                 {{-- <th>Follow Up</th> --}}
                                 <th>Action</th>
                             </tr>
@@ -208,6 +210,8 @@
                                     </td> --}}
 
                                     {{-- Action --}}
+                                    <td>{{ $t->CreatedDate ?? '-' }}</td>
+
                                     <td>
                                         <div class="d-flex gap-1">
                                             <a class="action-btn" href="{{ route('ticket.view', $t->ticketId) }}">
@@ -387,25 +391,7 @@
                     gap: 10px;
                 }
 
-                .pagination-box a {
-                    width: 28px;
-                    height: 28px;
-                    display: inline-flex;
-                    align-items: center;
-                    justify-content: center;
-                    border: 1px solid #e0e3ea;
-                    border-radius: 6px;
-                    color: #8b93a6;
-                    text-decoration: none;
-                    background: #fff;
-                    margin-left: 6px;
-                }
 
-                .pagination-box a.active {
-                    background: #3947b8;
-                    border-color: #3947b8;
-                    color: #fff;
-                }
 
                 .footer-line {
                     text-align: center;
@@ -474,23 +460,37 @@
                 }
             </style>
             {{-- Footer --}}
-            <div class="table-footer-bar">
-                <div>
-                    Row Per Page
-                    <select class="form-select form-select-sm d-inline-block" style="width:60px;">
-                        <option>10</option>
-                        <option>25</option>
-                        <option>50</option>
-                    </select>
-                    Entries
+            <div class="table-footer-bar d-flex justify-content-between align-items-center">
+                <div class="d-flex align-items-center gap-3">
+
+                    <div>
+                        Row Per Page
+                        <select id="perPageDept" class="form-select form-select-sm d-inline-block" style="width:70px;">
+                            <option value="10" {{ $perPage == 10 ? 'selected' : '' }}>10</option>
+                            <option value="25" {{ $perPage == 25 ? 'selected' : '' }}>25</option>
+                            <option value="50" {{ $perPage == 50 ? 'selected' : '' }}>50</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        Showing {{ $tickets->firstItem() }} to {{ $tickets->lastItem() }}
+                        of {{ $tickets->total() }} entries
+                    </div>
+
+                </div>
+                <div class="pagination-box">
+                    {{ $tickets->appends(['per_page' => $perPage])->links('pagination::bootstrap-5') }}
                 </div>
 
-                <div class="pagination-box">
-                    <a href="#"><i class="ti ti-chevron-left"></i></a>
-                    <a href="#" class="active">1</a>
-                    <a href="#"><i class="ti ti-chevron-right"></i></a>
-                </div>
             </div>
+            <script>
+                document.getElementById('perPageDept').addEventListener('change', function() {
+                    let perPage = this.value;
+                    let url = new URL(window.location.href);
+                    url.searchParams.set('per_page', perPage);
+                    window.location.href = url.toString();
+                });
+            </script>
         </div>
         @component('components.footer')
         @endcomponent
@@ -500,6 +500,25 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
         $(document).ready(function() {
+            const LEAVE_REQUEST_ID = "{{ $leaveRequestId }}";
+            // =========================
+            // LOAD EMPLOYEES (only once)
+            // =========================
+            $.ajax({
+                url: "/employees",
+                type: "GET",
+                success: function(res) {
+                    if (res.status) {
+                        let options = '<option value="">Select Employee</option>';
+                        res.data.forEach(function(e) {
+                            options +=
+                                `<option value="${e.UserID}">${e.FullName} (${e.UserCode})</option>`;
+                        });
+                        $("#employee_id").html(options);
+                    }
+                }
+            });
+
             $.ajax({
                 url: "/departments",
                 type: "GET",
@@ -531,6 +550,8 @@
             });
 
             $("#department").change(function() {
+                $("#leave_request_block").hide();
+
                 let deptId = $(this).val();
 
                 $("#category").html('<option value="">Loading...</option>');
@@ -555,6 +576,7 @@
                 }
             });
             $("#category").change(function() {
+                $("#leave_request_block").hide();
                 let categoryId = $(this).val();
 
                 $("#issue").html('<option value="">Loading...</option>');
@@ -595,19 +617,32 @@
                         'X-CSRF-TOKEN': $('input[name="_token"]').val()
                     },
 
+                    // success: function(response) {
+                    //     Livewire.emit('notificationAdded');
+                    //     Livewire.emit('refreshNotification');
+                    //     Swal.fire({
+                    //         // position: "top-end",
+                    //         icon: "success", // fixed (was type)
+                    //         title: "Ticket Created Successfully",
+                    //         showConfirmButton: false,
+                    //         timer: 1500
+                    //     });
+                    //     setTimeout(function() {
+                    //         window.location.href = "{{ route('tickets') }}";
+                    //     }, 2000);
+                    // },
                     success: function(response) {
-                        Livewire.emit('notificationAdded');
-                        Livewire.emit('refreshNotification');
+                        // Livewire.emit('notificationAdded');
+                        // Livewire.emit('refreshNotification');
                         Swal.fire({
-                            // position: "top-end",
-                            icon: "success", // fixed (was type)
-                            title: "Ticket Created Successfully",
+                            icon: "success",
+                            title: response.message,
                             showConfirmButton: false,
                             timer: 1500
                         });
                         setTimeout(function() {
                             window.location.href = "{{ route('tickets') }}";
-                        }, 1500);
+                        }, 2000);
                     },
 
                     error: function(xhr) {
@@ -746,6 +781,29 @@
                     }
                 });
             });
+
+            $("#issue").on("change", function() {
+
+                let escalationId = $(this).val();
+
+                if (escalationId == LEAVE_REQUEST_ID) {
+
+                    $("#leave_request_block").slideDown();
+
+                    $("input[name='from_date']").prop('required', true);
+                    $("input[name='to_date']").prop('required', true);
+                    $("select[name='employee_id']").prop('required', true);
+
+                } else {
+
+                    $("#leave_request_block").slideUp();
+
+                    $("input[name='from_date']").val('').prop('required', false);
+                    $("input[name='to_date']").val('').prop('required', false);
+                    $("select[name='employee_id']").val('').prop('required', false);
+                }
+            });
+
 
         });
     </script>

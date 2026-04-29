@@ -123,4 +123,7 @@ class IssueTicket extends Model {
     public function location() {
         return $this->belongsTo( LocationMaster::class, 'Branch', 'LocationCode' );
     }
+
+
+
 }

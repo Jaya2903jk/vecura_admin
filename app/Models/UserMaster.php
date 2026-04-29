@@ -5,7 +5,8 @@ namespace App\Models;
 use App\Models\UserGroupMaster;
 use Illuminate\Database\Eloquent\Model;
 
-class UserMaster extends Model {
+class UserMaster extends Model
+{
     protected $table = 'User_Master';
 
     protected $primaryKey = 'UserID';
@@ -57,15 +58,16 @@ class UserMaster extends Model {
     ];
     // App\Models\UserMaster.php
 
-    public function userGroup() {
+    public function userGroup()
+    {
         // Match UserGroupCode to UserGroupMaster.UserGroupCode
-        return $this->belongsTo( UserGroupMaster::class, 'UserGroupCode', 'UserGroupCode' );
+        return $this->belongsTo(UserGroupMaster::class, 'UserGroupCode', 'UserGroupCode');
     }
 
-public function designation()
-{
-    return $this->belongsTo(Designation::class, 'Designation', 'DesignationCode');
-}
+    public function designation()
+    {
+        return $this->belongsTo(Designation::class, 'Designation', 'DesignationCode');
+    }
 
-        // departmetn -name-designationm
+    // departmetn -name-designationm
 }
