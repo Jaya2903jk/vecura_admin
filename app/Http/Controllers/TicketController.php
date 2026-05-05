@@ -21,7 +21,7 @@ class TicketController extends Controller
 {
     public function index(Request $request)
     {
-        $totalTickets = IssueTicket::where('type', 'complaint')->count();
+        $totalTickets = IssueTicket::whereIn('type', ['vsupport', 'hr'])->count();
 
         $perPage = $request->get('per_page', 10);
         $status = $request->status;
@@ -40,7 +40,7 @@ class TicketController extends Controller
                 },
             ])
             ->orderBy('CreatedDate', 'desc')
-            ->whereIn('type', ['complaint', 'hr']);
+            ->whereIn('type', ['vsupport', 'hr']);
 
         if ($request->has('type') && $type != '') {
             $q->where('type', $type);
@@ -265,6 +265,7 @@ class TicketController extends Controller
     // }
     public function store(Request $request)
     {
+        // dd($request->all());
         DB::beginTransaction();
 
         try {
@@ -292,8 +293,10 @@ class TicketController extends Controller
                 $patient = PatientPersonalDetail::where('RegistrationNo', $request->customer_code)->first();
             }
 
+            // $employeeId = $request->employee_id ?? $request->employee_id_attendance;
+            $employeeId = $request->employee_common;
             if ($request->Department == 51) {
-                $employee = UserMaster::where('UserID', $request->employee_id)->first();
+                $employee = UserMaster::where('UserID', $employeeId)->first();
                 $locCode = $employee->Loc_id ?? $loginUser->Loc_id ?? 'GEN';
             } else {
                 $locCode = $patient?->Loc_Id ?? $loginUser->Loc_id ?? 'GEN';
@@ -307,18 +310,42 @@ class TicketController extends Controller
         ======================================================
         */
             if ($request->Department == 51) {
+                $LEAVE_REQUEST_ID = config('ticket.LEAVE_REQUEST');
+                $ATTENDANCE_ISSUE_ID = config('ticket.ATTENDANCE_ISSUE');
+                $issueId = $request->TypeofEscalation;
+                if ($issueId == $LEAVE_REQUEST_ID) {
+                    $validator = Validator::make($request->all(), [
+                        'Department' => 'required',
+                        'Complaint' => 'required',
+                        'TypeofEscalation' => 'required',
+                        'feedback' => 'required',
+                        // 'employee_id' => 'required',
+                        'employee_common' => 'required',
+                        // 'from_date' => 'required|date',
+                        // 'to_date' => 'required|date',
+                        'from_date' => 'required|date|after:today',
+                        'to_date' => 'required|date|after:from_date',
+                    ]);
+                } elseif ($issueId == $ATTENDANCE_ISSUE_ID) {
+                    $validator = Validator::make($request->all(), [
+                        'Department' => 'required',
+                        'Complaint' => 'required',
+                        'TypeofEscalation' => 'required',
+                        'feedback' => 'required',
+                        // 'employee_id_attendance' => 'required',
+                        'employee_common' => 'required',
+                        'attendance_date' => 'required|date',
+                    ]);
+                } else {
 
-                $validator = Validator::make($request->all(), [
-                    'Department' => 'required',
-                    'Complaint' => 'required',
-                    'TypeofEscalation' => 'required',
-                    'feedback' => 'required',
-                    'employee_id' => 'required',
-                    // 'from_date' => 'required|date',
-                    // 'to_date' => 'required|date',
-                    'from_date' => 'required|date|after:today',
-                    'to_date' => 'required|date|after:from_date',
-                ]);
+                    $validator = Validator::make($request->all(), [
+                        'Department' => 'required',
+                        'Complaint' => 'required',
+                        'TypeofEscalation' => 'required',
+                        'feedback' => 'required',
+                        'employee_common' => 'required',
+                    ]);
+                }
 
                 if ($validator->fails()) {
                     return response()->json(['errors' => $validator->errors()], 422);
@@ -374,7 +401,7 @@ class TicketController extends Controller
                         'ApprovedStatus' => 'Pending',
                         'ApprovedBy' => '',
                         'Email' => $loginUser->Email ?? '',
-                        'UserId' => $request->employee_id ?? '',
+                        'UserId' => $employeeId ?? '',
 
                     ]);
 
@@ -383,9 +410,14 @@ class TicketController extends Controller
                     'departmentId' => $request->Department,
                     'categoryId' => $request->Complaint,
                     'escalationTypeId' => $request->TypeofEscalation,
-                    'employeeId' => $request->employee_id,
-                    'fromDate' => $request->from_date,
-                    'toDate' => $request->to_date,
+                    'employeeId' => $employeeId,
+                    //               'fromDate' => $request->from_date,
+
+                    // 'toDate' => $request->to_date,
+                    'fromDate' => $issueId == $LEAVE_REQUEST_ID ? $request->from_date : null,
+                    'toDate'   => $issueId == $LEAVE_REQUEST_ID ? $request->to_date : null,
+
+                    'attendanceDate' => $issueId == $ATTENDANCE_ISSUE_ID ? $request->attendance_date : null,
                     'comments' => $request->feedback,
                     'status' => 'Pending',
                     'createdDate' => now(),
@@ -443,7 +475,7 @@ class TicketController extends Controller
                         'LocId' => $loginUser->Loc_id ?: ($patient?->Loc_Id ?? 1),
                         'Branch' => $loginUser->Loc_id ?: ($patient?->Loc_Id ?? 1),
                         'Status' => 0,
-                        'type' => 'complaint',
+                        'type' => 'vsupport',
                         'CreatedBy' => $userCode,
                         'CreatedDate' => now(),
                         'AcceptedBy' => $userCode,
@@ -622,16 +654,23 @@ class TicketController extends Controller
 
             $statusHistory = [];
             $userIds = [];
+            $leaveRequestId = config('ticket.LEAVE_REQUEST');
+
+            $isLeaveRequest = false;
 
             foreach ($ticket->hr as $hrItem) {
-                if (!empty($hrItem->status_history)) {
+                // if ($hrItem->escalationTypeId == $leaveRequestId) {
+                //     $isLeaveRequest = true;
+                //     break;
+                // }
+                if (! empty($hrItem->status_history)) {
                     $decoded = json_decode($hrItem->status_history, true);
 
                     if (is_array($decoded)) {
                         $statusHistory = array_merge($statusHistory, $decoded);
 
                         foreach ($decoded as $history) {
-                            if (!empty($history['updated_by'])) {
+                            if (! empty($history['updated_by'])) {
                                 $userIds[] = $history['updated_by'];
                             }
                         }
@@ -663,10 +702,9 @@ class TicketController extends Controller
                 'audit manager',
                 'audit',
                 'hr',
-                'hr manager'
+                'hr manager',
             ]);
 
-            // IMPORTANT: employee creator
             $isCreator = $currentUserId == ($hr->created_by ?? null);
             // pass today for date check
             $today = now();
@@ -679,7 +717,9 @@ class TicketController extends Controller
                 'isAdmin' => $isAdmin,
                 'isAuditTeam' => $isAuditTeam,
                 'isCreator' => $isCreator,
-                'today' => $today
+                'today' => $today,
+                'isLeaveRequest' => $isLeaveRequest,
+
             ]);
         }
         $firstComplaint = $ticket->complaints()
@@ -972,9 +1012,168 @@ class TicketController extends Controller
         }
     }
 
+    // public function updateHrStatus(Request $request)
+    // {
+    //     $hr = HrTicketDetail::find($request->hr_id);
+    //     if (! $hr) {
+    //         return response()->json([
+    //             'status' => false,
+    //             'message' => 'HR record not found',
+    //         ]);
+    //     }
+
+    //     $userId = session('user_id');
+    //     $comment = $request->comments ?? null;
+
+    //     // =========================
+    //     // UPDATE HR STATUS
+    //     // =========================
+    //     $hr->status = $request->status;
+    //     $hr->updated_by = $userId;
+    //     $hr->updated_at = now();
+
+    //     // =========================
+    //     // STATUS HISTORY
+    //     // =========================
+    //     $historyEntry = [
+    //         'status' => $request->status,
+    //         'comment' => $comment,
+    //         'updated_by' => $userId,
+    //         'updated_at' => now()->toDateTimeString(),
+    //     ];
+
+    //     $existingHistory = $hr->status_history
+    //         ? json_decode($hr->status_history, true)
+    //         : [];
+
+    //     $existingHistory[] = $historyEntry;
+
+    //     $hr->status_history = json_encode($existingHistory);
+
+    //     // =========================
+    //     // SAVE HR
+    //     // =========================
+    //     $hr->save();
+
+    //     // =========================
+    //     // UPDATE PARENT TICKET STATUS
+    //     // =========================
+    //     $ticket = IssueTicket::find($hr->ticketId);
+
+    //     if ($ticket) {
+
+    //         if ($request->status == 'InProgress') {
+    //             $ticket->Status = 1;
+    //         }
+
+    //         if ($request->status == 'Resolved') {
+    //             $ticket->Status = 2;
+    //         }
+
+    //         if ($request->status == 'Closed') {
+    //             $ticket->Status = 3;
+    //         }
+
+    //         $ticket->ModifiedBy = $userId;
+    //         $ticket->ModifiedDate = now();
+
+    //         $ticket->save();
+    //     }
+
+    //     return response()->json([
+    //         'status' => true,
+    //         'message' => 'Updated successfully',
+    //     ]);
+    // }
+    // public function updateHrStatus(Request $request)
+    // {
+
+    //     $hr = HrTicketDetail::find($request->hr_id);
+
+    //     if (!$hr) {
+    //         return response()->json([
+    //             'status' => false,
+    //             'message' => 'HR record not found',
+    //         ]);
+    //     }
+
+    //     $userId = session('user_id');
+    //     $comment = $request->comments ?? null;
+    //     // =========================
+    //     // CHECK LEAVE REQUEST
+    //     // =========================
+    //     $leaveRequestId = config('ticket.LEAVE_REQUEST');
+    //     $isLeaveRequest = ($hr->escalationTypeId == $leaveRequestId);
+
+    //     // =========================
+    //     // UPDATE HR STATUS
+    //     // =========================
+    //     $hr->status = $request->status;
+    //     $hr->updated_by = $userId;
+    //     $hr->updated_at = now();
+
+    //     // =========================
+    //     // STATUS HISTORY
+    //     // =========================
+    //     $historyEntry = [
+    //         'status' => $request->status,
+    //         'comment' => $comment,
+    //         'updated_by' => $userId,
+    //         'updated_at' => now()->toDateTimeString(),
+    //     ];
+
+    //     $existingHistory = $hr->status_history
+    //         ? json_decode($hr->status_history, true)
+    //         : [];
+
+    //     $existingHistory[] = $historyEntry;
+
+    //     $hr->status_history = json_encode($existingHistory);
+
+    //     $hr->save();
+
+    //     // =========================
+    //     // UPDATE PARENT TICKET
+    //     // =========================
+    //     $ticket = IssueTicket::find($hr->ticketId);
+
+    //     if ($ticket) {
+
+    //         if ($isLeaveRequest) {
+
+    //             if ($request->status == 'Approved') {
+    //                 $ticket->Status = 2;
+    //             } elseif ($request->status == 'Rejected') {
+    //                 $ticket->Status = 4; // 🔥 New status
+    //             } elseif ($request->status == 'Closed') {
+    //                 $ticket->Status = 3;
+    //             }
+    //         } else {
+    //             //  NORMAL HR FLOW
+
+    //             if ($request->status == 'InProgress') {
+    //                 $ticket->Status = 1;
+    //             } elseif ($request->status == 'Resolved') {
+    //                 $ticket->Status = 2;
+    //             } elseif ($request->status == 'Closed') {
+    //                 $ticket->Status = 3;
+    //             }
+    //         }
+
+    //         $ticket->ModifiedBy = $userId;
+    //         $ticket->ModifiedDate = now();
+    //         $ticket->save();
+    //     }
+
+    //     return response()->json([
+    //         'status' => true,
+    //         'message' => 'Updated successfully',
+    //     ]);
+    // }
     public function updateHrStatus(Request $request)
     {
         $hr = HrTicketDetail::find($request->hr_id);
+
         if (! $hr) {
             return response()->json([
                 'status' => false,
@@ -984,6 +1183,22 @@ class TicketController extends Controller
 
         $userId = session('user_id');
         $comment = $request->comments ?? null;
+
+        // =========================
+        // CHECK LEAVE REQUEST
+        // =========================
+        $leaveRequestId = config('ticket.LEAVE_REQUEST');
+        $isLeaveRequest = ($hr->escalationTypeId == $leaveRequestId);
+
+        // 🚫 Prevent re-processing
+        if ($isLeaveRequest && in_array($hr->status, ['Approved', 'Rejected'])) {
+            if ($request->status !== 'Closed') {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Already processed. Only closing allowed.',
+                ]);
+            }
+        }
 
         // =========================
         // UPDATE HR STATUS
@@ -1010,33 +1225,37 @@ class TicketController extends Controller
 
         $hr->status_history = json_encode($existingHistory);
 
-        // =========================
-        // SAVE HR
-        // =========================
         $hr->save();
 
         // =========================
-        // UPDATE PARENT TICKET STATUS
+        // UPDATE TICKET
         // =========================
         $ticket = IssueTicket::find($hr->ticketId);
 
         if ($ticket) {
 
-            if ($request->status == 'InProgress') {
-                $ticket->Status = 1;
-            }
+            if ($isLeaveRequest) {
 
-            if ($request->status == 'Resolved') {
-                $ticket->Status = 2;
-            }
+                if ($request->status == 'Approved') {
+                    $ticket->Status = 2;
+                } elseif ($request->status == 'Rejected') {
+                    $ticket->Status = 4;
+                } elseif ($request->status == 'Closed') {
+                    $ticket->Status = 3;
+                }
+            } else {
 
-            if ($request->status == 'Closed') {
-                $ticket->Status = 3;
+                if ($request->status == 'InProgress') {
+                    $ticket->Status = 1;
+                } elseif ($request->status == 'Resolved') {
+                    $ticket->Status = 2;
+                } elseif ($request->status == 'Closed') {
+                    $ticket->Status = 3;
+                }
             }
 
             $ticket->ModifiedBy = $userId;
             $ticket->ModifiedDate = now();
-
             $ticket->save();
         }
 

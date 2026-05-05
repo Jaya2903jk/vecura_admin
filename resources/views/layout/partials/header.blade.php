@@ -85,11 +85,19 @@
                 {{-- @component('components.modal-popup')
                 @endcomponent --}}
 
-                <a href="{{ route('tickets') }}"
+                {{-- <a href="{{ route('tickets') }}"
                     class="btn btn-liner-gradient me-3 d-lg-flex d-none">
                      Ticket
-                </a>
+                </a> --}}
+ {{-- <div class="text-end">
+                    <a href="javascript:void(0);" class="btn btn-primary" data-bs-toggle="modal"
+                        data-bs-target="#add_tickets"><i class="ti ti-plus me-1"></i>Raise Ticket</a>
+                </div> --}}
 
+                {{-- @isset($assignList)
+                    @component('components.modal-popup', ['assignList' => $assignList, 'tickets' => $tickets])
+                    @endcomponent
+                @endisset --}}
 
                 <!-- AI Assistance -->
                 {{-- <a href="javascript:void(0);" class="btn btn-liner-gradient me-3 d-lg-flex d-none">AI Assistance<i

@@ -51,8 +51,8 @@
                             </select> --}}
                             <select id="typeFilter" class="form-select">
                                 <option value="">All Type</option>
-                                <option value="complaint" {{ request('type') == 'complaint' ? 'selected' : '' }}>
-                                    Complaint
+                                <option value="vsupport" {{ request('type') == 'vsupport' ? 'selected' : '' }}>
+                                    Vsupport
                                 </option>
                                 <option value="hr" {{ request('type') == 'hr' ? 'selected' : '' }}>
                                     Hr
@@ -126,6 +126,12 @@
                         <span>Closed</span>
                     </a>
                 </li>
+                 <li class="nav-item">
+                    <a href="{{ route('tickets', ['status' => 4]) }}"
+                        class="nav-link {{ request('status') == 4 ? 'active' : '' }}">
+                        <span>Rejected</span>
+                    </a>
+                </li>
 
             </ul>
 
@@ -183,7 +189,7 @@
                                     <td>{{ $t->type ?? 'Ticket' }}</td>
 
                                     {{-- Status --}}
-                                    <td>
+                                    {{-- <td>
                                         <span
                                             class="status-badge
                 @if ($t->Status == 0) status-pending
@@ -201,15 +207,53 @@
                                                 Closed
                                             @endif
                                         </span>
-                                    </td>
-
-                                    {{-- Follow Up --}}
-                                    {{-- <td>
-                                        <button class="followup-btn" data-ticket="#TKT{{ $t->ticketId }}"
-                                            data-bs-toggle="modal" data-bs-target="#followupModal">
-                                            <i class="ti ti-message-plus"></i> Follow Up
-                                        </button>
                                     </td> --}}
+
+                                    <td>
+                                        @php
+                                            $isLeave = false;
+
+                                            if ($t->type == 'hr' && isset($t->hr[0])) {
+                                                $isLeave = $t->hr[0]->escalationTypeId == $leaveRequestId;
+                                            }
+                                        @endphp
+
+                                        <span
+                                            class="status-badge
+                                              @if ($t->Status == 0) status-pending
+                                              @elseif ($t->Status == 1) status-progress
+                                              @elseif ($t->Status == 2) status-resolved
+                                              @elseif ($t->Status == 4) status-rejected
+                                              @else status-closed @endif
+                                          ">
+                                            @if ($isLeave)
+                                                @if ($t->Status == 0)
+                                                    Pending
+                                                @elseif ($t->Status == 1)
+                                                    In Progress
+                                                @elseif ($t->Status == 2)
+                                                    Approved
+                                                @elseif ($t->Status == 4)
+                                                    Rejected
+                                                @elseif ($t->Status == 3)
+                                                    Closed
+                                                @endif
+
+                                                {{-- NORMAL FLOW --}}
+                                            @else
+                                                @if ($t->Status == 0)
+                                                    Pending
+                                                @elseif ($t->Status == 1)
+                                                    In Progress
+                                                @elseif ($t->Status == 2)
+                                                    Resolved
+                                                @elseif ($t->Status == 3)
+                                                    Closed
+                                                @endif
+                                            @endif
+
+                                        </span>
+                                    </td>
 
                                     {{-- Action --}}
                                     <td>{{ $t->CreatedDate ?? '-' }}</td>
@@ -345,6 +389,10 @@
 
                 .status-resolved {
                     background: #2eb85c;
+                }
+
+                .status-rejected {
+                    background: #dc3545;
                 }
 
                 .status-pending {
@@ -503,9 +551,9 @@
     <script>
         $(document).ready(function() {
             const LEAVE_REQUEST_ID = "{{ $leaveRequestId }}";
-            // =========================
-            // LOAD EMPLOYEES (only once)
-            // =========================
+            const ATTENDANCE_ISSUE_ID = "{{ config('ticket.ATTENDANCE_ISSUE') }}";
+            const NEW_JOINEE = "{{ config('ticket.NEW_JOINEE') }}";
+            const HR_ID = 51;
             $.ajax({
                 url: "/employees",
                 type: "GET",
@@ -516,7 +564,10 @@
                             options +=
                                 `<option value="${e.UserID}">${e.FullName} (${e.UserCode})</option>`;
                         });
-                        $("#employee_id").html(options);
+                        // $("#employee_id").html(options);
+                        // $("#employee_id_attendance").html(options); // ✅ both dropdowns
+                        $("#employee_common").html(options); // ✅ common
+
                     }
                 }
             });
@@ -555,7 +606,20 @@
                 $("#leave_request_block").hide();
 
                 let deptId = $(this).val();
+                $("#employee_common_block").hide();
+                $("#leave_request_block").hide();
+                $("#attendance_block").hide();
+                $("input[name='from_date'], input[name='to_date'], input[name='attendance_date']")
+                    .val('')
+                    .prop('required', false);
 
+                // HR → show employee
+                if (deptId == HR_ID) {
+                    $("#employee_common_block").show();
+                    $("#employee_common").prop('required', true);
+                } else {
+                    $("#employee_common").prop('required', false);
+                }
                 $("#category").html('<option value="">Loading...</option>');
                 $("#issue").html('<option value="">Select Issue</option>');
 
@@ -578,8 +642,9 @@
                 }
             });
             $("#category").change(function() {
-                $("#leave_request_block").hide();
                 let categoryId = $(this).val();
+                $("#leave_request_block").hide();
+                $("#attendance_block").hide();
 
                 $("#issue").html('<option value="">Loading...</option>');
 
@@ -784,72 +849,92 @@
                 });
             });
 
+            // $("#issue").on("change", function() {
+
+            //     let issueId = $(this).val();
+
+            //     $("#leave_request_block").hide();
+            //     $("#attendance_block").hide();
+
+            //     $("input[name='from_date'], input[name='to_date'], input[name='attendance_date']")
+            //         .val('')
+            //         .prop('required', false);
+
+            //     $("select[name='employee_id'], select[name='employee_id_attendance']")
+            //         .val('')
+            //         .prop('required', false);
+
+            //     //  LEAVE REQUEST
+            //     if (issueId == LEAVE_REQUEST_ID) {
+
+            //         $("#leave_request_block").slideDown();
+
+            //         $("input[name='from_date']").prop('required', true);
+            //         $("input[name='to_date']").prop('required', true);
+            //         $("select[name='employee_id']").prop('required', true);
+            //     }
+
+            //     //  ATTENDANCE ISSUE
+            //     else if (issueId == ATTENDANCE_ISSUE_ID) {
+
+            //         $("#attendance_block").slideDown();
+
+            //         $("input[name='attendance_date']").prop('required', true);
+            //         $("select[name='employee_id_attendance']").prop('required', true);
+            //     }
+
+            // });
             $("#issue").on("change", function() {
 
-                let escalationId = $(this).val();
+                let issueId = $(this).val();
 
-                if (escalationId == LEAVE_REQUEST_ID) {
+                // RESET
+                $("#leave_request_block").hide();
+                $("#attendance_block").hide();
+                    $("#new_joinee_block").hide();
+
+
+                $("input[name='from_date'], input[name='to_date'], input[name='attendance_date']")
+                    .val('')
+                    .prop('required', false);
+                $("input, select, textarea").prop('required', false);
+
+                if (issueId == LEAVE_REQUEST_ID) {
 
                     $("#leave_request_block").slideDown();
 
                     $("input[name='from_date']").prop('required', true);
                     $("input[name='to_date']").prop('required', true);
-                    $("select[name='employee_id']").prop('required', true);
-
-                } else {
-
-                    $("#leave_request_block").slideUp();
-
-                    $("input[name='from_date']").val('').prop('required', false);
-                    $("input[name='to_date']").val('').prop('required', false);
-                    $("select[name='employee_id']").val('').prop('required', false);
                 }
+
+                // ✅ ATTENDANCE
+                else if (issueId == ATTENDANCE_ISSUE_ID) {
+
+                    $("#attendance_block").slideDown();
+
+                    $("input[name='attendance_date']").prop('required', true);
+                }
+                else if (issueId == NEW_JOINEE) {
+
+        $("#new_joinee_block").slideDown();
+
+        // make required fields
+        $("input[name='vacancies']").prop('required', true);
+        $("input[name='designation']").prop('required', true);
+        $("textarea[name='job_description']").prop('required', true);
+        $("input[name='age_min']").prop('required', true);
+        $("input[name='age_max']").prop('required', true);
+        $("select[name='gender']").prop('required', true);
+        $("input[name='experience']").prop('required', true);
+        $("input[name='qualification']").prop('required', true);
+        $("input[name='skills']").prop('required', true);
+        $("input[name='work_location']").prop('required', true);
+
+        // ❌ Hide employee
+        $("#employee_common_block").hide();
+    }
+
             });
-            // $("#issue").on("change", function() {
-
-            //     let issueId = $(this).val();
-
-            //     // =========================
-            //     // LEAVE REQUEST (11)
-            //     // =========================
-            //     if (issueId == "{{ config('ticket.LEAVE_REQUEST') }}") {
-
-            //         $("#leave_request_block").slideDown();
-            //         $("#attendance_block").hide();
-
-            //         $("input[name='from_date']").prop('required', true);
-            //         $("input[name='to_date']").prop('required', true);
-            //         $("select[name='employee_id']").prop('required', true);
-
-            //         $("input[name='attendance_date']").prop('required', false);
-
-            //     }
-
-            //     // =========================
-            //     // ATTENDANCE ISSUE (13)
-            //     // =========================
-            //     else if (issueId == "{{ config('ticket.ATTENDANCE_ISSUE') }}") {
-
-            //         $("#attendance_block").slideDown();
-            //         $("#leave_request_block").hide();
-
-            //         $("input[name='attendance_date']").prop('required', true);
-            //         $("select[name='employee_id']").prop('required', true);
-
-            //         $("input[name='from_date']").prop('required', false);
-            //         $("input[name='to_date']").prop('required', false);
-
-            //     }
-
-            //     // =========================
-            //     // DEFAULT
-            //     // =========================
-            //     else {
-            //         $("#leave_request_block").hide();
-            //         $("#attendance_block").hide();
-            //     }
-            // });
-
 
         });
     </script>

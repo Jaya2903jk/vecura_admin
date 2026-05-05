@@ -314,8 +314,30 @@
                                 {{-- <th class="text-light">Raised By</th> --}}
                                 <th class="text-light">Category</th>
                                 <th class="text-light">Type of Escalation</th>
-                                <th class="text-light">From</th>
+                                @php
+                                    $leaveRequestId = config('ticket.LEAVE_REQUEST');
+                                    $attendanceId = config('ticket.ATTENDANCE_ISSUE');
+
+                                    $hasLeave = $ticket->hr->contains(function ($hr) use ($leaveRequestId) {
+                                        return $hr->escalationTypeId == $leaveRequestId;
+                                    });
+
+                                    $hasAttendance = $ticket->hr->contains(function ($hr) use ($attendanceId) {
+                                        return $hr->escalationTypeId == $attendanceId;
+                                    });
+                                @endphp
+                                {{-- <th class="text-light">From</th>
                                 <th class="text-light">To</th>
+                                 <th class="text-light">Date</th> --}}
+                                @if ($hasLeave)
+                                    <th>From</th>
+                                    <th>To</th>
+                                @endif
+                                {{--  ATTENDANCE --}}
+                                @if ($hasAttendance)
+                                    <th>Date</th>
+                                @endif
+
                                 <th class="text-light">Status</th>
                                 <th class="text-light">Feedback</th>
 
@@ -335,16 +357,33 @@
                                     </td>
                                     <td class="text-dark">{{ $hr->category->category_name ?? '-' }}</td>
                                     <td class="text-dark">{{ $hr->escalationType->IssueName ?? '-' }}</td>
-                                    <td class="text-dark">{{ $hr->fromDate ?? '-' }}</td>
+                                    {{-- <td class="text-dark">{{ $hr->fromDate ?? '-' }}</td>
                                     <td class="text-dark">{{ $hr->toDate ?? '-' }}</td>
+                                    <td class="text-dark">{{ $hr->attendanceDate ?? '-' }}</td> --}}
+                                    @if ($hr->escalationTypeId == $leaveRequestId)
+                                        <td>{{ $hr->fromDate ?? '-' }}</td>
+                                        <td>{{ $hr->toDate ?? '-' }}</td>
+                                    @elseif($hasLeave)
+                                        <td>-</td>
+                                        <td>-</td>
+                                    @endif
 
+                                    {{-- ✅ ATTENDANCE --}}
+                                    @if ($hr->escalationTypeId == $attendanceId)
+                                        <td>{{ $hr->attendanceDate ?? '-' }}</td>
+                                    @elseif($hasAttendance)
+                                        <td>-</td>
+                                    @endif
                                     <td>
                                         <span
                                             class="badge
-                                           @if ($hr->status == 'Pending') bg-warning
-                                           @elseif($hr->status == 'InProgress') bg-info
-                                            @elseif($hr->status == 'Resolved') bg-success
-                                           @else bg-danger @endif">
+        @if ($hr->status == 'Pending') bg-warning
+        @elseif($hr->status == 'InProgress') bg-info
+        @elseif($hr->status == 'Resolved') bg-success
+        @elseif($hr->status == 'Approved') bg-success
+        @elseif($hr->status == 'Rejected') bg-danger
+        @elseif($hr->status == 'Closed') bg-danger
+        @else bg-secondary @endif">
                                             {{ $hr->status }}
                                         </span>
                                     </td>
@@ -366,21 +405,70 @@
                                         @php
                                             $createdDate = \Carbon\Carbon::parse($hr->CreatedDate);
                                             $canAdminClose = $createdDate->diffInDays($today) >= 2;
+
+                                            $isLeave = $hr->escalationTypeId == config('ticket.LEAVE_REQUEST');
                                         @endphp
 
-                                        {{-- ADMIN / HR --}}
-                                        @if (($isAdmin || $isAuditTeam) && $hr->status != 'Closed')
-                                            <button class="btn bg-primary-gradient btn-primary btn-effect"
-                                               onclick="openHrModal('{{ $hr->hrTicketId }}', '{{ $hr->status }}', '{{ $hr->CreatedDate }}')">
-                                                Update
-                                            </button>
+                                        {{-- ========================= --}}
+                                        {{-- ✅ LEAVE REQUEST FLOW --}}
+                                        {{-- ========================= --}}
+                                        @if ($isLeave)
+                                            {{-- Admin can Approve/Reject only when Pending --}}
+                                            {{-- @if (($isAdmin || $isAuditTeam) && $hr->status == 'Pending') --}}
+                                            @if (($isAdmin || $isAuditTeam) && in_array($hr->status, ['Pending', 'InProgress']))
+                                                <button class="btn bg-primary-gradient btn-primary btn-effect"
+                                                    onclick="openHrModal(
+                                                 '{{ $hr->hrTicketId }}',
+                                                 '{{ $hr->status }}',
+                                                 '{{ $hr->CreatedDate }}',
+                                                 true
+                                             )">
+                                                    Update
+                                                </button>
+                                            @endif
 
-                                            {{-- EMPLOYEE --}}
-                                        @elseif($isCreator && $hr->status == 'Resolved')
-                                            <button class="btn bg-primary-gradient btn-primary btn-effect"
-                                               onclick="openHrModal('{{ $hr->hrTicketId }}', '{{ $hr->status }}', '{{ $hr->CreatedDate }}')">
-                                                Close
-                                            </button>
+                                            {{-- Employee can Close after Approved/Rejected --}}
+                                            @if ($isCreator && in_array($hr->status, ['Approved', 'Rejected']))
+                                                <button class="btn bg-primary-gradient btn-primary btn-effect"
+                                                    onclick="openHrModal(
+                                                          '{{ $hr->hrTicketId }}',
+                                                   '{{ $hr->status }}',
+                                                   '{{ $hr->CreatedDate }}',
+                                                   true
+                                               )">
+                                                    Close
+                                                </button>
+                                            @endif
+
+                                            {{-- ========================= --}}
+                                            {{-- ✅ NORMAL HR FLOW --}}
+                                            {{-- ========================= --}}
+                                        @else
+                                            {{-- Admin Resolve --}}
+                                            @if (($isAdmin || $isAuditTeam) && $hr->status != 'Closed')
+                                                <button class="btn bg-primary-gradient btn-primary btn-effect"
+                                                    onclick="openHrModal(
+                    '{{ $hr->hrTicketId }}',
+                    '{{ $hr->status }}',
+                    '{{ $hr->CreatedDate }}',
+                    false
+                )">
+                                                    Update
+                                                </button>
+                                            @endif
+
+                                            {{-- Employee Close --}}
+                                            @if ($isCreator && $hr->status == 'Resolved')
+                                                <button class="btn bg-primary-gradient btn-primary btn-effect"
+                                                    onclick="openHrModal(
+                    '{{ $hr->hrTicketId }}',
+                    '{{ $hr->status }}',
+                    '{{ $hr->CreatedDate }}',
+                    false
+                )">
+                                                    Close
+                                                </button>
+                                            @endif
                                         @endif
                                     </td>
 
@@ -424,10 +512,13 @@
                                     <td>
                                         <span
                                             class="badge
-                            @if ($history['status'] == 'Pending') bg-warning
-                            @elseif($history['status'] == 'InProgress') bg-info
-                            @elseif($history['status'] == 'Resolved') bg-success
-                            @else bg-danger @endif">
+        @if ($history['status'] == 'Pending') bg-warning
+        @elseif($history['status'] == 'InProgress') bg-info
+        @elseif($history['status'] == 'Resolved') bg-success
+        @elseif($history['status'] == 'Approved') bg-success
+        @elseif($history['status'] == 'Rejected') bg-danger
+        @elseif($history['status'] == 'Closed') bg-danger
+        @else bg-secondary @endif">
                                             {{ $history['status'] }}
                                         </span>
                                     </td>
@@ -448,67 +539,7 @@
                         </tbody>
                     </table>
                 </div>
-                {{-- <div class="table-title-row px-3">
-                    <div class="table-title">
-                        Follow-Up List
-                    </div>
 
-                </div> --}}
-                {{-- <div class="table-responsive">
-                    <table class="table blue-table mb-0">
-                        <thead class="thead-light ">
-                            <thead class="thead-light ">
-
-                                <tr>
-                                    <th class="">#</th>
-                                    <th class="">Date</th>
-                                    <th class="">Raised By</th>
-                                    <th class="">Assigned To</th>
-
-                                    <th class="">Source</th>
-                                    <th class="">Feedback</th>
-                                    <th class="">Status</th>
-                                </tr>
-                            </thead>
-                        <tbody>
-                            @forelse($ticket->complaints as $key => $complaint)
-                                <tr>
-                                    <td class="text-dark">{{ $key + 1 }}</td>
-                                     <td class="text-dark">
-                                        {{ \Carbon\Carbon::parse($complaint->CreatedDate)->format('d M Y') }}</td>
-
-                                    <td class="text-dark">{{ $complaint->createdUser->FullName ?? 'N/A' }}</td>
-                                    <td class="text-dark">{{ $complaint->acceptedUser->FullName ?? 'Not Assigned' }}
-                                    </td>
-
-                                    <td class="text-dark">{{ $complaint->sources ?? '-' }}</td>
-
-                                    <td class="text-dark" style="max-width:800px;">
-                                        <div style="white-space: normal;">
-                                            <small>{{ $complaint->feedback }}</small>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <span
-                                            class="badge
-                                           @if ($complaint->callStatus == 'Pending') bg-warning
-                                           @elseif($complaint->callStatus == 'InProgress') bg-info
-                                            @elseif($complaint->callStatus == 'Resolved') bg-success
-                                           @else bg-danger @endif">
-                                            {{ $complaint->callStatus }}
-                                        </span>
-                                    </td>
-
-
-                                </tr>
-                            @empty
-                                <tr>
-                                    <td colspan="11" class="text-center">No complaints found</td>
-                                </tr>
-                            @endforelse
-                        </tbody>
-                    </table>
-                </div> --}}
 
 
             </div>
@@ -531,7 +562,7 @@
                     <input type="hidden" id="modal_hr_id">
                     <div class="mb-3">
                         <label>Status</label>
-                        
+
                         <select id="modal_status" class="form-control">
 
                             <option value="" disabled selected>Select</option>
@@ -562,7 +593,90 @@
         </div>
     </div>
     <script>
-        function openHrModal(id, status, createdDate) {
+        // function openHrModal(id, status, createdDate) {
+
+        //     document.getElementById('modal_hr_id').value = id;
+        //     document.getElementById('modal_comments').value = "";
+
+        //     let select = document.getElementById('modal_status');
+        //     select.innerHTML = '<option value="" disabled selected>Select</option>';
+
+        //     let isAdmin = @json($isAdmin);
+        //     let isAuditTeam = @json($isAuditTeam);
+        //     let isCreator = @json($isCreator);
+
+        //     let created = new Date(createdDate);
+        //     let today = new Date();
+
+        //     let diffDays = Math.floor((today - created) / (1000 * 60 * 60 * 24));
+
+        //     if (isAdmin || isAuditTeam) {
+
+        //         // Admin can resolve
+        //         select.innerHTML += `<option value="Resolved">Resolved</option>`;
+
+
+        //         // Admin can close only after 2 days
+        //         if (diffDays >= 2) {
+        //             select.innerHTML += `<option value="Closed">Closed</option>`;
+        //         }
+
+        //     } else if (isCreator && status === 'Resolved') {
+
+        //         // Employee only close
+        //         select.innerHTML += `<option value="Closed">Closed</option>`;
+        //     }
+
+        //     let modal = new bootstrap.Modal(document.getElementById('hrStatusModal'));
+        //     modal.show();
+        // }
+        // function openHrModal(id, status, createdDate, isLeaveRequest = false) {
+
+        //     document.getElementById('modal_hr_id').value = id;
+        //     document.getElementById('modal_comments').value = "";
+
+        //     let select = document.getElementById('modal_status');
+        //     select.innerHTML = '<option value="" disabled selected>Select</option>';
+
+        //     let isAdmin = @json($isAdmin);
+        //     let isAuditTeam = @json($isAuditTeam);
+        //     let isCreator = @json($isCreator);
+
+        //     let created = new Date(createdDate);
+        //     let today = new Date();
+        //     let diffDays = Math.floor((today - created) / (1000 * 60 * 60 * 24));
+
+        //     if (isLeaveRequest) {
+
+        //         if (isAdmin || isAuditTeam) {
+        //             select.innerHTML += `<option value="Approved">Approved</option>`;
+        //             select.innerHTML += `<option value="Rejected">Rejected</option>`;
+        //         }
+
+        //         if (isCreator && (status === 'Approved' || status === 'Rejected')) {
+        //             select.innerHTML += `<option value="Closed">Closed</option>`;
+        //         }
+
+        //     }
+        //     else {
+
+        //         if (isAdmin || isAuditTeam) {
+        //             select.innerHTML += `<option value="Resolved">Resolved</option>`;
+
+        //             if (diffDays >= 2) {
+        //                 select.innerHTML += `<option value="Closed">Closed</option>`;
+        //             }
+        //         } else if (isCreator && status === 'Resolved') {
+        //             select.innerHTML += `<option value="Closed">Closed</option>`;
+        //         }
+        //     }
+
+        //     let modal = new bootstrap.Modal(document.getElementById('hrStatusModal'));
+        //     modal.show();
+        // }
+    </script>
+    <script>
+        function openHrModal(id, status, createdDate, isLeaveRequest = false) {
 
             document.getElementById('modal_hr_id').value = id;
             document.getElementById('modal_comments').value = "";
@@ -576,39 +690,59 @@
 
             let created = new Date(createdDate);
             let today = new Date();
-
             let diffDays = Math.floor((today - created) / (1000 * 60 * 60 * 24));
 
-            if (isAdmin || isAuditTeam) {
+            if (status === 'Closed') {
+                Swal.fire("Info", "Ticket already closed", "info");
+                return;
+            }
 
-                // Admin can resolve
-                select.innerHTML += `<option value="Resolved">Resolved</option>`;
+            // =========================
+            // ✅ LEAVE REQUEST FLOW
+            // =========================
+            if (isLeaveRequest) {
 
-                // Admin can close only after 2 days
-                if (diffDays >= 2) {
-                    select.innerHTML += `<option value="Closed">Closed</option>`;
+                // Already Approved / Rejected → only Close
+                if (status === 'Approved' || status === 'Rejected') {
+
+                    if (isCreator) {
+                        select.innerHTML += `<option value="Closed">Closed</option>`;
+                    }
+
+                } else {
+                    // Pending → Admin can Approve/Reject
+                    if (isAdmin || isAuditTeam) {
+                        select.innerHTML += `<option value="Approved">Approved</option>`;
+                        select.innerHTML += `<option value="Rejected">Rejected</option>`;
+                    }
                 }
 
-            } else if (isCreator && status === 'Resolved') {
+            }
+            // =========================
+            // ✅ NORMAL HR FLOW
+            // =========================
+            else {
 
-                // Employee only close
-                select.innerHTML += `<option value="Closed">Closed</option>`;
+                if (isAdmin || isAuditTeam) {
+
+                    if (status !== 'Resolved') {
+                        select.innerHTML += `<option value="Resolved">Resolved</option>`;
+                    }
+
+                    if (diffDays >= 2 || status === 'Resolved') {
+                        select.innerHTML += `<option value="Closed">Closed</option>`;
+                    }
+
+                } else if (isCreator && status === 'Resolved') {
+                    select.innerHTML += `<option value="Closed">Closed</option>`;
+                }
             }
 
             let modal = new bootstrap.Modal(document.getElementById('hrStatusModal'));
             modal.show();
         }
     </script>
-    {{-- <script>
-            function openHrModal(id) {
-                document.getElementById('modal_hr_id').value = id;
-                document.getElementById('modal_status').value = "";
-                document.getElementById('modal_comments').value = "";
 
-                let modal = new bootstrap.Modal(document.getElementById('hrStatusModal'));
-                modal.show();
-            }
-        </script> --}}
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="{{ asset('build/plugins/sweetalert2/sweetalert2.min.js') }}"></script>
     <script>
@@ -652,157 +786,5 @@
             });
         }
     </script>
-    {{-- <script>
-        $(document).ready(function() {
-
-            $.ajaxSetup({
-                headers: {
-                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                }
-            });
-
-            // $(document).on('click', '.followup-btn', function(e) {
-            //     e.preventDefault();
-
-            //     let status = $(this).data('status');
-            //     let assignVal = $('#assign_to').val();
-            //     let remarks = $('textarea[name="remarks"]').val();
-
-            //     console.log("STATUS:", status);
-            //     if (status === 'Resolved' && assignVal) {
-            //         Swal.fire({
-            //             icon: "warning",
-            //             title: "Action Required",
-            //             text: "Please unselect 'Assign To' before clicking Resolved"
-            //         });
-            //         return;
-            //     }
-            //     if (status !== 'Resolved') {
-
-            //         if (!assignVal) {
-            //             Swal.fire("Error", "Assign To is required", "error");
-            //             return;
-            //         }
-
-            //         if (!remarks) {
-            //             Swal.fire("Error", "Remarks required", "error");
-            //             return;
-            //         }
-            //     }
-
-            //     let form = $('#followupForm')[0];
-            //     let formData = new FormData(form);
-            //     formData.append('status', status);
-
-            //     $.ajax({
-            //         url: "{{ route('complaint.followup') }}",
-            //         type: "POST",
-            //         data: formData,
-            //         processData: false,
-            //         contentType: false,
-
-            //         beforeSend: function() {
-            //             $('.followup-btn').prop('disabled', true);
-            //         },
-
-            //         success: function(res) {
-
-            //             if (res.status) {
-
-            //                 Swal.fire({
-            //                     icon: "success",
-            //                     title: res.message,
-            //                     timer: 1500,
-            //                     showConfirmButton: false
-            //                 });
-
-            //                 $('#followupModal').modal('hide');
-
-            //                 setTimeout(() => location.reload(), 1500);
-
-            //             } else {
-            //                 Swal.fire("Error", res.message, "error");
-            //             }
-            //         },
-
-            //         error: function(err) {
-            //             console.log(err.responseText);
-
-            //             Swal.fire({
-            //                 icon: "error",
-            //                 title: "Server Error",
-            //                 text: "Something went wrong!"
-            //             });
-            //         },
-
-            //         complete: function() {
-            //             $('.followup-btn').prop('disabled', false);
-            //         }
-            //     });
-
-            // });
-
-
-        });
-    </script> --}}
-
-    {{-- <script>
-        $(document).ready(function() {
-
-            let deptId = $("#department_id_from_ticket").val();
-
-            if (deptId) {
-                $("#department").val(deptId);
-
-                // Trigger category load directly
-                loadCategories(deptId);
-            }
-
-            function loadCategories(deptId) {
-                $("#category").html('<option>Loading...</option>');
-                $("#issue").html('<option>Select Issue</option>');
-
-                $.ajax({
-                    url: "/issue-categories",
-                    type: "GET",
-                    data: {
-                        department_id: deptId
-                    },
-                    success: function(res) {
-                        let options = '<option value="">Select Category</option>';
-                        res.data.forEach(function(c) {
-                            options +=
-                                `<option value="${c.category_id}">${c.category_name}</option>`;
-                        });
-                        $("#category").html(options);
-                    }
-                });
-            }
-
-            $("#category").change(function() {
-                let categoryId = $(this).val();
-
-                $("#issue").html('<option>Loading...</option>');
-
-                if (categoryId) {
-                    $.ajax({
-                        url: "/issues/" + categoryId,
-                        type: "GET",
-                        success: function(res) {
-                            let options = '<option value="">Select Issue</option>';
-                            res.data.forEach(function(i) {
-                                options +=
-                                    `<option value="${i.IssueId}">${i.IssueName}</option>`;
-                            });
-                            $("#issue").html(options);
-                        }
-                    });
-                }
-            });
-
-        });
-    </script> --}}
-
-
     <meta name="csrf-token" content="{{ csrf_token() }}">
 @endsection

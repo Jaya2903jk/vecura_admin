@@ -64,15 +64,15 @@
             </a>
         </div> --}}
         <div>
-            <a href="{{ url('index') }}" class="logo logo-normal">
+            <a href="{{ url('dashboard') }}" class="logo logo-normal">
                 <img src="{{ URL::asset('build/img/logo.png') }}" alt="Logo">
             </a>
 
-            <a href="{{ url('index') }}" class="logo-small">
+            <a href="{{ url('dashboard') }}" class="logo-small">
                 <img src="{{ URL::asset('build/img/logo-small.png') }}" alt="Logo">
             </a>
 
-            <a href="{{ url('index') }}" class="dark-logo">
+            <a href="{{ url('dashboard') }}" class="dark-logo">
                 <img src="{{ URL::asset('build/img/logo-white.png') }}" alt="Logo">
             </a>
         </div>
