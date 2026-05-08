@@ -1,0 +1,7 @@
+<?php
+return [
+    'LEAVE_REQUEST' => '11',
+    'ATTENDANCE_ISSUE' => '13',
+    'NEW_JOINEE' => '19',
+
+];
