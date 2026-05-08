@@ -1,22 +1,20 @@
 <?php
 
-use App\Events\TestNotification;
 use App\Http\Controllers\AuthController;
-use App\Http\Controllers\MasterController;
-use App\Http\Controllers\TicketController;
-use App\Http\Controllers\StaffController;
+use App\Http\Controllers\BranchController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\DepartmentController;
+use App\Http\Controllers\DesginationController;
+use App\Http\Controllers\HrManpowerController;
+use App\Http\Controllers\IssuesMasterController;
+use App\Http\Controllers\MasterController;
 use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\RoleController;
-use App\Http\Controllers\BranchController;
-use App\Http\Controllers\DesginationController;
-use App\Http\Controllers\IssuesMasterController;
-use App\Http\Controllers\VsupportController;
+use App\Http\Controllers\StaffController;
+use App\Http\Controllers\TicketController;
+use App\Models\IssueCategory;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Route;
-
 
 Route::get('/', function () {
     return view('login');
@@ -48,7 +46,8 @@ Route::middleware(['auth.custom', 'nocache'])->group(function () {
     Route::post('/issues-master/store', [IssuesMasterController::class, 'store'])->name('issues-master.store');
 
     Route::get('/tickets', [TicketController::class, 'index'])->name('tickets');
-    Route::post('/tickets', [TicketController::class, 'store']);
+    // Route::post('/tickets', [TicketController::class, 'store']);
+    Route::post('/tickets', [TicketController::class, 'store'])->name('tickets.store');
     // Route::get('/ticket-details/{id}', [TicketController::class, 'show']);
     // Route::post('/update-complaint-status', [TicketController::class, 'updateStatus']);
     Route::get('/ticket/{id}', [TicketController::class, 'viewTicket'])->name('ticket.view');
@@ -62,13 +61,15 @@ Route::middleware(['auth.custom', 'nocache'])->group(function () {
     Route::get('/followup-history/{id}', [TicketController::class, 'followupHistory']);
     Route::post('/hr/update-status', [TicketController::class, 'updateHrStatus'])
         ->name('hr.update.status');
+    Route::get('/manpower/{ticketId}', [HrManpowerController::class, 'view'])
+        ->name('manpower.view');
 
     Route::get('/search-customer', [MasterController::class, 'searchCustomer']);
     Route::get('/departments', [MasterController::class, 'departments']);
     Route::get('/issue-categories', [MasterController::class, 'issueCategories']);
     Route::get('/issues/{id}', [MasterController::class, 'getIssuesByCategory']);
     Route::get('/get-categories/{department_id}', function ($department_id) {
-        return \App\Models\IssueCategory::where('department_id', $department_id)->get();
+        return IssueCategory::where('department_id', $department_id)->get();
     });
     Route::get('/employees', [MasterController::class, 'employees']);
 });

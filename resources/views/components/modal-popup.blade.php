@@ -14561,25 +14561,26 @@
     </div>
 
 </div>
+
 <div id="new_joinee_block" class="row mt-2" style="display:none;">
 
     <div class="col-lg-6">
-        <label>No. of Vacancies <span class="text-danger">*</span></label>
+        <label class="form-label">No. of Vacancies <span class="text-danger">*</span></label>
         <input type="number" name="vacancies" class="form-control">
     </div>
 
     <div class="col-lg-6">
-        <label>Designation<span class="text-danger">*</span></label>
+        <label class="form-label">Designation<span class="text-danger">*</span></label>
         <input type="text" name="designation" class="form-control">
     </div>
 
     <div class="col-lg-12 mt-2">
-        <label>Job Description (JD) <span class="text-danger">*</span></label>
+        <label class="form-label">Job Description (JD) <span class="text-danger">*</span></label>
         <textarea name="job_description" class="form-control"></textarea>
     </div>
 
     <div class="col-lg-6 mt-2">
-        <label>Age Limit <span class="text-danger">*</span></label>
+        <label class="form-label">Age Limit <span class="text-danger">*</span></label>
         <div class="d-flex">
             <input type="number" name="age_min" class="form-control me-2" placeholder="Min">
             <input type="number" name="age_max" class="form-control" placeholder="Max">
@@ -14587,7 +14588,7 @@
     </div>
 
     <div class="col-lg-6 mt-2">
-        <label>Gender <span class="text-danger">*</span></label>
+        <label class="form-label">Gender <span class="text-danger">*</span></label>
         <select name="gender" class="form-control">
             <option value="">Select</option>
             <option>Male</option>
@@ -14597,22 +14598,22 @@
     </div>
 
     <div class="col-lg-6 mt-2">
-        <label>Experience (Years) <span class="text-danger">*</span></label>
+        <label class="form-label">Experience (Years) <span class="text-danger">*</span></label>
         <input type="text" name="experience" class="form-control">
     </div>
 
     <div class="col-lg-6 mt-2">
-        <label>Qualification <span class="text-danger">*</span></label>
+        <label class="form-label">Qualification <span class="text-danger">*</span></label>
         <input type="text" name="qualification" class="form-control">
     </div>
 
     <div class="col-lg-12 mt-2">
-        <label>Skills <span class="text-danger">*</span></label>
+        <label class="form-label">Skills <span class="text-danger">*</span></label>
         <input type="text" name="skills" class="form-control">
     </div>
 
     <div class="col-lg-12 mt-2">
-        <label>Work Location <span class="text-danger">*</span></label>
+        <label class="form-label">Work Location <span class="text-danger">*</span></label>
         <input type="text" name="work_location" class="form-control">
     </div>
 

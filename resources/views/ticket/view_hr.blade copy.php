@@ -551,97 +551,12 @@
 
 
     </div>
-
-    <style>
-        .ap-modal-header {
-            background: #3741b0;
-            padding: 14px 20px;
-            border-bottom: none;
-            border-radius: 6px 6px 0 0;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .ap-modal-header .btn-close {
-            filter: invert(1) brightness(2);
-            opacity: .8;
-        }
-
-        .ap-modal-title {
-            font-size: 15px;
-            font-weight: 700;
-            color: #fff;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin: 0;
-        }
-
-        /* Modal footer */
-        .ap-modal-footer {
-            padding: 12px 20px 16px;
-            display: flex;
-            justify-content: flex-end;
-            gap: 8px;
-            border-top: 1px solid #e7e8eb;
-        }
-
-        .ap-btn-cancel {
-            padding: 7px 18px;
-            font-size: 13px;
-            font-weight: 600;
-            border-radius: 5px;
-            border: 1px solid #d0d3de;
-            background: #fff;
-            color: #4b5673;
-            cursor: pointer;
-            transition: background .15s;
-        }
-
-        .ap-btn-cancel:hover {
-            background: #f3f4f8;
-        }
-
-        .ap-btn-submit {
-            padding: 7px 22px;
-            font-size: 13px;
-            font-weight: 700;
-            border-radius: 5px;
-            border: none;
-            background: #3741b0;
-            color: #fff;
-            cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            transition: opacity .15s;
-        }
-
-        .ap-btn-submit:hover {
-            opacity: .88;
-        }
-
-        .ap-btn-submit:disabled {
-            opacity: .6;
-            cursor: not-allowed;
-        }
-    </style>
-    <div class="modal fade" id="hrStatusModal" tabindex="-1" aria-labelledby="hrStatusModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered" style="max-width:480px;">
-
-            <div class="modal-content"
-                style="border-radius:6px; border:none; overflow:hidden; box-shadow:0 8px 32px rgba(55,65,176,.18);">
-                {{-- <div class="modal-header">
-                    <h5 class="modal-title" id="hrStatusModalLabel">Update HR Ticket</h5>
+    <div class="modal fade" id="hrStatusModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Update HR Ticket</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div> --}}
-                <div class="ap-modal-header">
-                    <h5 class="ap-modal-title" id="hrStatusModalLabel">
-                        <i class="ti ti-clipboard-check" style="font-size:17px;"></i>
-                        Update HR Ticket
-                    </h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
                     <input type="hidden" id="modal_hr_id">
@@ -669,18 +584,9 @@
                         <textarea id="modal_comments" class="form-control" required></textarea>
                     </div>
                 </div>
-                {{-- <div class="modal-footer">
+                <div class="modal-footer">
                     <button class="btn btn btn-danger" data-bs-dismiss="modal">Cancel</button>
                     <button class="btn btn-primary" onclick="saveHrStatus()">Save</button>
-                </div> --}}
-                <div class="ap-modal-footer">
-                    <button type="button" class="ap-btn-cancel" data-bs-dismiss="modal">
-                        Cancel
-                    </button>
-                    <button type="button" class="ap-btn-submit" id="ap_submit_btn" onclick="saveHrStatus()">
-                        <i class="ti ti-send" style="font-size:13px;"></i>
-                        Submit
-                    </button>
                 </div>
 
             </div>

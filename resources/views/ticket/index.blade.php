@@ -126,7 +126,7 @@
                         <span>Closed</span>
                     </a>
                 </li>
-                 <li class="nav-item">
+                <li class="nav-item">
                     <a href="{{ route('tickets', ['status' => 4]) }}"
                         class="nav-link {{ request('status') == 4 ? 'active' : '' }}">
                         <span>Rejected</span>
@@ -188,31 +188,11 @@
                                     {{-- Type --}}
                                     <td>{{ $t->type ?? 'Ticket' }}</td>
 
-                                    {{-- Status --}}
-                                    {{-- <td>
-                                        <span
-                                            class="status-badge
-                @if ($t->Status == 0) status-pending
-                @elseif ($t->Status == 1) status-progress
-                @elseif ($t->Status == 2) status-resolved
-                @else status-closed @endif
-              ">
-                                            @if ($t->Status == 0)
-                                                Pending
-                                            @elseif ($t->Status == 1)
-                                                In Progress
-                                            @elseif ($t->Status == 2)
-                                                Resolved
-                                            @else
-                                                Closed
-                                            @endif
-                                        </span>
-                                    </td> --}}
+
 
                                     <td>
                                         @php
                                             $isLeave = false;
-
                                             if ($t->type == 'hr' && isset($t->hr[0])) {
                                                 $isLeave = $t->hr[0]->escalationTypeId == $leaveRequestId;
                                             }
@@ -258,16 +238,25 @@
                                     {{-- Action --}}
                                     <td>{{ $t->CreatedDate ?? '-' }}</td>
 
-                                    <td>
+                                    {{-- <td>
                                         <div class="d-flex gap-1">
                                             <a class="action-btn" href="{{ route('ticket.view', $t->ticketId) }}">
                                                 <i class="ti ti-eye"></i>
                                             </a>
 
-                                            {{-- <button class="action-btn edit-ticket-btn" type="button"
-                                                data-bs-toggle="modal" data-bs-target="#editTicketModal">
-                                                <i class="ti ti-edit"></i>
-                                            </button> --}}
+
+                                        </div>
+                                    </td> --}}
+                                    <td>
+                                        @php
+                                            $isManpower = strtolower(trim($t->Subject)) === 'manpower';
+                                        @endphp
+
+                                        <div class="d-flex gap-1">
+                                            <a class="action-btn"
+                                                href="{{ $isManpower ? url('/manpower/' . $t->ticketId) : route('ticket.view', $t->ticketId) }}">
+                                                <i class="ti ti-eye"></i>
+                                            </a>
                                         </div>
                                     </td>
 
@@ -666,7 +655,7 @@
 
             $('#ticketForm').on('submit', function(e) {
                 e.preventDefault();
-
+                // alert('ok');
                 let form = this;
                 let formData = new FormData(form);
                 let submitBtn = $(form).find('button[type="submit"]');
@@ -675,7 +664,8 @@
                 $('.invalid-feedback.dynamic').remove();
 
                 $.ajax({
-                    url: "{{ url('tickets') }}",
+                    // url: "{{ url('tickets') }}",
+                    url: "{{ route('tickets.store') }}",
                     type: "POST",
                     data: formData,
                     processData: false,
@@ -828,7 +818,7 @@
                                 table.append(row);
                             });
 
-                            // ✅ block duplicate ticket
+                            //  block duplicate ticket
                             // if (hasOpen) {
                             //     $('#submitBtn')
                             //         .prop('disabled', true)
@@ -885,13 +875,10 @@
 
             // });
             $("#issue").on("change", function() {
-
                 let issueId = $(this).val();
-
-                // RESET
                 $("#leave_request_block").hide();
                 $("#attendance_block").hide();
-                    $("#new_joinee_block").hide();
+                $("#new_joinee_block").hide();
 
 
                 $("input[name='from_date'], input[name='to_date'], input[name='attendance_date']")
@@ -907,32 +894,31 @@
                     $("input[name='to_date']").prop('required', true);
                 }
 
-                // ✅ ATTENDANCE
+                //  ATTENDANCE
                 else if (issueId == ATTENDANCE_ISSUE_ID) {
 
                     $("#attendance_block").slideDown();
 
                     $("input[name='attendance_date']").prop('required', true);
+                } else if (issueId == NEW_JOINEE) {
+
+                    $("#new_joinee_block").slideDown();
+
+                    // make required fields
+                    $("input[name='vacancies']").prop('required', true);
+                    $("input[name='designation']").prop('required', true);
+                    $("textarea[name='job_description']").prop('required', true);
+                    $("input[name='age_min']").prop('required', true);
+                    $("input[name='age_max']").prop('required', true);
+                    $("select[name='gender']").prop('required', true);
+                    $("input[name='experience']").prop('required', true);
+                    $("input[name='qualification']").prop('required', true);
+                    $("input[name='skills']").prop('required', true);
+                    $("input[name='work_location']").prop('required', true);
+
+                    //  Hide employee
+                    $("#employee_common_block").hide();
                 }
-                else if (issueId == NEW_JOINEE) {
-
-        $("#new_joinee_block").slideDown();
-
-        // make required fields
-        $("input[name='vacancies']").prop('required', true);
-        $("input[name='designation']").prop('required', true);
-        $("textarea[name='job_description']").prop('required', true);
-        $("input[name='age_min']").prop('required', true);
-        $("input[name='age_max']").prop('required', true);
-        $("select[name='gender']").prop('required', true);
-        $("input[name='experience']").prop('required', true);
-        $("input[name='qualification']").prop('required', true);
-        $("input[name='skills']").prop('required', true);
-        $("input[name='work_location']").prop('required', true);
-
-        // ❌ Hide employee
-        $("#employee_common_block").hide();
-    }
 
             });
 

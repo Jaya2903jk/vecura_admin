@@ -2,18 +2,17 @@
 
 namespace App\Models;
 
-use App\Models\CustomerRefundComplaint;
-use App\Models\IssueDepartment;
-use App\Models\LocationMaster;
-use App\Models\PatientPersonalDetail;
 use Illuminate\Database\Eloquent\Model;
 
 class IssueTicket extends Model
 {
     protected $connection = 'sqlsrv';
+
     // ✅ important
     protected $table = 'issueTicket';
+
     protected $primaryKey = 'ticketId';
+
     public $timestamps = false;
     // you are using CreatedDate manually
 
@@ -98,25 +97,28 @@ class IssueTicket extends Model
         'UserId',
         'accesstype',
         'DiscountPaymentMode',
-        'type'
+        'type',
     ];
+
     public function createdUser()
     {
         return $this->belongsTo(UserMaster::class, 'CreatedBy', 'UserCode');
     }
-     public function get_employee()
+
+    public function get_employee()
     {
         return $this->belongsTo(UserMaster::class, 'UserId', 'UserID');
     }
+
     public function complaints()
     {
         return $this->hasMany(CustomerRefundComplaint::class, 'ticketId', 'ticketId');
     }
+
     public function hr()
     {
         return $this->hasMany(HrTicketDetail::class, 'ticketId', 'ticketId');
     }
-
 
     public function customer()
     {

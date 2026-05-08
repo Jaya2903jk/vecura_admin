@@ -6,6 +6,7 @@ namespace App\Http\Controllers;
 
 use App\Models\ComplaintFollowup;
 use App\Models\CustomerRefundComplaint;
+use App\Models\HrManpowerRequest;
 use App\Models\HrTicketDetail;
 use App\Models\IssueCategory;
 use App\Models\IssueMaster;
@@ -92,180 +93,8 @@ class TicketController extends Controller
         return view('ticket.index', compact('tickets', 'assignList', 'totalTickets', 'perPage', 'leaveRequestId'));
     }
 
-    // public function store(Request $request)
-    // {
-    //     // dd($request->all());
-    //     $validator = Validator::make($request->all(), [
-    //         'Department'        => 'required',
-    //         'Complaint'         => 'required',
-    //         'TypeofEscalation'  => 'required',
-    //         'customer_code'     => 'required',
-    //         'customer_name'     => 'required',
-    //         'assign_to'         => 'required',
-    //         'source'            => 'required',
-    //         'feedback'          => 'required',
-    //         'alternateMobile'   => 'nullable|digits:10',
-
-    //     ]);
-
-    //     if ($validator->fails()) {
-    //         return response()->json([
-    //             'errors' => $validator->errors()
-    //         ], 422);
-    //     }
-
-    //     $user   = UserMaster::where('UserCode', $request->assign_to)->first();
-    //     DB::beginTransaction();
-
-    //     try {
-
-    //         $userId = session('user_id');
-    //         $user   = UserMaster::find($userId);
-
-    //         if (!$user) {
-    //             return response()->json([
-    //                 'status' => false,
-    //                 'message' => 'User not found'
-    //             ], 404);
-    //         }
-
-    //         $userCode = $user->UserCode;
-    //         $patient  = PatientPersonalDetail::where('RegistrationNo', $request->customer_code)->first();
-    //         $category = IssueCategory::find($request->Complaint);
-    //         $issue    = IssueMaster::find($request->TypeofEscalation);
-
-    //         $ticketId = DB::connection('sqlsrv')
-    //             ->table('issueTicket')
-    //             ->insertGetId([
-    //                 'Department'   => $request->Department,
-    //                 'Subject'      => $category->category_name ?? null,
-    //                 'Issuelevel2'  => $category->category_name ?? null,
-    //                 'Issuelevel3'  => $category->category_name ?? null,
-    //                 'Issuelevel5'  => $category->category_name ?? null,
-    //                 'CustomerCode' => $request->customer_code ?? null,
-    //                 'CustomerName' => $request->customer_name ?? null,
-    //                 'LocId'        => $user->Loc_id ?: ($patient->Loc_Id ?? 1),
-    //                 'Branch'       => $user->Loc_id ?: ($patient->Loc_Id ?? 1),
-    //                 'Status'       => 0,
-    //                 'type'         => 'complaint',
-    //                 'CreatedBy'    => $userCode,
-    //                 'CreatedDate'  => now(),
-    //                 'AcceptedBy'   => $userCode,
-    //                 'RequiredTime' => 1,
-    //                 'RequiredTimeType' => 'Day',
-
-    //                 // Optional
-    //                 'FromProduct'  => $request->from_product ?? '',
-    //                 'ToProduct'    => $request->ToProduct ?? '',
-    //                 'BankName'     => $request->bank_name ?? '',
-    //                 'CardNo'       => $request->card_no ?? '',
-    //                 'CashAmt'      => $request->cash_amt ?? 0,
-    //                 'CardAmt'      => $request->card_amt ?? 0,
-    //                 'ScheduledDate' => $request->scheduled_date ?? null,
-    //                 'BillRaisedType' => $request->bill_raised_type ?? null,
-    //                 'NewBillType'  => $request->new_bill_type ?? null,
-    //                 'ProductCode'  => $request->product_code ?? null,
-    //                 'ServiceCode'  => $request->service_code ?? null,
-    //                 'ServiceName'  => $request->service_name ?? null,
-    //                 'DiscountAmt'  => $request->discount_amt ?? 0,
-    //                 'BillNoFrom'   => $request->bill_no_from ?? '',
-    //                 'BillNoTo'     => $request->bill_no_to ?? '',
-    //                 'NewRequestedBillDate' => $request->new_requested_bill_date ?? null,
-    //                 'BillType'     => $request->bill_type ?? '',
-    //                 'OriyanaId'    => $request->oriyana_id ?? '',
-    //                 'MobileNo'     => $request->alternateMobile ?? '',
-    //                 'EmpName'      => $user->UserName ?? '',
-    //                 'ApprovedStatus' => 'Pending',
-    //                 'ApprovedBy'   => '',
-    //                 'Email'        => $user->Email ?? '',
-    //             ]);
-
-    //         $ticket = IssueTicket::find($ticketId);
-
-    //         $existingRef = CustomerRefundComplaint::where('CustomerCode', $request->customer_code)
-    //             ->value('ReferenceNo');
-
-    //         if ($existingRef) {
-    //             $ticketNo = $existingRef;
-    //         } else {
-    //             $last = CustomerRefundComplaint::orderBy('complaintid', 'desc')->first();
-    //             $next = 1;
-
-    //             if ($last && $last->ReferenceNo) {
-    //                 preg_match('/TRY-(\d+)/', $last->ReferenceNo, $m);
-    //                 $next = isset($m[1]) ? (int)$m[1] + 1 : 1;
-    //             }
-
-    //             $ticketNo = 'TRY-' . str_pad($next, 4, '0', STR_PAD_LEFT);
-    //         }
-
-    //         $complaint = CustomerRefundComplaint::create([
-    //             'ReferenceNo'        => $ticketNo,
-    //             'CustomerCode'       => $request->customer_code,
-    //             'CustomerName'       => $request->customer_name,
-    //             'feedbackDate'       => now(),
-    //             'feedback'           => $request->feedback,
-    //             'CreatedBy'          => $userCode,
-    //             'CreatedDate'        => now(),
-    //             'ModifiedBy'         => $userCode,
-    //             'ModifiedDate'       => now(),
-    //             'alternateMobile'    => $request->alternateMobile,
-    //             'sources'            => $request->source,
-    //             'callAssignTo'       => $request->assign_to,
-    //             'CurrentLevel'       => 1,
-    //             'Complaint'          => $category->category_name ?? null,
-    //             'TypeofEscalation'   => $issue->IssueName ?? null,
-    //             'issue_master_id'    => $request->TypeofEscalation,
-    //             'callStatus'         => 'Pending',
-    //             'ticketId'           => $ticket->ticketId,
-    //         ]);
-
-    //         ComplaintFollowup::create([
-    //             'complaint_id' => $complaint->complaintid,
-    //             'ticket_id'    => $ticket->ticketId,
-    //             'level'        => 1,
-    //             'assigned_to'  => $request->assign_to,
-    //             'action_by'    => $userId,
-    //             'remarks'      => $request->feedback,
-    //             'status'       => 'Pending',
-    //             'created_at'   => now()
-    //         ]);
-    //         // $user->UserID
-    //         DB::commit();
-    //         NotificationService::send(
-    //             23900,
-    //             'New Ticket Created',
-    //             'Ticket #' . $ticket->ticketId . ' created',
-    //             'ticket',
-    //             $ticket->ticketId
-    //         );
-    //         // NotificationService::send(
-    //         //     $request->assign_to,
-    //         //     'Ticket Assigned',
-    //         //     'You have been assigned Ticket #' . $ticket->ticketId,
-    //         //     'ticket',
-    //         //     $ticket->ticketId
-    //         // );
-
-    //         return response()->json([
-    //             'status'  => true,
-    //             'message' => 'Complaint Created Successfully',
-    //             'data'    => $complaint,
-    //             'ticket'  => $ticket
-    //         ]);
-    //     } catch (\Exception $e) {
-
-    //         DB::rollBack();
-
-    //         return response()->json([
-    //             'status'  => false,
-    //             'message' => $e->getMessage()
-    //         ], 500);
-    //     }
-    // }
     public function store(Request $request)
     {
-        // dd($request->all());
         DB::beginTransaction();
 
         try {
@@ -303,7 +132,6 @@ class TicketController extends Controller
             }
 
             $month = date('ym');
-
             /*
         ======================================================
         HR FLOW
@@ -313,6 +141,7 @@ class TicketController extends Controller
                 $LEAVE_REQUEST_ID = config('ticket.LEAVE_REQUEST');
                 $ATTENDANCE_ISSUE_ID = config('ticket.ATTENDANCE_ISSUE');
                 $issueId = $request->TypeofEscalation;
+                $NEW_JOINEE = config('ticket.NEW_JOINEE');
                 if ($issueId == $LEAVE_REQUEST_ID) {
                     $validator = Validator::make($request->all(), [
                         'Department' => 'required',
@@ -336,6 +165,25 @@ class TicketController extends Controller
                         'employee_common' => 'required',
                         'attendance_date' => 'required|date',
                     ]);
+                } elseif ($issueId == $NEW_JOINEE) {
+
+                    $validator = Validator::make($request->all(), [
+                        'Department' => 'required',
+                        'Complaint' => 'required',
+                        'TypeofEscalation' => 'required',
+                        'feedback' => 'required',
+
+                        'vacancies' => 'required|integer|min:1',
+                        'designation' => 'required',
+                        'job_description' => 'required',
+                        'age_min' => 'nullable|integer',
+                        'age_max' => 'nullable|integer|gte:age_min',
+                        'gender' => 'required',
+                        'experience' => 'required',
+                        'qualification' => 'required',
+                        'skills' => 'required',
+                        'work_location' => 'required',
+                    ]);
                 } else {
 
                     $validator = Validator::make($request->all(), [
@@ -354,7 +202,7 @@ class TicketController extends Controller
                 $category = IssueCategory::find($request->Complaint);
                 $issue = IssueMaster::find($request->TypeofEscalation);
 
-                $prefix = $locCode . $month . 'T';
+                $prefix = $locCode.$month.'T';
                 $ticketNo = $this->generateTicketNo($prefix);
 
                 $ticketId = DB::connection('sqlsrv')
@@ -404,32 +252,65 @@ class TicketController extends Controller
                         'UserId' => $employeeId ?? '',
 
                     ]);
+                if ($issueId != $NEW_JOINEE) {
+                    HrTicketDetail::create([
+                        'ticketId' => $ticketId,
+                        'departmentId' => $request->Department,
+                        'categoryId' => $request->Complaint,
+                        'escalationTypeId' => $request->TypeofEscalation,
+                        'employeeId' => $employeeId,
+                        //               'fromDate' => $request->from_date,
 
-                HrTicketDetail::create([
-                    'ticketId' => $ticketId,
-                    'departmentId' => $request->Department,
-                    'categoryId' => $request->Complaint,
-                    'escalationTypeId' => $request->TypeofEscalation,
-                    'employeeId' => $employeeId,
-                    //               'fromDate' => $request->from_date,
+                        // 'toDate' => $request->to_date,
+                        'fromDate' => $issueId == $LEAVE_REQUEST_ID ? $request->from_date : null,
+                        'toDate' => $issueId == $LEAVE_REQUEST_ID ? $request->to_date : null,
 
-                    // 'toDate' => $request->to_date,
-                    'fromDate' => $issueId == $LEAVE_REQUEST_ID ? $request->from_date : null,
-                    'toDate'   => $issueId == $LEAVE_REQUEST_ID ? $request->to_date : null,
+                        'attendanceDate' => $issueId == $ATTENDANCE_ISSUE_ID ? $request->attendance_date : null,
+                        'comments' => $request->feedback,
+                        'status' => 'Pending',
+                        'createdDate' => now(),
+                        'created_by' => $loginUserId,
 
-                    'attendanceDate' => $issueId == $ATTENDANCE_ISSUE_ID ? $request->attendance_date : null,
-                    'comments' => $request->feedback,
-                    'status' => 'Pending',
-                    'createdDate' => now(),
-                    'created_by' => $loginUserId,
+                    ]);
+                }
 
-                ]);
+                if ($issueId == $NEW_JOINEE) {
 
+                    HrManpowerRequest::create([
+                        'ticketId' => $ticketId,
+                        'departmentId' => $request->Department,
+                        'categoryId' => $request->Complaint,
+                        'escalationTypeId' => $request->TypeofEscalation,
+
+                        'designation' => $request->designation,
+                        'vacancies' => $request->vacancies,
+                        'jobDescription' => $request->job_description,
+
+                        'ageMin' => $request->age_min,
+                        'ageMax' => $request->age_max,
+                        'gender' => $request->gender,
+
+                        'experience' => $request->experience,
+                        'qualification' => $request->qualification,
+                        'skills' => $request->skills,
+                        'workLocation' => $request->work_location,
+
+                        'requestType' => 'New',
+                        'approvalStatus' => 'Pending',
+                        'recruitmentStatus' => 'Waiting HR',
+                        'onboardingStatus' => 'Pending',
+
+                        'remarks' => $request->feedback,
+
+                        'created_by' => $loginUserId,
+                        'created_at' => now(),
+                    ]);
+                }
                 //  HR NOTIFICATION
                 NotificationService::send(
                     23900,
                     'New HR Ticket Created',
-                    'HR Ticket #' . $ticketId . ' created',
+                    'HR Ticket #'.$ticketId.' created',
                     'ticket',
                     $ticketId
                 );
@@ -459,7 +340,7 @@ class TicketController extends Controller
                 $category = IssueCategory::find($request->Complaint);
                 $issue = IssueMaster::find($request->TypeofEscalation);
 
-                $prefix = $locCode . $month . 'T';
+                $prefix = $locCode.$month.'T';
                 $ticketNo = $this->generateTicketNo($prefix);
 
                 $ticketId = DB::connection('sqlsrv')
@@ -536,7 +417,7 @@ class TicketController extends Controller
                 NotificationService::send(
                     23900,
                     'New Ticket Assigned',
-                    'Ticket #' . $ticketId . ' assigned to you',
+                    'Ticket #'.$ticketId.' assigned to you',
                     'ticket',
                     $ticketId
                 );
@@ -563,18 +444,18 @@ class TicketController extends Controller
 
     private function generateTicketNo($prefix)
     {
-        $last = IssueTicket::where('TicketCode', 'LIKE', $prefix . '%')
+        $last = IssueTicket::where('TicketCode', 'LIKE', $prefix.'%')
             ->orderBy('ticketId', 'desc')
             ->first();
 
         $next = 1;
 
         if ($last && $last->TicketCode) {
-            preg_match('/' . $prefix . '(\d+)/', $last->TicketCode, $m);
+            preg_match('/'.$prefix.'(\d+)/', $last->TicketCode, $m);
             $next = isset($m[1]) ? ((int) $m[1] + 1) : 1;
         }
 
-        return $prefix . $next;
+        return $prefix.$next;
     }
 
     public function customerTickets(Request $request)
@@ -681,12 +562,6 @@ class TicketController extends Controller
             $users = UserMaster::whereIn('UserID', $userIds)
                 ->pluck('FullName', 'UserID'); // [UserID => FullName]
 
-            // return view('ticket.view_hr', [
-            //     'ticket' => $ticket,
-            //     'hrData' => $hr,
-            //     'statusHistory' => $statusHistory,
-            //     'users' => $users,
-            // ]);
             $currentUserId = session('user_id');
 
             $user = UserMaster::with('designation')
