@@ -61,9 +61,23 @@ Route::middleware(['auth.custom', 'nocache'])->group(function () {
     Route::get('/followup-history/{id}', [TicketController::class, 'followupHistory']);
     Route::post('/hr/update-status', [TicketController::class, 'updateHrStatus'])
         ->name('hr.update.status');
+
     Route::get('/manpower/{ticketId}', [HrManpowerController::class, 'view'])
         ->name('manpower.view');
-
+    Route::post('/approval/update', [HrManpowerController::class, 'updateApproval']);
+    // Route::post('/self-assign/{id}', [HrManpowerController::class, 'selfAssign']);
+    Route::post(
+        '/self-assign/{id}',
+        [HrManpowerController::class, 'selfAssign']
+    );
+    Route::post(
+        'hr/candidate-status-update',
+        [HrManpowerController::class, 'candidateStatusUpdate']
+    );
+    Route::post(
+        '/candidate/store/{id}',
+        [HrManpowerController::class, 'candidateStore']
+    );
     Route::get('/search-customer', [MasterController::class, 'searchCustomer']);
     Route::get('/departments', [MasterController::class, 'departments']);
     Route::get('/issue-categories', [MasterController::class, 'issueCategories']);

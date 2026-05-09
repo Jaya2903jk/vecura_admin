@@ -268,8 +268,8 @@
         }
 
         /* ════════════════════════════════════════════════════
-                                           MODAL STYLES
-                                        ════════════════════════════════════════════════════ */
+                                                                                                                                                                                                                                                                                                                                                                                                                                                       MODAL STYLES
+                                                                                                                                                                                                                                                                                                                                                                                                                                                    ════════════════════════════════════════════════════ */
         .ap-modal-header {
             background: #3741b0;
             padding: 14px 20px;
@@ -680,7 +680,8 @@
                                 <tr>
                                     <td class="td-bold">{{ $key + 1 }}</td>
 
-                                    <td>{{ $item->created_at ? date('d-m-Y', strtotime($item->created_at)) : '—' }}</td>
+                                    <td>
+                                        {{ $item->created_at ? date('d-m-Y', strtotime($item->created_at)) : '—' }}</td>
 
                                     <td class="td-bold">{{ $item->department->DepartmentName ?? '—' }}</td>
 
@@ -690,8 +691,12 @@
 
                                     <td style="min-width:160px; max-width:200px;">{{ $item->remarks ?? '—' }}</td>
 
-                                    <td style="min-width:180px; max-width:220px;">{{ $item->jobDescription ?? '—' }}</td>
-
+                                    {{-- <td style="min-width:180px; max-width:220px;">{{ $item->jobDescription ?? '—' }}</td> --}}
+                                    <td class="text-dark" style="max-width:180px;">
+                                        <div style="white-space: normal;">
+                                            <small>{{ $item->jobDescription }}</small>
+                                        </div>
+                                    </td>
                                     {{-- Admin Status --}}
                                     <td>
                                         @if ($item->approvalStatus === 'Approved')
@@ -713,25 +718,58 @@
                                         @endif
                                     </td>
 
-                                    {{-- Action --}}
-                                    <td style="min-width:120px;">
-                                        @if ($item->approvalStatus !== 'Approved')
-                                            <button type="button" class="btn bg-primary-gradient btn-primary btn-effect"
-                                                onclick="openApproveModal(
-                                                    {{ $item->manpowerRequestId }},
-                                                    '{{ addslashes($item->department->DepartmentName ?? '') }}',
-                                                    '{{ addslashes($item->escalation->EscalationName ?? '') }}'
-                                                )">
-                                                <i class="ti ti-circle-check" style="font-size:13px;"></i>
-                                                Update
-                                            </button>
-                                        @else
-                                            <span class="td-pill td-pill-success">
-                                                <i class="ti ti-check" style="font-size:11px;"></i> Done
-                                            </span>
-                                        @endif
-                                    </td>
 
+                                    <td style="min-width:180px;">
+
+                                        {{-- PENDING --}}
+                                        @if ($item->approvalStatus === 'Pending')
+                                            {{-- ADMIN ONLY --}}
+                                            @if (session('role_name') == 'Admin')
+                                                <button type="button"
+                                                    class="btn bg-primary-gradient btn-primary btn-effect"
+                                                    onclick="openApproveModal(
+                                                {{ $item->manpowerRequestId }},
+                                                '{{ addslashes($item->department->DepartmentName ?? '') }}',
+                                                '{{ addslashes($item->escalation->EscalationName ?? '') }}'
+                                            )">
+
+                                                    <i class="ti ti-circle-check"></i>
+                                                    Update
+
+                                                </button>
+                                            @else
+                                                <span style="color:#6b748a; font-size:13px;">
+                                                    Awaiting admin review
+                                                </span>
+                                            @endif
+
+                                            {{-- APPROVED --}}
+                                        @elseif ($item->approvalStatus === 'Approved')
+                                            {{-- HR SELF ASSIGN --}}
+                                            @if (!$item->assigned_hr_id && $canSelfAssign)
+                                                <button type="button"
+                                                    class="btn bg-primary-gradient btn-primary btn-effect"
+                                                    onclick="selfAssignModal(
+                                                {{ $item->manpowerRequestId }},
+                                            )">
+                                                    <i class="ti ti-circle-check"></i>
+                                                    Self Assign
+
+                                                </button>
+                                            @elseif ($item->assigned_hr_id)
+                                                <button type="button"
+                                                    class="btn bg-primary-gradient btn-primary btn-effect"
+                                                    onclick="candidateModal(
+                                                {{ $item->manpowerRequestId }},
+                                            )">
+                                                    <i class="ti ti-circle-check"></i>
+                                                    Candidate
+
+                                                </button>
+                                            @endif
+                                        @endif
+
+                                    </td>
                                 </tr>
                             @empty
                                 <tr>
@@ -745,20 +783,66 @@
                         </tbody>
                     </table>
                 </div>
+                <br>
+                <div class="td-section-row">
+                    <div class="td-section-title">Status History</div>
+                </div>
+                <div class="table-responsive ">
+                    <table class="td-table">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Changed By</th>
+                                <th>Status</th>
+                                <th>Remarks</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
 
+                        <tbody>
+
+                            @forelse($actionHistory as $key => $history)
+                                <tr>
+
+                                    <td>{{ $key + 1 }}</td>
+                                    <td>
+                                        {{ $history->changedBy }}
+                                    </td>
+                                    <td>
+                                        {{ $history->status }}
+                                    </td>
+
+                                    <td>
+                                        {{ $history->remarks }}
+                                    </td>
+
+
+
+                                    <td>
+                                        {{ $history->changedAt ? date('d-m-Y h:i A', strtotime($history->changedAt)) : '-' }}
+                                    </td>
+
+                                </tr>
+
+                            @empty
+
+                                <tr>
+                                    <td colspan="5" class="text-center">
+                                        No history found
+                                    </td>
+                                </tr>
+                            @endforelse
+
+                        </tbody>
+                    </table>
+                </div>
                 <div style="height:8px;"></div>
 
             </div>
             {{-- /td-card --}}
-
             <div class="td-footer">Powered by Vecura &nbsp;·&nbsp; All rights reserved</div>
-
         </div>
     </div>
-
-    {{-- ═══════════════════════════════════════════════════
-         APPROVE / REJECT MODAL
-    ═══════════════════════════════════════════════════ --}}
     <div class="modal fade" id="approveModal" tabindex="-1" aria-labelledby="approveModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered" style="max-width:480px;">
             <div class="modal-content"
@@ -838,6 +922,201 @@
             </div>
         </div>
     </div>
+    <div class="modal fade" id="selfAssignModal" tabindex="-1" aria-labelledby="selfAssignModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" style="max-width:480px;">
+            <div class="modal-content"
+                style="border-radius:6px; border:none; overflow:hidden; box-shadow:0 8px 32px rgba(55,65,176,.18);">
+
+                {{-- Header --}}
+                <div class="ap-modal-header">
+                    <h5 class="ap-modal-title" id="selfAssignModalLabel">
+                        <i class="ti ti-clipboard-check" style="font-size:17px;"></i>
+                        Self Assign HR
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+
+                {{-- Body --}}
+                <div class="ap-modal-body">
+                    <input type="hidden" id="self_request_id">
+
+                    {{-- Decision --}}
+                    <div class="mb-3">
+                        <label class="ap-field-label">
+                            Select Employee
+                            <span class="req">*</span>
+                        </label>
+                        <select class="form-control" id="assign_employee">
+                            <option value="">Select Employee</option>
+
+                            @foreach ($employees as $emp)
+                                <option value="{{ $emp->UserID }}">
+                                    {{ $emp->FullName }} ({{ $emp->UserCode }})
+                                </option>
+                            @endforeach
+                        </select>
+                        <div class="ap-error" id="err_status">Please select a decision.</div>
+                    </div>
+
+                    {{-- Remarks --}}
+                    <div class="mb-1">
+                        <label class="ap-field-label" for="ap_remarks">
+                            Remarks <span class="req">*</span>
+                        </label>
+                        <textarea id="assign_remarks" class="ap-textarea" rows="3" placeholder="Enter your remarks or reason…"></textarea>
+                        <div class="ap-error" id="err_remarks">Remarks are required.</div>
+                    </div>
+
+                </div>
+
+                {{-- Footer --}}
+                <div class="ap-modal-footer">
+                    <button type="button" class="ap-btn-cancel" data-bs-dismiss="modal">
+                        Cancel
+                    </button>
+                    <button type="button" class="ap-btn-submit" id="ap_submit_btn" onclick="submitSelfAssign()">
+                        <i class="ti ti-send" style="font-size:13px;"></i>
+                        Submit
+                    </button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+    <!-- Modal -->
+
+    <div class="modal fade" id="candidateModal" tabindex="-1" aria-labelledby="candidateModalLabel"
+        aria-hidden="true">
+
+        <div class="modal-dialog modal-dialog-centered" style="max-width:480px;">
+
+            <div class="modal-content"
+                style="border-radius:6px;
+                   border:none;
+                   overflow:hidden;
+                   box-shadow:0 8px 32px rgba(55,65,176,.18);">
+
+                {{-- Header --}}
+                <div class="ap-modal-header">
+
+                    <h5 class="ap-modal-title" id="candidateModalLabel">
+
+                        <i class="ti ti-clipboard-check" style="font-size:17px;"></i>
+
+                        Candidate
+
+                    </h5>
+
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+
+                </div>
+
+                {{-- Body --}}
+                <div class="ap-modal-body">
+
+                    {{-- Hidden Request ID --}}
+                    <input type="hidden" id="request_id">
+
+
+                    {{-- Employee ID --}}
+                    <div class="mb-3">
+
+                        <label class="ap-field-label">
+
+                            Employee ID
+                            {{-- <span class="req">*</span> --}}
+
+                        </label>
+
+                        <input type="text" id="employee_id" class="form-control" placeholder="Enter Employee ID">
+
+                    </div>
+                    {{-- STATUS --}}
+                    <div class="mb-3">
+                        <label class="ap-field-label">
+                            Status
+                            <span class="req">*</span>
+                        </label>
+                        <select id="candidate_status" class="form-control">
+                            <option value="">
+                                Select Status
+                            </option>
+                            {{-- <option value="In Progress">
+                                In Progress
+                            </option> --}}
+                            <option value="Sourcing">
+                                Sourcing
+                            </option>
+                            <option value="Interview Scheduled">
+                                Interview Scheduled
+                            </option>
+                            <option value="Interview Date Fixed">
+                                Interview Date Fixed
+                            </option>
+                            <option value="Interviewed">
+                                Interviewed
+                            </option>
+                            <option value="Selected">
+                                Selected
+                            </option>
+                            <option value="Joined">
+                                Joined
+                            </option>
+                            <option value="Query">
+                                Query
+                            </option>
+                            <option value="Wrong">
+                                Wrong
+                            </option>
+                            <option value="Hold">
+                                Hold
+                            </option>
+                        </select>
+
+                    </div>
+
+                    {{-- Remarks --}}
+                    <div class="mb-1">
+
+                        <label class="ap-field-label">
+
+                            Remarks
+                            <span class="req">*</span>
+
+                        </label>
+
+                        <textarea id="employee_assign_remarks" class="ap-textarea" rows="3"
+                            placeholder="Enter your remarks or reason…"></textarea>
+
+                    </div>
+
+                </div>
+
+                {{-- Footer --}}
+                <div class="ap-modal-footer">
+
+                    <button type="button" class="ap-btn-cancel" data-bs-dismiss="modal">
+
+                        Cancel
+
+                    </button>
+
+                    <button type="button" class="ap-btn-submit" id="candidate_submit_btn" onclick="submitCandidate()">
+
+                        <i class="ti ti-send" style="font-size:13px;"></i>
+
+                        Submit
+
+                    </button>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
 
     {{-- ═══════════════════════════════════════════════════
          SCRIPTS
@@ -905,9 +1184,12 @@
             btn.innerHTML = '<i class="ti ti-loader-2 ti-spin" style="font-size:13px;"></i> Submitting…';
 
             $.ajax({
-                url: "{{ url('/manpower/approve') }}/" + requestId,
+                url: "{{ url('/approval/update') }}",
+
                 type: "POST",
                 data: {
+                    request_id: requestId,
+
                     status: selectedStatus,
                     remarks: remarks,
                     _token: $('meta[name="csrf-token"]').attr('content')
@@ -931,6 +1213,159 @@
                 complete: function() {
                     btn.disabled = false;
                     btn.innerHTML = '<i class="ti ti-send" style="font-size:13px;"></i> Submit';
+                }
+            });
+        }
+    </script>
+    <script>
+        function selfAssignModal(requestId) {
+            $('#self_request_id').val(requestId);
+            $('#assign_employee').val('');
+            $('#assign_remarks').val('');
+
+            new bootstrap.Modal(
+                document.getElementById('selfAssignModal')
+            ).show();
+        }
+
+        function submitSelfAssign() {
+            let requestId = $('#self_request_id').val();
+            let employeeId = $('#assign_employee').val();
+            let remarks = $('#assign_remarks').val();
+
+            if (employeeId == '') {
+                Swal.fire(
+                    'Warning',
+                    'Please select employee',
+                    'warning'
+                );
+
+                return;
+            }
+
+            $.ajax({
+
+                url: "/self-assign/" + requestId,
+
+                type: "POST",
+
+                data: {
+
+                    employee_id: employeeId,
+                    remarks: remarks,
+
+                    _token: $('meta[name="csrf-token"]').attr('content')
+                },
+
+                success: function(res) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Success',
+                        text: res.message,
+                        timer: 1500,
+                        showConfirmButton: false
+                    }).then(() => {
+
+                        location.reload();
+
+                    });
+                },
+
+                error: function() {
+                    Swal.fire(
+                        'Error',
+                        'Something went wrong',
+                        'error'
+                    );
+                }
+
+            });
+        }
+    </script>
+    <script>
+        let isSubmitting = false;
+
+        // OPEN CANDIDATE MODAL
+        function candidateModal(requestId) {
+            $('#request_id').val(requestId);
+            $('#employee_id').val('');
+            $('#employee_assign_remarks').val('');
+            new bootstrap.Modal(
+                document.getElementById('candidateModal')
+            ).show();
+        }
+
+        // SUBMIT CANDIDATE
+        function submitCandidate() {
+            if (isSubmitting) {
+                return;
+            }
+            let requestId = $('#request_id').val();
+            let employeeId = $('#employee_id').val();
+            let remarks = $('#employee_assign_remarks').val();
+            let status = $('#candidate_status').val();
+
+            // VALIDATION
+            // if (employeeId == '') {
+            //     Swal.fire(
+            //         'Warning',
+            //         'Please enter Employee ID',
+            //         'warning'
+            //     );
+            //     return;
+            // }
+            if (status == '') {
+
+                Swal.fire(
+                    'Warning',
+                    'Please select status',
+                    'warning'
+                );
+
+                return;
+            }
+            if (remarks == '') {
+                Swal.fire(
+                    'Warning',
+                    'Please enter remarks',
+                    'warning'
+                );
+                return;
+            }
+            isSubmitting = true;
+            $('#candidate_submit_btn').prop('disabled', true);
+
+            $.ajax({
+                url: "/candidate/store/" + requestId,
+                type: "POST",
+                data: {
+                    employee_id: employeeId,
+                    remarks: remarks,
+                    status: status,
+                    _token: $('meta[name="csrf-token"]').attr('content')
+                },
+                success: function(res) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Success',
+                        text: res.message,
+                        timer: 1500,
+                        showConfirmButton: false
+                    }).then(() => {
+                        location.reload();
+                    });
+                },
+                error: function() {
+                    isSubmitting = false;
+
+                    $('#candidate_submit_btn').prop('disabled', false);
+
+                    Swal.fire(
+                        'Error',
+                        'Something went wrong',
+                        'error'
+                    );
+
                 }
             });
         }

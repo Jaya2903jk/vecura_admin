@@ -103,6 +103,9 @@ ticketId INT NOT NULL,
 ALTER TABLE hr_manpower_requests_new
 ADD assigned_hr_id INT NULL;
 
+ALTER TABLE hr_manpower_requests_new
+ADD meta_data NVARCHAR(MAX) NULL;
+
 CREATE TABLE hr_manpower_assignment (
 assignmentId INT IDENTITY(1,1) PRIMARY KEY,
 manpowerRequestId INT NOT NULL,

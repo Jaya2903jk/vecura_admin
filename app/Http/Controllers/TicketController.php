@@ -22,6 +22,11 @@ class TicketController extends Controller
 {
     public function index(Request $request)
     {
+        $currentUserId = session('user_id');
+
+        // Logged in user
+        $loginUser = UserMaster::where('UserID', $currentUserId)->first();
+        // dd($loginUser);
         $totalTickets = IssueTicket::whereIn('type', ['vsupport', 'hr'])->count();
 
         $perPage = $request->get('per_page', 10);
@@ -1065,7 +1070,7 @@ class TicketController extends Controller
         $leaveRequestId = config('ticket.LEAVE_REQUEST');
         $isLeaveRequest = ($hr->escalationTypeId == $leaveRequestId);
 
-        // 🚫 Prevent re-processing
+        //  Prevent re-processing
         if ($isLeaveRequest && in_array($hr->status, ['Approved', 'Rejected'])) {
             if ($request->status !== 'Closed') {
                 return response()->json([
