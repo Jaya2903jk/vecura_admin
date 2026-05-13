@@ -42,8 +42,14 @@ class HrManpowerRequest extends Model
         'created_at',
         'updated_by',
         'updated_at',
+        'meta_data',
+        'employee_id', // ADD THIS
+
     ];
 
+    protected $casts = [
+        'meta_data' => 'array',
+    ];
     /*
     |--------------------------------------------------------------------------
     | RELATIONSHIPS
@@ -77,6 +83,33 @@ class HrManpowerRequest extends Model
             IssueMaster::class,
             'escalationTypeId',
             'IssueId'
+        );
+    }
+
+    public function candidates()
+    {
+        return $this->hasMany(
+            HrManpowerCandidate::class,
+            'manpowerRequestId',
+            'manpowerRequestId'
+        );
+    }
+
+    public function assignments()
+    {
+        return $this->hasMany(
+            HrManpowerAssignment::class,
+            'manpowerRequestId',
+            'manpowerRequestId'
+        );
+    }
+
+    public function history()
+    {
+        return $this->hasMany(
+            HrManpowerStatusHistory::class,
+            'manpowerRequestId',
+            'manpowerRequestId'
         );
     }
 }

@@ -103,6 +103,9 @@ ticketId INT NOT NULL,
 ALTER TABLE hr_manpower_requests_new
 ADD assigned_hr_id INT NULL;
 
+ALTER TABLE hr_manpower_requests_new
+ADD meta_data NVARCHAR(MAX) NULL;
+
 CREATE TABLE hr_manpower_assignment (
 assignmentId INT IDENTITY(1,1) PRIMARY KEY,
 manpowerRequestId INT NOT NULL,
@@ -151,5 +154,24 @@ historyId INT IDENTITY(1,1) PRIMARY KEY,
 
     changedBy INT,
     changedAt DATETIME DEFAULT GETDATE()
+
+);
+
+CREATE TABLE MachineTable (
+MachineId INT PRIMARY KEY,
+MachineName VARCHAR(100),
+MachineRelated VARCHAR(255),
+Status VARCHAR(20), -- Active / Inactive
+CreatedBy VARCHAR(100),
+CreatedDate DATETIME
+);
+CREATE TABLE MachineIssuesTable (
+machineIssueId INT IDENTITY(1,1) PRIMARY KEY,
+IssuesName VARCHAR(255),
+MachineId INT,
+Type VARCHAR(50),
+Status VARCHAR(20),
+CreatedBy VARCHAR(100),
+CreatedDate DATETIME DEFAULT GETDATE(),
 
 );

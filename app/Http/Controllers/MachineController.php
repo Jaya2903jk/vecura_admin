@@ -2,20 +2,20 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\IssueCategory;
-use App\Models\IssueDepartment;
+use App\Models\Machine;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
-class CategoryController extends Controller
+class MachineController extends Controller
 {
+    //
+
     public function index(Request $request)
     {
         $perPage = $request->get('per_page', 10);
-        $categories = IssueCategory::orderBy('category_id', 'asc')->paginate($perPage);
-        $departments = IssueDepartment::all();
+        $Machines = Machine::orderBy('MachineId', 'asc')->paginate($perPage);
 
-        return view('category.index', compact('categories', 'perPage', 'departments'));
+        return view('machine.index', compact('Machines', 'perPage'));
     }
 
     public function store(Request $request)
@@ -23,8 +23,7 @@ class CategoryController extends Controller
         try {
 
             $validator = Validator::make($request->all(), [
-                'category_name' => 'required|string|max:255',
-                'department_id' => 'required|exists:issueDepartmentMaster,Departmentid',
+                'machine_name' => 'required|string|max:255',
                 'status' => 'required',
             ]);
 
@@ -33,16 +32,16 @@ class CategoryController extends Controller
                     'errors' => $validator->errors(),
                 ], 422);
             }
+            $status = strtolower($request->status) === 'active' ? 1 : 0;
 
-            IssueCategory::create([
-                'category_name' => $request->category_name,
-                'department_id' => $request->department_id,
-                'status' => $request->status,
+            Machine::create([
+                'MachineName' => $request->machine_name,
+                'Status' => 1,
             ]);
 
             return response()->json([
                 'status' => true,
-                'message' => 'Category Created Successfully',
+                'message' => 'Machine Created Successfully',
             ]);
         } catch (\Exception $e) {
 
@@ -52,5 +51,15 @@ class CategoryController extends Controller
                 'error' => $e->getMessage(), // remove in production
             ], 500);
         }
+    }
+
+    public function getMachines()
+    {
+        $machines = Machine::select('MachineId', 'MachineName')->get();
+
+        return response()->json([
+            'status' => true,
+            'data' => $machines,
+        ]);
     }
 }

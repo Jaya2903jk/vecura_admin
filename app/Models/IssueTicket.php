@@ -8,7 +8,6 @@ class IssueTicket extends Model
 {
     protected $connection = 'sqlsrv';
 
-    // ✅ important
     protected $table = 'issueTicket';
 
     protected $primaryKey = 'ticketId';
@@ -141,5 +140,10 @@ class IssueTicket extends Model
     public function location()
     {
         return $this->belongsTo(LocationMaster::class, 'Branch', 'LocationCode');
+    }
+
+    public function hrManpowerRequests()
+    {
+        return $this->hasMany(HrManpowerRequest::class, 'ticketId', 'ticketId');
     }
 }

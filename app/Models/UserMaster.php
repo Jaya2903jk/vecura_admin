@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use App\Models\UserGroupMaster;
 use Illuminate\Database\Eloquent\Model;
 
 class UserMaster extends Model
@@ -54,7 +53,7 @@ class UserMaster extends Model
         'headsStatus',
         'POSignature',
         'team',
-        'headsType'
+        'headsType',
     ];
     // App\Models\UserMaster.php
 
