@@ -178,57 +178,67 @@
                 </div>
 
                 <ul>
-                    <li class="menu-title"><span>Staff</span></li>
-                    <li>
-                        <ul>
-                            <li class="{{ Request::is('staff', 'staff') ? 'active' : '' }}">
-                                <a href="{{ route('staff.index') }}">
-                                    <i class="ti ti-users-group"></i><span>Staff</span>
-                                </a>
+                    @if (session('role_name') == 'Admin')
+                        <li class="menu-title"><span>Staff</span></li>
+                        <li>
+                            <ul>
+                                <li class="{{ Request::is('staff', 'staff') ? 'active' : '' }}">
+                                    <a href="{{ route('staff.index') }}">
+                                        <i class="ti ti-users-group"></i><span>Staff</span>
+                                    </a>
 
-                            </li>
-                        </ul>
-                    </li>
-                    <li class="menu-title"><span>Masters</span></li>
-                    <li>
-                        <ul>
-                            <li class="submenu">
-                                <a href="javascript:void(0);"
-                                    class="{{ Request::is('category', 'branch', 'department', 'designation', 'issues-master', 'language-settings2', 'language-settings3', 'maintenance-mode-settings', 'login-and-register-settings', 'preferences-settings') ? 'active subdrop' : '' }}">
-                                    <i class="ti ti-world-cog"></i><span>All Masters</span>
-                                    <span class="menu-arrow"></span>
-                                </a>
-                                <ul>
-                                    <li><a href="{{ route('branch.index') }}"
-                                            class="{{ Request::is('branch') ? 'active' : '' }}">Branch</a>
-                                    </li>
-                                    <li><a href="{{ route('department.index') }}"
-                                            class="{{ Request::is('department') ? 'active' : '' }}">Department</a>
-                                    </li>
-                                    <li><a href="{{ route('designation.index') }}"
-                                            class="{{ Request::is('designation') ? 'active' : '' }}">Designation</a>
-                                    </li>
-                                    <li><a href="{{ route('category.index') }}"
-                                            class="{{ Request::is('category') ? 'active' : '' }}">Issues
-                                            Category</a></li>
-                                    <li><a href="{{ route('issues-master.index') }}"
-                                            class="{{ Request::is('issues-master') ? 'active' : '' }}">Issues Master
-                                        </a></li>
+                                </li>
+                            </ul>
+                        </li>
+                        <li class="menu-title"><span>Masters</span></li>
+                        <li>
+                            <ul>
+                                <li class="submenu">
+                                    <a href="javascript:void(0);"
+                                        class="{{ Request::is('category', 'branch', 'department', 'designation', 'issues-master', 'language-settings2', 'language-settings3', 'maintenance-mode-settings', 'login-and-register-settings', 'preferences-settings') ? 'active subdrop' : '' }}">
+                                        <i class="ti ti-world-cog"></i><span>All Masters</span>
+                                        <span class="menu-arrow"></span>
+                                    </a>
+                                    <ul>
+                                        <li><a href="{{ route('branch.index') }}"
+                                                class="{{ Request::is('branch') ? 'active' : '' }}">Branch</a>
+                                        </li>
+                                        <li><a href="{{ route('department.index') }}"
+                                                class="{{ Request::is('department') ? 'active' : '' }}">Department</a>
+                                        </li>
+                                        <li><a href="{{ route('designation.index') }}"
+                                                class="{{ Request::is('designation') ? 'active' : '' }}">Designation</a>
+                                        </li>
+                                        <li><a href="{{ route('category.index') }}"
+                                                class="{{ Request::is('category') ? 'active' : '' }}">Issues
+                                                Category</a></li>
+                                        <li><a href="{{ route('issues-master.index') }}"
+                                                class="{{ Request::is('issues-master') ? 'active' : '' }}">Issues
+                                                Master
+                                            </a></li>
+                                        <li><a href="{{ route('machine.index') }}"
+                                                class="{{ Request::is('machine') ? 'active' : '' }}">Machine
+                                                Machine
+                                            </a></li>
+                                        <li><a href="{{ route('machine-issues.index') }}"
+                                                class="{{ Request::is('machine-issues') ? 'active' : '' }}">
+                                                Machine Issues</a></li>
 
-                                    <li><a href="{{ route('role-permission.index') }}"
-                                            class="{{ Request::is('maintenance-mode-settings') ? 'active' : '' }}">Roles
-                                        </a></li>
-                                    <li><a href="{{ route('permission.index') }}"
-                                            class="{{ Request::is('login-and-register-settings') ? 'active' : '' }}">Permission
-                                        </a></li>
+                                        <li><a href="{{ route('role-permission.index') }}"
+                                                class="{{ Request::is('maintenance-mode-settings') ? 'active' : '' }}">Roles
+                                            </a></li>
+                                        <li><a href="{{ route('permission.index') }}"
+                                                class="{{ Request::is('login-and-register-settings') ? 'active' : '' }}">Permission
+                                            </a></li>
 
-                                </ul>
-                            </li>
+                                    </ul>
+                                </li>
 
 
 
-                        </ul>
-                    </li>
+                            </ul>
+                        </li>
+                    @endif
 
                     {{-- <li class="menu-title"><span>Main Menu</span></li>
                     <li>

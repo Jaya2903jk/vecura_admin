@@ -46,7 +46,13 @@ class HrManpowerController extends Controller
             }
 
             // HR Department designation check
-            if ($loginUser->Designation === 'DES-0025') {
+            if (in_array($loginUser->Designation, ['DES-0025', 'DES-0030'])) {
+                $canSelfAssign = true;
+            }
+            if (
+                $manpower->assigned_hr_id == $currentUserId
+            ) {
+
                 $canSelfAssign = true;
             }
         }
@@ -214,7 +220,9 @@ class HrManpowerController extends Controller
     public function candidateStore(Request $request, $id)
     {
         $request->validate([
-            'employee_id' => 'nullable',
+            'employee_id' => $request->status == 'Joined'
+                       ? 'required'
+                       : 'nullable',
             'status' => 'required',
             'remarks' => 'required',
         ]);
@@ -226,8 +234,13 @@ class HrManpowerController extends Controller
         $manpower->recruitmentStatus = $request->status;
 
         if ($request->status == 'Joined') {
-            $manpower->approvalStatus = 'Closed';
+            // $manpower->approvalStatus = 'Closed';
             $manpower->onboardingStatus = 'Completed';
+            // UPDATE TICKET Closed STATUS = 3
+            IssueTicket::where('ticketId', $manpower->ticketId)
+                ->update([
+                    'status' => 3,
+                ]);
         }
         $this->updateMetaData(
             $manpower,

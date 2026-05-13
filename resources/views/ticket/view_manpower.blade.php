@@ -268,8 +268,8 @@
         }
 
         /* ════════════════════════════════════════════════════
-                                                                                                                                                                                                                                                                                                                                                                                                                                                       MODAL STYLES
-                                                                                                                                                                                                                                                                                                                                                                                                                                                    ════════════════════════════════════════════════════ */
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       MODAL STYLES
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    ════════════════════════════════════════════════════ */
         .ap-modal-header {
             background: #3741b0;
             padding: 14px 20px;
@@ -756,7 +756,16 @@
                                                     Self Assign
 
                                                 </button>
-                                            @elseif ($item->assigned_hr_id)
+                                            @elseif (
+                                                $item->assigned_hr_id &&
+                                                    ($item->assigned_hr_id == session('user_id') ||
+                                                        // session('role_name') == 'Admin' ||
+                                                        session('designation') == 'DES-0025'))
+                                                {{-- @elseif (
+                                                $item->status == 'Joined' &&
+                                                    ($item->assigned_hr_id == session('user_id') ||
+                                                        // session('role_name') == 'Admin' ||
+                                                        session('designation') == 'DES-0025')) --}}
                                                 <button type="button"
                                                     class="btn bg-primary-gradient btn-primary btn-effect"
                                                     onclick="candidateModal(
@@ -988,63 +997,31 @@
 
     <div class="modal fade" id="candidateModal" tabindex="-1" aria-labelledby="candidateModalLabel"
         aria-hidden="true">
-
         <div class="modal-dialog modal-dialog-centered" style="max-width:480px;">
-
             <div class="modal-content"
                 style="border-radius:6px;
                    border:none;
                    overflow:hidden;
                    box-shadow:0 8px 32px rgba(55,65,176,.18);">
-
-                {{-- Header --}}
                 <div class="ap-modal-header">
-
                     <h5 class="ap-modal-title" id="candidateModalLabel">
-
                         <i class="ti ti-clipboard-check" style="font-size:17px;"></i>
-
                         Candidate
-
                     </h5>
-
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-
                 </div>
-
-                {{-- Body --}}
                 <div class="ap-modal-body">
-
-                    {{-- Hidden Request ID --}}
                     <input type="hidden" id="request_id">
 
-
-                    {{-- Employee ID --}}
-                    <div class="mb-3">
-
-                        <label class="ap-field-label">
-
-                            Employee ID
-                            {{-- <span class="req">*</span> --}}
-
-                        </label>
-
-                        <input type="text" id="employee_id" class="form-control" placeholder="Enter Employee ID">
-
-                    </div>
-                    {{-- STATUS --}}
                     <div class="mb-3">
                         <label class="ap-field-label">
                             Status
                             <span class="req">*</span>
                         </label>
-                        <select id="candidate_status" class="form-control">
+                        <select id="candidate_status" class="form-control" onchange="toggleEmployeeId()">
                             <option value="">
                                 Select Status
                             </option>
-                            {{-- <option value="In Progress">
-                                In Progress
-                            </option> --}}
                             <option value="Sourcing">
                                 Sourcing
                             </option>
@@ -1073,24 +1050,22 @@
                                 Hold
                             </option>
                         </select>
-
                     </div>
-
+                    <div class="mb-3" id="employee_id_div" style="display:none;">
+                        <label class="ap-field-label">
+                            Employee ID
+                        </label>
+                        <input type="text" id="employee_id" class="form-control" placeholder="Enter Employee ID">
+                    </div>
                     {{-- Remarks --}}
                     <div class="mb-1">
-
                         <label class="ap-field-label">
-
                             Remarks
                             <span class="req">*</span>
-
                         </label>
-
                         <textarea id="employee_assign_remarks" class="ap-textarea" rows="3"
                             placeholder="Enter your remarks or reason…"></textarea>
-
                     </div>
-
                 </div>
 
                 {{-- Footer --}}
@@ -1294,7 +1269,16 @@
                 document.getElementById('candidateModal')
             ).show();
         }
-
+        // SHOW / HIDE EMPLOYEE ID
+        function toggleEmployeeId() {
+            let status = $('#candidate_status').val();
+            if (status == 'Joined') {
+                $('#employee_id_div').show();
+            } else {
+                $('#employee_id_div').hide();
+                $('#employee_id').val('');
+            }
+        }
         // SUBMIT CANDIDATE
         function submitCandidate() {
             if (isSubmitting) {
@@ -1305,15 +1289,7 @@
             let remarks = $('#employee_assign_remarks').val();
             let status = $('#candidate_status').val();
 
-            // VALIDATION
-            // if (employeeId == '') {
-            //     Swal.fire(
-            //         'Warning',
-            //         'Please enter Employee ID',
-            //         'warning'
-            //     );
-            //     return;
-            // }
+
             if (status == '') {
 
                 Swal.fire(
@@ -1324,6 +1300,15 @@
 
                 return;
             }
+            if (status == 'Joined' && employeeId == '') {
+                Swal.fire(
+                    'Warning',
+                    'Please enter Employee ID',
+                    'warning'
+                );
+                return;
+            }
+
             if (remarks == '') {
                 Swal.fire(
                     'Warning',

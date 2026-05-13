@@ -186,10 +186,7 @@
                                     <td>{{ $t->Subject ?? '-' }}</td>
 
                                     {{-- Type --}}
-                                    <td>{{ $t->type ?? 'Ticket' }}</td>
-
-
-
+                                    <td>{{ strtoupper($t->type ?? 'Ticket') }}</td>
                                     <td>
                                         @php
                                             $isLeave = false;
@@ -553,9 +550,8 @@
                             options +=
                                 `<option value="${e.UserID}">${e.FullName} (${e.UserCode})</option>`;
                         });
-                        // $("#employee_id").html(options);
-                        // $("#employee_id_attendance").html(options); // ✅ both dropdowns
-                        $("#employee_common").html(options); // ✅ common
+
+                        $("#employee_common").html(options); //
 
                     }
                 }
@@ -839,72 +835,104 @@
                 });
             });
 
-            // $("#issue").on("change", function() {
 
+            // $("#issue").on("change", function() {
             //     let issueId = $(this).val();
+            //     // let deptId = $("#department").val();
 
             //     $("#leave_request_block").hide();
             //     $("#attendance_block").hide();
+            //     $("#new_joinee_block").hide();
+
 
             //     $("input[name='from_date'], input[name='to_date'], input[name='attendance_date']")
             //         .val('')
             //         .prop('required', false);
+            //     $("input, select, textarea").prop('required', false);
 
-            //     $("select[name='employee_id'], select[name='employee_id_attendance']")
-            //         .val('')
-            //         .prop('required', false);
-
-            //     //  LEAVE REQUEST
             //     if (issueId == LEAVE_REQUEST_ID) {
 
             //         $("#leave_request_block").slideDown();
 
             //         $("input[name='from_date']").prop('required', true);
             //         $("input[name='to_date']").prop('required', true);
-            //         $("select[name='employee_id']").prop('required', true);
             //     }
 
-            //     //  ATTENDANCE ISSUE
+            //     //  ATTENDANCE
             //     else if (issueId == ATTENDANCE_ISSUE_ID) {
 
             //         $("#attendance_block").slideDown();
 
             //         $("input[name='attendance_date']").prop('required', true);
-            //         $("select[name='employee_id_attendance']").prop('required', true);
+            //     } else if (issueId == NEW_JOINEE) {
+
+            //         $("#new_joinee_block").slideDown();
+
+            //         // make required fields
+            //         $("input[name='vacancies']").prop('required', true);
+            //         $("input[name='designation']").prop('required', true);
+            //         $("textarea[name='job_description']").prop('required', true);
+            //         $("input[name='age_min']").prop('required', true);
+            //         $("input[name='age_max']").prop('required', true);
+            //         $("select[name='gender']").prop('required', true);
+            //         $("input[name='experience']").prop('required', true);
+            //         $("input[name='qualification']").prop('required', true);
+            //         $("input[name='skills']").prop('required', true);
+            //         $("input[name='work_location']").prop('required', true);
+
+            //         //  Hide employee
+            //         $("#employee_common_block").hide();
             //     }
 
             // });
             $("#issue").on("change", function() {
+
                 let issueId = $(this).val();
+                let deptId = $("#department").val();
+
                 $("#leave_request_block").hide();
                 $("#attendance_block").hide();
                 $("#new_joinee_block").hide();
 
-
                 $("input[name='from_date'], input[name='to_date'], input[name='attendance_date']")
                     .val('')
                     .prop('required', false);
-                $("input, select, textarea").prop('required', false);
 
+                // RESET REQUIRED ONLY FOR NEW JOINEE FIELDS
+                $("input[name='vacancies'], input[name='designation'], input[name='job_description'], input[name='age_min'], input[name='age_max'], input[name='experience'], input[name='qualification'], input[name='skills'], input[name='work_location']")
+                    .prop('required', false);
+
+                $("select[name='gender']").prop('required', false);
+
+                // SHOW EMPLOYEE AGAIN IF HR
+                if (deptId == HR_ID) {
+                    $("#employee_common_block").show();
+                }
+
+                // LEAVE REQUEST
                 if (issueId == LEAVE_REQUEST_ID) {
 
                     $("#leave_request_block").slideDown();
 
                     $("input[name='from_date']").prop('required', true);
                     $("input[name='to_date']").prop('required', true);
+
                 }
 
-                //  ATTENDANCE
+                // ATTENDANCE
                 else if (issueId == ATTENDANCE_ISSUE_ID) {
 
                     $("#attendance_block").slideDown();
 
                     $("input[name='attendance_date']").prop('required', true);
-                } else if (issueId == NEW_JOINEE) {
+
+                }
+
+                // NEW JOINEE
+                else if (issueId == NEW_JOINEE) {
 
                     $("#new_joinee_block").slideDown();
 
-                    // make required fields
                     $("input[name='vacancies']").prop('required', true);
                     $("input[name='designation']").prop('required', true);
                     $("textarea[name='job_description']").prop('required', true);
@@ -916,10 +944,13 @@
                     $("input[name='skills']").prop('required', true);
                     $("input[name='work_location']").prop('required', true);
 
-                    //  Hide employee
+                    // KEEP EMPLOYEE FIELD VISIBLE FOR HR
                     $("#employee_common_block").hide();
+                    $("#employee_common")
+                        .prop('required', false)
+                        .val('')
+                        .trigger('change');
                 }
-
             });
 
         });
