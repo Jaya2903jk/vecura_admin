@@ -175,3 +175,37 @@ CreatedBy VARCHAR(100),
 CreatedDate DATETIME DEFAULT GETDATE(),
 
 );
+
+CREATE TABLE BiomedicalTickets (
+
+    id INT IDENTITY(1,1) PRIMARY KEY,
+
+    ticketId INT NOT NULL,
+
+    departmentId INT NOT NULL,
+
+    categoryId INT NOT NULL,
+
+    issueId INT NOT NULL,
+
+    machineId INT NOT NULL,
+
+    machineIssueType VARCHAR(50) NULL,
+
+    comments VARCHAR(MAX) NULL,
+
+    status VARCHAR(50) DEFAULT 'Pending',
+
+    meta_data NVARCHAR(MAX) NULL,
+
+    created_by INT NULL,
+
+    updated_by INT NULL,
+
+    created_at DATETIME DEFAULT GETDATE(),
+
+    updated_at DATETIME NULL
+
+);
+ALTER TABLE BiomedicalTickets
+ADD machineIssueIds VARCHAR(MAX) NULL;

@@ -23,8 +23,6 @@
                 @endisset
             </div>
             <!-- End Page Header -->
-
-
             <div class="toolbar-card">
                 <div class="ticket-toolbar">
                     <div class="toolbar-group">
@@ -56,6 +54,9 @@
                                 </option>
                                 <option value="hr" {{ request('type') == 'hr' ? 'selected' : '' }}>
                                     Hr
+                                </option>
+                                <option value="biomedical" {{ request('type') == 'biomedical' ? 'selected' : '' }}>
+                                    Biomedical
                                 </option>
                             </select>
                         </div>
@@ -234,17 +235,7 @@
 
                                     {{-- Action --}}
                                     <td>{{ $t->CreatedDate ?? '-' }}</td>
-
                                     {{-- <td>
-                                        <div class="d-flex gap-1">
-                                            <a class="action-btn" href="{{ route('ticket.view', $t->ticketId) }}">
-                                                <i class="ti ti-eye"></i>
-                                            </a>
-
-
-                                        </div>
-                                    </td> --}}
-                                    <td>
                                         @php
                                             $isManpower = strtolower(trim($t->Subject)) === 'manpower';
                                         @endphp
@@ -255,8 +246,26 @@
                                                 <i class="ti ti-eye"></i>
                                             </a>
                                         </div>
-                                    </td>
+                                    </td> --}}
+                                    <td>
 
+                                        @php
+                                            $subject = strtolower(trim($t->Subject));
+                                            $isManpower = $subject === 'manpower';
+                                            $isBiomedical = $subject === 'biomedical';
+                                        @endphp
+                                        <div class="d-flex gap-1">
+                                            <a class="action-btn"
+                                                href="@if ($isManpower) {{ route('manpower.view', $t->ticketId) }}
+                                                      @elseif($isBiomedical)
+                                                      {{ route('biomedical.view', $t->ticketId) }}
+                                                       @else
+                                                      {{ route('ticket.view', $t->ticketId) }} @endif
+                                                         ">
+                                                <i class="ti ti-eye"></i>
+                                            </a>
+                                        </div>
+                                    </td>
                                 </tr>
                             @empty
                                 <tr>
@@ -533,13 +542,18 @@
 
     </div>
     <script src="{{ asset('build/plugins/sweetalert2/sweetalert2.min.js') }}"></script>
+
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
         $(document).ready(function() {
             const LEAVE_REQUEST_ID = "{{ $leaveRequestId }}";
             const ATTENDANCE_ISSUE_ID = "{{ config('ticket.ATTENDANCE_ISSUE') }}";
             const NEW_JOINEE = "{{ config('ticket.NEW_JOINEE') }}";
-            const HR_ID = 51;
+            // const HR_ID = 51;
+            const HR_ID = "{{ config('ticket.HR') }}";
+            const IOU_REQUEST_ID = "{{ config('ticket.IOU') }}";
+            const CLAIM_REQUEST_ID = "{{ config('ticket.CLAIM_REQUEST') }}";
+            // const CLAIM_REQUEST_ID = 25;
             $.ajax({
                 url: "/employees",
                 type: "GET",
@@ -835,7 +849,6 @@
                 });
             });
 
-
             // $("#issue").on("change", function() {
             //     let issueId = $(this).val();
             //     // let deptId = $("#department").val();
@@ -885,74 +898,389 @@
             //     }
 
             // });
-            $("#issue").on("change", function() {
 
+
+            // $("#issue").on("change", function() {
+
+            //     let issueId = $(this).val();
+            //     let deptId = $("#department").val();
+
+            //     $("#leave_request_block").hide();
+            //     $("#attendance_block").hide();
+            //     $("#new_joinee_block").hide();
+
+            //     $("input[name='from_date'], input[name='to_date'], input[name='attendance_date']")
+            //         .val('')
+            //         .prop('required', false);
+
+            //     // RESET REQUIRED ONLY FOR NEW JOINEE FIELDS
+            //     $("input[name='vacancies'], input[name='designation'], input[name='job_description'], input[name='age_min'], input[name='age_max'], input[name='experience'], input[name='qualification'], input[name='skills'], input[name='work_location']")
+            //         .prop('required', false);
+
+            //     $("select[name='gender']").prop('required', false);
+
+            //     // SHOW EMPLOYEE AGAIN IF HR
+            //     if (deptId == HR_ID) {
+            //         $("#employee_common_block").show();
+            //     }
+
+            //     // LEAVE REQUEST
+            //     if (issueId == LEAVE_REQUEST_ID) {
+
+            //         $("#leave_request_block").slideDown();
+
+            //         $("input[name='from_date']").prop('required', true);
+            //         $("input[name='to_date']").prop('required', true);
+
+            //     }
+
+            //     // ATTENDANCE
+            //     else if (issueId == ATTENDANCE_ISSUE_ID) {
+
+            //         $("#attendance_block").slideDown();
+
+            //         $("input[name='attendance_date']").prop('required', true);
+
+            //     }
+
+            //     // NEW JOINEE
+            //     else if (issueId == NEW_JOINEE) {
+
+            //         $("#new_joinee_block").slideDown();
+
+            //         $("input[name='vacancies']").prop('required', true);
+            //         $("input[name='designation']").prop('required', true);
+            //         $("textarea[name='job_description']").prop('required', true);
+            //         $("input[name='age_min']").prop('required', true);
+            //         $("input[name='age_max']").prop('required', true);
+            //         $("select[name='gender']").prop('required', true);
+            //         $("input[name='experience']").prop('required', true);
+            //         $("input[name='qualification']").prop('required', true);
+            //         $("input[name='skills']").prop('required', true);
+            //         $("input[name='work_location']").prop('required', true);
+
+            //         // KEEP EMPLOYEE FIELD VISIBLE FOR HR
+            //         $("#employee_common_block").hide();
+            //         $("#employee_common")
+            //             .prop('required', false)
+            //             .val('')
+            //             .trigger('change');
+            //     }
+            // });
+
+            // ======================================
+            // ISSUE CHANGE
+            // ======================================
+
+            $("#issue").on("change", function() {
                 let issueId = $(this).val();
                 let deptId = $("#department").val();
-
+                // ======================================
+                // RESET BLOCKS
+                // ======================================
                 $("#leave_request_block").hide();
                 $("#attendance_block").hide();
                 $("#new_joinee_block").hide();
-
+                $("#machine_block").hide();
+                $("#machine_issue_type_block").hide();
+                $("#machine_issues_checkbox_block").hide();
+                $("#machine_issues_checkbox").html('');
+                $("#machine_id").html(
+                    '<option value="">Select Machine</option>'
+                );
+                $("#machine_issue_type").val('');
+                $("#iou_request_block").hide();
+                $("#claim_request_block").hide();
                 $("input[name='from_date'], input[name='to_date'], input[name='attendance_date']")
                     .val('')
                     .prop('required', false);
 
-                // RESET REQUIRED ONLY FOR NEW JOINEE FIELDS
+                // ======================================
+                // RESET REQUIRED
+                // ======================================
+
                 $("input[name='vacancies'], input[name='designation'], input[name='job_description'], input[name='age_min'], input[name='age_max'], input[name='experience'], input[name='qualification'], input[name='skills'], input[name='work_location']")
                     .prop('required', false);
 
                 $("select[name='gender']").prop('required', false);
+                $("input[name='iou_request_date'], input[name='iou_amount']")
+                    .prop('required', false);
+                $("input[name='expense_date'], input[name='expense_amount']")
+                    .prop('required', false);
 
-                // SHOW EMPLOYEE AGAIN IF HR
+                $("select[name='expense_type']")
+                    .prop('required', false);
+                // ======================================
+                // HR EMPLOYEE
+                // ======================================
+
                 if (deptId == HR_ID) {
+
                     $("#employee_common_block").show();
+
                 }
 
+                // ======================================
                 // LEAVE REQUEST
+                // ======================================
+
                 if (issueId == LEAVE_REQUEST_ID) {
 
                     $("#leave_request_block").slideDown();
 
                     $("input[name='from_date']").prop('required', true);
-                    $("input[name='to_date']").prop('required', true);
 
+                    $("input[name='to_date']").prop('required', true);
                 }
 
+                // ======================================
                 // ATTENDANCE
+                // ======================================
                 else if (issueId == ATTENDANCE_ISSUE_ID) {
 
                     $("#attendance_block").slideDown();
 
                     $("input[name='attendance_date']").prop('required', true);
-
                 }
 
+                // ======================================
                 // NEW JOINEE
+                // ======================================
                 else if (issueId == NEW_JOINEE) {
 
                     $("#new_joinee_block").slideDown();
 
                     $("input[name='vacancies']").prop('required', true);
+
                     $("input[name='designation']").prop('required', true);
+
                     $("textarea[name='job_description']").prop('required', true);
+
                     $("input[name='age_min']").prop('required', true);
+
                     $("input[name='age_max']").prop('required', true);
+
                     $("select[name='gender']").prop('required', true);
+
                     $("input[name='experience']").prop('required', true);
+
                     $("input[name='qualification']").prop('required', true);
+
                     $("input[name='skills']").prop('required', true);
+
                     $("input[name='work_location']").prop('required', true);
 
-                    // KEEP EMPLOYEE FIELD VISIBLE FOR HR
                     $("#employee_common_block").hide();
+
                     $("#employee_common")
                         .prop('required', false)
                         .val('')
                         .trigger('change');
+                } else if (issueId == IOU_REQUEST_ID) {
+                    // console.log(IOU_REQUEST_ID);
+
+                    $("#iou_request_block").slideDown();
+
+                    $("input[name='iou_request_date']")
+                        .prop('required', true);
+
+                    $("input[name='iou_amount']")
+                        .prop('required', true);
+                } else if (issueId == CLAIM_REQUEST_ID) {
+
+                    $("#claim_request_block").slideDown();
+
+                    $("input[name='expense_date']")
+                        .prop('required', true);
+
+                    $("select[name='expense_type']")
+                        .prop('required', true);
+
+                    $("input[name='expense_amount']")
+                        .prop('required', true);
                 }
+                // ======================================
+                // MACHINE SECTION
+                // ======================================
+
+                // 21 = New Request
+                // 22 = Replacement
+                // 23 = Service Request
+
+                if (
+                    issueId == 21 ||
+                    issueId == 22 ||
+                    issueId == 23
+                ) {
+
+                    $("#machine_block").slideDown();
+
+                    // ONLY SERVICE REQUEST SHOW TYPE
+
+                    if (issueId == 23) {
+
+                        $("#machine_issue_type_block").slideDown();
+
+                    } else {
+
+                        $("#machine_issue_type_block").hide();
+                    }
+
+                    // LOAD MACHINES
+
+                    $.ajax({
+
+                        url: "/machines",
+
+                        type: "GET",
+
+                        success: function(res) {
+
+                            let options =
+                                '<option value="">Select Machine</option>';
+
+                            res.data.forEach(function(machine) {
+
+                                options += `
+                        <option value="${machine.MachineId}">
+                            ${machine.MachineName}
+                        </option>
+                    `;
+                            });
+
+                            $("#machine_id").html(options);
+                        }
+                    });
+                }
+
             });
 
+
+            // ======================================
+            // MACHINE ISSUE TYPE CHANGE
+            // ======================================
+            $("#machine_issue_type, #machine_id").on("change", function() {
+
+                let issueId = $("#issue").val();
+
+                let machineId = $("#machine_id").val();
+
+                let type = $("#machine_issue_type").val();
+
+                $("#machine_issues_checkbox").html('');
+
+                $("#machine_issues_checkbox_block").hide();
+
+                // ONLY SERVICE REQUEST
+                if (issueId != 23) {
+                    return;
+                }
+
+                // BOTH REQUIRED
+                if (
+                    machineId != '' &&
+                    type != ''
+                ) {
+
+                    $.ajax({
+
+                        url: "/machine-issues-list",
+
+                        type: "GET",
+
+                        data: {
+                            machine_id: machineId,
+                            type: type
+                        },
+
+                        success: function(res) {
+
+                            let html = '';
+
+                            if (res.data.length > 0) {
+
+                                $("#machine_issues_checkbox_block")
+                                    .slideDown();
+
+                                res.data.forEach(function(issue) {
+
+                                    //             html += `
+
+                                //     <div class="col-lg-4 mb-2">
+
+                                //         <div class="form-check border rounded p-2 bg-light">
+
+                                //             <input
+                                //                 class="form-check-input"
+                                //                 type="checkbox"
+                                //                 name="machine_issue_ids[]"
+                                //                 value="${issue.machineIssueId}"
+                                //                 id="issue_${issue.machineIssueId}"
+                                //             >
+
+                                //             <label
+                                //                 class="form-check-label ms-1"
+                                //                 for="issue_${issue.machineIssueId}"
+                                //             >
+                                //                 ${issue.IssuesName}
+                                //             </label>
+
+                                //         </div>
+
+                                //     </div>
+
+                                // `;
+                                    html += `
+
+    <div class="col-lg-4 mb-3">
+
+        <div class="border rounded p-2 h-100">
+
+            <div class="form-check d-flex align-items-center">
+
+                <input
+                    class="form-check-input me-2"
+                    type="checkbox"
+                    name="machine_issue_ids[]"
+                    value="${issue.machineIssueId}"
+                    id="issue_${issue.machineIssueId}"
+                >
+
+                <label
+                    class="form-check-label"
+                    for="issue_${issue.machineIssueId}"
+                >
+                    ${issue.IssuesName}
+                </label>
+
+            </div>
+
+        </div>
+
+    </div>
+
+       `;
+                                });
+
+                            } else {
+
+                                $("#machine_issues_checkbox_block")
+                                    .slideDown();
+
+                                html = `
+                        <div class="text-danger">
+                            No Machine Issues Found
+                        </div>
+                    `;
+                            }
+
+                            $("#machine_issues_checkbox").html(
+                                '<div class="row">' + html + '</div>'
+                            );
+                        }
+                    });
+                }
+            });
         });
     </script>
     <script>

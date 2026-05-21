@@ -14515,109 +14515,280 @@
                             </div>
 
                             <!-- LEAVE REQUEST BLOCK -->
-<div id="leave_request_block" class="row mt-2" style="display:none;">
+                            <div id="leave_request_block" class="row mt-2" style="display:none;">
 
-    <div class="col-lg-6">
-        <label class="form-label">From Date <span class="text-danger">*</span></label>
-        <input type="date" name="from_date" class="form-control">
-    </div>
+                                <div class="col-lg-6">
+                                    <label class="form-label">From Date <span class="text-danger">*</span></label>
+                                    <input type="date" name="from_date" class="form-control">
+                                </div>
 
-    <div class="col-lg-6">
-        <label class="form-label">To Date <span class="text-danger">*</span></label>
-        <input type="date" name="to_date" class="form-control">
-    </div>
+                                <div class="col-lg-6">
+                                    <label class="form-label">To Date <span class="text-danger">*</span></label>
+                                    <input type="date" name="to_date" class="form-control">
+                                </div>
 
-    {{-- <div class="col-lg-12 mt-2">
+                                {{-- <div class="col-lg-12 mt-2">
         <label>Employee <span class="text-danger">*</span></label>
         <select name="employee_id" class="form-control" id="employee_id">
             <option value="">Select Employee</option>
         </select>
     </div> --}}
 
-</div>
+                            </div>
 
 
-<div id="attendance_block" class="row mt-2" style="display:none;">
+                            <div id="attendance_block" class="row mt-2" style="display:none;">
 
-    <div class="col-lg-12 mt-2">
-        <label class="form-label">Attendance Date <span class="text-danger">*</span></label>
-        <input type="date" name="attendance_date" class="form-control">
-    </div>
+                                <div class="col-lg-12 mt-2">
+                                    <label class="form-label">Attendance Date <span
+                                            class="text-danger">*</span></label>
+                                    <input type="date" name="attendance_date" class="form-control">
+                                </div>
 
-    {{-- <div class="col-lg-12 mt-2">
+                                {{-- <div class="col-lg-12 mt-2">
         <label>Employee <span class="text-danger">*</span></label>
         <select name="employee_id_attendance" class="form-control" id="employee_id_attendance">
             <option value="">Select Employee</option>
         </select>
     </div> --}}
 
-</div>
-<div id="employee_common_block" class="row mt-2" style="display:none;">
-    <div class="col-lg-12 mt-2">
-        <label>Employee <span class="text-danger">*</span></label>
-        <select name="employee_common" class="form-control" id="employee_common">
-            <option value="">Select Employee</option>
-        </select>
-    </div>
+                            </div>
+                            <div id="employee_common_block" class="row mt-2" style="display:none;">
+                                <div class="col-lg-12 mt-2">
+                                    <label>Employee <span class="text-danger">*</span></label>
+                                    <select name="employee_common" class="form-control" id="employee_common">
+                                        <option value="">Select Employee</option>
+                                    </select>
+                                </div>
 
-</div>
+                            </div>
 
-<div id="new_joinee_block" class="row mt-2" style="display:none;">
+                            <div id="new_joinee_block" class="row mt-2" style="display:none;">
 
-    <div class="col-lg-6">
-        <label class="form-label">No. of Vacancies <span class="text-danger">*</span></label>
-        <input type="number" name="vacancies" class="form-control">
-    </div>
+                                <div class="col-lg-6">
+                                    <label class="form-label">No. of Vacancies <span
+                                            class="text-danger">*</span></label>
+                                    <input type="number" name="vacancies" class="form-control">
+                                </div>
 
-    <div class="col-lg-6">
-        <label class="form-label">Designation<span class="text-danger">*</span></label>
-        <input type="text" name="designation" class="form-control">
-    </div>
+                                <div class="col-lg-6">
+                                    <label class="form-label">Designation<span
+                                            class="text-danger">*</span></label>
+                                    <input type="text" name="designation" class="form-control">
+                                </div>
 
-    <div class="col-lg-12 mt-2">
-        <label class="form-label">Job Description (JD) <span class="text-danger">*</span></label>
-        <textarea name="job_description" class="form-control"></textarea>
-    </div>
+                                <div class="col-lg-12 mt-2">
+                                    <label class="form-label">Job Description (JD) <span
+                                            class="text-danger">*</span></label>
+                                    <textarea name="job_description" class="form-control"></textarea>
+                                </div>
 
-    <div class="col-lg-6 mt-2">
-        <label class="form-label">Age Limit <span class="text-danger">*</span></label>
-        <div class="d-flex">
-            <input type="number" name="age_min" class="form-control me-2" placeholder="Min">
-            <input type="number" name="age_max" class="form-control" placeholder="Max">
-        </div>
-    </div>
+                                <div class="col-lg-6 mt-2">
+                                    <label class="form-label">Age Limit <span class="text-danger">*</span></label>
+                                    <div class="d-flex">
+                                        <input type="number" name="age_min" class="form-control me-2"
+                                            placeholder="Min">
+                                        <input type="number" name="age_max" class="form-control"
+                                            placeholder="Max">
+                                    </div>
+                                </div>
 
-    <div class="col-lg-6 mt-2">
-        <label class="form-label">Gender <span class="text-danger">*</span></label>
-        <select name="gender" class="form-control">
-            <option value="">Select</option>
-            <option>Male</option>
-            <option>Female</option>
-            <option>Any</option>
-        </select>
-    </div>
+                                <div class="col-lg-6 mt-2">
+                                    <label class="form-label">Gender <span class="text-danger">*</span></label>
+                                    <select name="gender" class="form-control">
+                                        <option value="">Select</option>
+                                        <option>Male</option>
+                                        <option>Female</option>
+                                        <option>Any</option>
+                                    </select>
+                                </div>
 
-    <div class="col-lg-6 mt-2">
-        <label class="form-label">Experience (Years) <span class="text-danger">*</span></label>
-        <input type="text" name="experience" class="form-control">
-    </div>
+                                <div class="col-lg-6 mt-2">
+                                    <label class="form-label">Experience (Years) <span
+                                            class="text-danger">*</span></label>
+                                    <input type="text" name="experience" class="form-control">
+                                </div>
 
-    <div class="col-lg-6 mt-2">
-        <label class="form-label">Qualification <span class="text-danger">*</span></label>
-        <input type="text" name="qualification" class="form-control">
-    </div>
+                                <div class="col-lg-6 mt-2">
+                                    <label class="form-label">Qualification <span
+                                            class="text-danger">*</span></label>
+                                    <input type="text" name="qualification" class="form-control">
+                                </div>
 
-    <div class="col-lg-12 mt-2">
-        <label class="form-label">Skills <span class="text-danger">*</span></label>
-        <input type="text" name="skills" class="form-control">
-    </div>
+                                <div class="col-lg-12 mt-2">
+                                    <label class="form-label">Skills <span class="text-danger">*</span></label>
+                                    <input type="text" name="skills" class="form-control">
+                                </div>
 
-    <div class="col-lg-12 mt-2">
-        <label class="form-label">Work Location <span class="text-danger">*</span></label>
-        <input type="text" name="work_location" class="form-control">
-    </div>
+                                <div class="col-lg-12 mt-2">
+                                    <label class="form-label">Work Location <span
+                                            class="text-danger">*</span></label>
+                                    <input type="text" name="work_location" class="form-control">
+                                </div>
 
-</div>
+                            </div>
+
+                            <!-- MACHINE BLOCK -->
+
+                            <div id="machine_block" class="row mt-2" style="display:none;">
+
+                                <!-- MACHINE -->
+
+                                <div class="col-lg-6">
+
+                                    <div class="mb-2">
+
+                                        <label class="form-label">
+                                            Machine
+                                            <span class="text-danger">*</span>
+                                        </label>
+
+                                        <select name="machine_id" id="machine_id" class="form-control">
+
+                                            <option value="">Select Machine</option>
+
+                                        </select>
+
+                                    </div>
+
+                                </div>
+                                <div class="col-lg-6" id="machine_issue_type_block" style="display:none;">
+
+                                    <div class="mb-2">
+
+                                        <label class="form-label">
+                                            Machine Issue Type
+                                            <span class="text-danger">*</span>
+                                        </label>
+
+                                        <select name="machine_issue_type" id="machine_issue_type"
+                                            class="form-control">
+
+                                            <option value="">Select Type</option>
+
+                                            <option value="service">Service</option>
+
+                                            <option value="component">Component</option>
+
+                                            <option value="spare">Spare</option>
+
+                                        </select>
+
+                                    </div>
+
+                                </div>
+
+
+                                <!-- MACHINE ISSUES -->
+
+                                <div class="col-lg-12" id="machine_issues_checkbox_block"
+                                    style="display:none;">
+
+                                    <div class="mb-2">
+
+                                        <label class="form-label">
+                                            Machine Issues
+                                        </label>
+
+                                        <div id="machine_issues_checkbox" class="border rounded p-3 bg-light">
+
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+                            <div id="iou_request_block" class="row mt-2" style="display:none;">
+
+                                <div class="col-lg-4">
+                                    <label class="form-label">
+                                        IOU Request Date
+                                        <span class="text-danger">*</span>
+                                    </label>
+
+                                    <input type="date" name="iou_request_date" class="form-control"
+                                        value="{{ date('Y-m-d') }}">
+                                </div>
+
+                                <div class="col-lg-4">
+                                    <label class="form-label">
+                                        Current Balance
+                                    </label>
+
+                                    <input type="text" name="current_balance" class="form-control"
+                                        value="0.0" readonly>
+                                </div>
+
+                                <div class="col-lg-4">
+                                    <label class="form-label">
+                                        IOU Request Amount
+                                        <span class="text-danger">*</span>
+                                    </label>
+
+                                    <input type="number" step="0.01" name="iou_amount"
+                                        class="form-control" placeholder="Enter Amount">
+                                </div>
+
+                            </div>
+                            <div id="claim_request_block" class="row mt-2" style="display:none;">
+
+                                <div class="col-lg-4">
+                                    <label class="form-label">
+                                        Expenses Date
+                                        <span class="text-danger">*</span>
+                                    </label>
+
+                                    <input type="date" name="expense_date" class="form-control"
+                                        value="{{ date('Y-m-d') }}">
+                                </div>
+
+                                <div class="col-lg-4">
+                                    <label class="form-label">
+                                        Expenses Type
+                                        <span class="text-danger">*</span>
+                                    </label>
+
+                                    <select name="expense_type" class="form-control">
+                                        <option value="">Select Type</option>
+
+                                        <option value="Electrical">
+                                            Electrical
+                                        </option>
+
+                                        <option value="Machine Repair">
+                                            Machine Repair
+                                        </option>
+
+                                        <option value="Plumbing">
+                                            Plumbing
+                                        </option>
+
+                                        <option value="Service">
+                                            Service
+                                        </option>
+
+                                        <option value="Travel">
+                                            Travel
+                                        </option>
+
+                                        <option value="Other">
+                                            Other
+                                        </option>
+                                    </select>
+                                </div>
+
+                                <div class="col-lg-4">
+                                    <label class="form-label">
+                                        Expense Amount
+                                        <span class="text-danger">*</span>
+                                    </label>
+
+                                    <input type="number" step="0.01" name="expense_amount"
+                                        class="form-control" placeholder="Enter Amount">
+                                </div>
+
+                            </div>
 
                             <div class="col-lg-12">
                                 <div class="mb-2">

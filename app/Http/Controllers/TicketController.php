@@ -4,6 +4,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\BiomedicalTicket;
 use App\Models\ComplaintFollowup;
 use App\Models\CustomerRefundComplaint;
 use App\Models\HrManpowerRequest;
@@ -23,11 +24,9 @@ class TicketController extends Controller
     public function index(Request $request)
     {
         $currentUserId = session('user_id');
-
         // Logged in user
         $loginUser = UserMaster::where('UserID', $currentUserId)->first();
-        // dd($loginUser);
-        $totalTickets = IssueTicket::whereIn('type', ['vsupport', 'hr'])->count();
+        $totalTickets = IssueTicket::whereIn('type', ['vsupport', 'hr', 'biomedical'])->count();
 
         $perPage = $request->get('per_page', 10);
         $status = $request->status;
@@ -46,7 +45,7 @@ class TicketController extends Controller
                 },
             ])
             ->orderBy('CreatedDate', 'desc')
-            ->whereIn('type', ['vsupport', 'hr']);
+            ->whereIn('type', ['vsupport', 'hr', 'biomedical']);
 
         if ($request->has('type') && $type != '') {
             $q->where('type', $type);
@@ -100,6 +99,7 @@ class TicketController extends Controller
 
     public function store(Request $request)
     {
+        // dd($request->all());
         DB::beginTransaction();
 
         try {
@@ -115,7 +115,7 @@ class TicketController extends Controller
             }
 
             $userCode = $loginUser->UserCode;
-
+            // $BIOMEDICAL_DEPARTMENT = 31;
             /*
         ======================================================
         LOCATION RESOLUTION
@@ -137,6 +137,12 @@ class TicketController extends Controller
             }
 
             $month = date('ym');
+
+            $BIOMEDICAL_DEPARTMENT = 31;
+
+            $NEW_REQUEST = 21;
+            $REPLACEMENT_REQUEST = 22;
+            $SERVICE_REQUEST = 23;
             /*
         ======================================================
         HR FLOW
@@ -319,13 +325,157 @@ class TicketController extends Controller
                     'ticket',
                     $ticketId
                 );
-            }
+            } elseif ($request->Department == $BIOMEDICAL_DEPARTMENT) {
+                if ($request->TypeofEscalation == $SERVICE_REQUEST) {
+                    $validator = Validator::make($request->all(), [
+                        'Department' => 'required',
+                        'Complaint' => 'required',
+                        'TypeofEscalation' => 'required',
+                        'machine_id' => 'required',
+                        'machine_issue_type' => 'required',
+                        'machine_issue_ids' => 'required|array|min:1',
+                        'feedback' => 'required',
+                    ]);
 
+                } else {
+
+                    // NEW REQUEST / REPLACEMENT
+                    $validator = Validator::make($request->all(), [
+                        'Department' => 'required',
+                        'Complaint' => 'required',
+                        'TypeofEscalation' => 'required',
+                        'machine_id' => 'required',
+                        'feedback' => 'required',
+                    ]);
+                }
+
+                if ($validator->fails()) {
+
+                    return response()->json([
+                        'errors' => $validator->errors(),
+                    ], 422);
+                }
+                $category = IssueCategory::find($request->Complaint);
+                $issue = IssueMaster::find($request->TypeofEscalation);
+                $prefix = $locCode.$month.'T';
+                $ticketNo = $this->generateTicketNo($prefix);
+                /*
+                ======================================================
+                MAIN TICKET
+                ======================================================
+                */
+
+                $ticketId = DB::connection('sqlsrv')
+                    ->table('issueTicket')
+                    ->insertGetId([
+                        'Department' => $request->Department,
+                        // 'Subject' => $category->category_name ?? null,
+                        'Subject' => 'BioMedical',
+                        'Issuelevel2' => $category->category_name ?? null,
+                        'Issuelevel3' => $category->category_name ?? null,
+                        'Issuelevel5' => $category->category_name ?? null,
+                        'CustomerCode' => $request->customer_code ?? 'Biomedical',
+                        'CustomerName' => $request->customer_name ?? 'Biomedical Ticket',
+                        'LocId' => $locCode,
+                        'Branch' => $locCode,
+                        'Status' => 0,
+                        'type' => 'biomedical',
+                        'CreatedBy' => $userCode,
+                        'CreatedDate' => now(),
+                        'AcceptedBy' => $userCode,
+                        'RequiredTime' => 1,
+                        'RequiredTimeType' => 'Day',
+                        'FromProduct' => $request->from_product ?? '',
+                        'ToProduct' => $request->ToProduct ?? '',
+                        'BankName' => $request->bank_name ?? '',
+                        'CardNo' => $request->card_no ?? '',
+                        'CashAmt' => $request->cash_amt ?? 0,
+                        'CardAmt' => $request->card_amt ?? 0,
+                        'ScheduledDate' => $request->scheduled_date ?? null,
+                        'BillRaisedType' => $request->bill_raised_type ?? null,
+                        'NewBillType' => $request->new_bill_type ?? null,
+                        'ProductCode' => $request->product_code ?? null,
+                        'ServiceCode' => $request->service_code ?? null,
+                        'ServiceName' => $request->service_name ?? null,
+                        'DiscountAmt' => $request->discount_amt ?? 0,
+                        'BillNoFrom' => $request->bill_no_from ?? '',
+                        'BillNoTo' => $request->bill_no_to ?? '',
+                        'NewRequestedBillDate' => $request->new_requested_bill_date ?? null,
+                        'BillType' => $request->bill_type ?? '',
+                        'OriyanaId' => $request->oriyana_id ?? '',
+                        'MobileNo' => $request->alternateMobile ?? '',
+                        'EmpName' => $loginUser->UserName ?? '',
+                        'ApprovedStatus' => 'Pending',
+                        'ApprovedBy' => '',
+                        'Email' => $loginUser->Email ?? '',
+                        'UserId' => $employeeId ?? '',
+
+                    ]);
+
+                /*
+                ======================================================
+                MACHINE ISSUE IDS
+                ======================================================
+                */
+
+                $machineIssueIds = null;
+
+                if (
+                    $request->TypeofEscalation == $SERVICE_REQUEST
+                    &&
+                    ! empty($request->machine_issue_ids)
+                ) {
+                    $machineIssueIds = implode(
+                        ',',
+                        $request->machine_issue_ids
+                    );
+                }
+                $biomedicalTicket = BiomedicalTicket::create([
+                    'ticketId' => $ticketId,
+                    'departmentId' => $request->Department,
+                    'categoryId' => $request->Complaint,
+                    'issueId' => $request->TypeofEscalation,
+                    'machineId' => $request->machine_id,
+                    'machineIssueType' => $request->machine_issue_type,
+                    'machineIssueIds' => $machineIssueIds,
+                    'comments' => $request->feedback,
+                    'status' => 'Pending',
+                    'created_by' => $loginUserId,
+                    'created_at' => now(),
+                    // 'meta_data' => json_encode([
+                    //     'machine_issue_ids' => $request->machine_issue_ids ?? [],
+                    //     'history' => [
+                    //         [
+                    //             'status' => 'Pending',
+                    //             'remarks' => 'Biomedical Ticket Created',
+                    //             'created_by' => $loginUserId,
+                    //             'created_at' => now()->toDateTimeString(),
+                    //         ],
+                    //     ],
+                    // ]),
+                ]);
+                NotificationService::send(
+                    23900,
+                    'New Biomedical Ticket',
+                    'Biomedical Ticket #'.$ticketId.' created',
+                    'ticket',
+                    $ticketId
+                );
+                DB::commit();
+
+                return response()->json([
+                    'status' => true,
+                    'message' => 'Biomedical Ticket Created Successfully',
+                    'ticket_id' => $ticketId,
+                    'ticket_no' => $ticketNo,
+                ]);
+            }
             /*
-        ======================================================
-        CUSTOMER FLOW
-        ======================================================
-        */ else {
+             ======================================================
+             CUSTOMER FLOW
+             ======================================================
+            */
+            else {
                 $validator = Validator::make($request->all(), [
                     'Department' => 'required',
                     'Complaint' => 'required',

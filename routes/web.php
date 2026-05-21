@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\BiomedicalController;
 use App\Http\Controllers\BranchController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\DepartmentController;
@@ -89,6 +90,13 @@ Route::middleware(['auth.custom', 'nocache'])->group(function () {
         '/candidate/store/{id}',
         [HrManpowerController::class, 'candidateStore']
     );
+    // Route::get('/biomedical/{ticketId}', [BiomedicalController::class, 'view'])->name('biomedical.view');
+
+    Route::get('/biomedical/{ticketId}', [BiomedicalController::class, 'view'])
+        ->name('biomedical.view');
+    Route::post('/biomedical-ticket/{biomedicalId}/update-status', [BiomedicalController::class, 'updateStatus'])
+        ->name('biomedical.updateStatus');
+
     Route::get('/search-customer', [MasterController::class, 'searchCustomer']);
     Route::get('/departments', [MasterController::class, 'departments']);
     Route::get('/issue-categories', [MasterController::class, 'issueCategories']);
