@@ -14627,9 +14627,6 @@
                                 </div>
 
                             </div>
-
-                            <!-- MACHINE BLOCK -->
-
                             <div id="machine_block" class="row mt-2" style="display:none;">
 
                                 <!-- MACHINE -->
@@ -14789,7 +14786,101 @@
                                 </div>
 
                             </div>
+                            <div id="settlement_request_block" class="row mt-2" style="display:none;">
 
+                                <div class="col-lg-4">
+                                    <label class="form-label">
+                                        Current Balance
+                                    </label>
+
+                                    <input type="text" name="settlement_current_balance"
+                                        class="form-control" value="0.00" readonly>
+                                </div>
+
+                                <div class="col-lg-4">
+                                    <label class="form-label">
+                                        Settlement Amount
+                                        <span class="text-danger">*</span>
+                                    </label>
+
+                                    <input type="number" step="0.01" name="settlement_amount"
+                                        class="form-control" placeholder="Enter Amount">
+                                </div>
+                                <div class="col-lg-4">
+                                    <label class="form-label">
+                                        Remaining Balance
+                                    </label>
+
+                                    <input type="text" name="remaining_balance" class="form-control"
+                                        value="0.00" readonly>
+                                </div>
+                                <div class="col-lg-8">
+                                    <label class="form-label">
+                                        Settlement Type
+                                        <span class="text-danger">*</span>
+                                    </label>
+
+                                    <select name="settlement_type" class="form-control">
+
+                                        <option value="">Select Type</option>
+
+                                        <option value="BILL">
+                                            BILL SUBMISSION
+                                        </option>
+
+                                        <option value="RETURN">
+                                            CASH RETURN
+                                        </option>
+
+                                    </select>
+                                </div>
+
+                                
+
+                                <div class="col-lg-8 mt-2">
+
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <label class="form-label">
+                                            Upload Bills / Proof
+                                        </label>
+
+                                        <button type="button" class="btn btn-sm btn-primary"
+                                            id="add_more_bill">
+
+                                            + Add More
+
+                                        </button>
+                                    </div>
+
+                                    <div id="bill_upload_wrapper">
+
+                                        <div class="bill-upload-row row mt-2">
+
+                                            <div class="col-lg-6">
+                                                <input type="file" name="settlement_files[]"
+                                                    class="form-control">
+                                            </div>
+
+                                            <div class="col-lg-6">
+                                                <input type="text" name="bill_remarks[]"
+                                                    class="form-control" placeholder="Bill Remarks">
+                                            </div>
+
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+                                <div class="col-lg-12 mt-3">
+                                    <label class="form-label">
+                                        Overall Remarks
+                                    </label>
+
+                                    <textarea name="settlement_remarks" class="form-control" rows="3" placeholder="Enter Overall Remarks"></textarea>
+                                </div>
+
+                            </div>
                             <div class="col-lg-12">
                                 <div class="mb-2">
                                     <label class="form-label">Feedback<span

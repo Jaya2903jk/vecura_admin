@@ -9,9 +9,11 @@ use App\Models\ComplaintFollowup;
 use App\Models\CustomerRefundComplaint;
 use App\Models\HrManpowerRequest;
 use App\Models\HrTicketDetail;
+use App\Models\IouRequest;
 use App\Models\IssueCategory;
 use App\Models\IssueMaster;
 use App\Models\IssueTicket;
+use App\Models\MoneyTransaction;
 use App\Models\PatientPersonalDetail;
 use App\Models\UserMaster;
 use App\Services\NotificationService;
@@ -26,7 +28,7 @@ class TicketController extends Controller
         $currentUserId = session('user_id');
         // Logged in user
         $loginUser = UserMaster::where('UserID', $currentUserId)->first();
-        $totalTickets = IssueTicket::whereIn('type', ['vsupport', 'hr', 'biomedical'])->count();
+        $totalTickets = IssueTicket::whereIn('type', ['vsupport', 'hr', 'biomedical', 'accounts'])->count();
 
         $perPage = $request->get('per_page', 10);
         $status = $request->status;
@@ -45,7 +47,7 @@ class TicketController extends Controller
                 },
             ])
             ->orderBy('CreatedDate', 'desc')
-            ->whereIn('type', ['vsupport', 'hr', 'biomedical']);
+            ->whereIn('type', ['vsupport', 'hr', 'biomedical', 'accounts']);
 
         if ($request->has('type') && $type != '') {
             $q->where('type', $type);
@@ -99,7 +101,6 @@ class TicketController extends Controller
 
     public function store(Request $request)
     {
-        // dd($request->all());
         DB::beginTransaction();
 
         try {
@@ -143,11 +144,14 @@ class TicketController extends Controller
             $NEW_REQUEST = 21;
             $REPLACEMENT_REQUEST = 22;
             $SERVICE_REQUEST = 23;
+            $ACCOUNTS_DEPARTMENT = 32;
             /*
         ======================================================
         HR FLOW
         ======================================================
         */
+            $issueId = $request->TypeofEscalation;
+
             if ($request->Department == 51) {
                 $LEAVE_REQUEST_ID = config('ticket.LEAVE_REQUEST');
                 $ATTENDANCE_ISSUE_ID = config('ticket.ATTENDANCE_ISSUE');
@@ -469,6 +473,122 @@ class TicketController extends Controller
                     'ticket_id' => $ticketId,
                     'ticket_no' => $ticketNo,
                 ]);
+            } elseif ($request->Department == $ACCOUNTS_DEPARTMENT) {
+                // dd($request->all());
+                $IOU = config('ticket.IOU');
+                $CLAIM_REQUEST = config('ticket.CLAIM_REQUEST');
+                if ($issueId == $IOU) {
+                    $validator = Validator::make($request->all(), [
+                        'Department' => 'required',
+                        'Complaint' => 'required',
+                        'TypeofEscalation' => 'required',
+                        'feedback' => 'required',
+                        'employee_common' => 'required',
+                        'iou_amount' => 'required',
+                        'iou_request_date' => 'required|date',
+                        // 'branch_id' => 'required',
+                    ]);
+                } else {
+
+                    $validator = Validator::make($request->all(), [
+                        'Department' => 'required',
+                        'Complaint' => 'required',
+                        'TypeofEscalation' => 'required',
+                        'feedback' => 'required',
+                        'employee_common' => 'required',
+                    ]);
+                }
+
+                if ($validator->fails()) {
+                    return response()->json(['errors' => $validator->errors()], 422);
+                }
+
+                $category = IssueCategory::find($request->Complaint);
+                $issue = IssueMaster::find($request->TypeofEscalation);
+
+                $prefix = $locCode.$month.'T';
+                $ticketNo = $this->generateTicketNo($prefix);
+
+                $ticketId = DB::connection('sqlsrv')
+                    ->table('issueTicket')
+                    ->insertGetId([
+                        'Department' => $request->Department,
+                        'Subject' => $category->category_name ?? null,
+                        'Issuelevel2' => $category->category_name ?? null,
+                        'Issuelevel3' => $category->category_name ?? null,
+                        'Issuelevel5' => $category->category_name ?? null,
+                        'CustomerCode' => $request->customer_code ?? 'Accounts',
+                        'CustomerName' => $request->customer_name ?? 'Accounts Ticket',
+                        'LocId' => $locCode,
+                        'Branch' => $locCode,
+                        'Status' => 0,
+                        'type' => 'accounts',
+                        'CreatedBy' => $userCode,
+                        'CreatedDate' => now(),
+                        'AcceptedBy' => $userCode,
+                        'RequiredTime' => 1,
+                        'RequiredTimeType' => 'Day',
+                        'FromProduct' => $request->from_product ?? '',
+                        'ToProduct' => $request->ToProduct ?? '',
+                        'BankName' => $request->bank_name ?? '',
+                        'CardNo' => $request->card_no ?? '',
+                        'CashAmt' => $request->cash_amt ?? 0,
+                        'CardAmt' => $request->card_amt ?? 0,
+                        'ScheduledDate' => $request->scheduled_date ?? null,
+                        'BillRaisedType' => $request->bill_raised_type ?? null,
+                        'NewBillType' => $request->new_bill_type ?? null,
+                        'ProductCode' => $request->product_code ?? null,
+                        'ServiceCode' => $request->service_code ?? null,
+                        'ServiceName' => $request->service_name ?? null,
+                        'DiscountAmt' => $request->discount_amt ?? 0,
+                        'BillNoFrom' => $request->bill_no_from ?? '',
+                        'BillNoTo' => $request->bill_no_to ?? '',
+                        'NewRequestedBillDate' => $request->new_requested_bill_date ?? null,
+                        'BillType' => $request->bill_type ?? '',
+                        'OriyanaId' => $request->oriyana_id ?? '',
+                        'MobileNo' => $request->alternateMobile ?? '',
+                        'EmpName' => $loginUser->UserName ?? '',
+                        'ApprovedStatus' => 'Pending',
+                        'ApprovedBy' => '',
+                        'Email' => $loginUser->Email ?? '',
+                        'UserId' => $employeeId ?? '',
+
+                    ]);
+
+                if ($issueId == $IOU) {
+                    $iou = IouRequest::create([
+                        'ticket_id' => $ticketId,
+                        'Department' => $request->Department,
+                        'Category' => $request->Complaint ?? null,
+                        'TypeOfEscalation' => $request->TypeofEscalation ?? null,
+                        'employee_id' => $employeeId,
+                        'branch_id' => $request->branch_id,
+                        'request_date' => $request->iou_request_date,
+                        'requested_amount' => $request->iou_amount,
+                        'pending_balance' => $request->iou_amount,
+                        'purpose' => $request->feedback,
+                        'status' => 'pending',
+                    ]);
+
+                    MoneyTransaction::create([
+                        'employee_id' => $employeeId,
+                        'ticket_id' => $ticketId,
+                        'reference_id' => $iou->iou_id,
+                        'type' => 'iou_request',
+                        'amount' => $request->iou_amount,
+                        'remarks' => 'IOU Request Created',
+                        'created_by' => $loginUserId,
+                    ]);
+
+                }
+                //  ACCOUNTS NOTIFICATION
+                NotificationService::send(
+                    23900,
+                    'New Account Ticket Created',
+                    'Account Ticket #'.$ticketId.' created',
+                    'ticket',
+                    $ticketId
+                );
             }
             /*
              ======================================================

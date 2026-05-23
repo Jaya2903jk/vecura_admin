@@ -253,12 +253,15 @@
                                             $subject = strtolower(trim($t->Subject));
                                             $isManpower = $subject === 'manpower';
                                             $isBiomedical = $subject === 'biomedical';
+                                            $isIOURequest = $subject === 'iou request';
                                         @endphp
                                         <div class="d-flex gap-1">
                                             <a class="action-btn"
                                                 href="@if ($isManpower) {{ route('manpower.view', $t->ticketId) }}
                                                       @elseif($isBiomedical)
                                                       {{ route('biomedical.view', $t->ticketId) }}
+                                                       @elseif($isIOURequest)
+                                                      {{ route('iou.view', $t->ticketId) }}
                                                        @else
                                                       {{ route('ticket.view', $t->ticketId) }} @endif
                                                          ">
@@ -553,6 +556,8 @@
             const HR_ID = "{{ config('ticket.HR') }}";
             const IOU_REQUEST_ID = "{{ config('ticket.IOU') }}";
             const CLAIM_REQUEST_ID = "{{ config('ticket.CLAIM_REQUEST') }}";
+            const SETTELMENT_ID = "{{ config('ticket.SETTLEMENT') }}";
+
             // const CLAIM_REQUEST_ID = 25;
             $.ajax({
                 url: "/employees",
@@ -684,20 +689,7 @@
                         'X-CSRF-TOKEN': $('input[name="_token"]').val()
                     },
 
-                    // success: function(response) {
-                    //     Livewire.emit('notificationAdded');
-                    //     Livewire.emit('refreshNotification');
-                    //     Swal.fire({
-                    //         // position: "top-end",
-                    //         icon: "success", // fixed (was type)
-                    //         title: "Ticket Created Successfully",
-                    //         showConfirmButton: false,
-                    //         timer: 1500
-                    //     });
-                    //     setTimeout(function() {
-                    //         window.location.href = "{{ route('tickets') }}";
-                    //     }, 2000);
-                    // },
+
                     success: function(response) {
                         // Livewire.emit('notificationAdded');
                         // Livewire.emit('refreshNotification');
@@ -848,58 +840,6 @@
                     }
                 });
             });
-
-            // $("#issue").on("change", function() {
-            //     let issueId = $(this).val();
-            //     // let deptId = $("#department").val();
-
-            //     $("#leave_request_block").hide();
-            //     $("#attendance_block").hide();
-            //     $("#new_joinee_block").hide();
-
-
-            //     $("input[name='from_date'], input[name='to_date'], input[name='attendance_date']")
-            //         .val('')
-            //         .prop('required', false);
-            //     $("input, select, textarea").prop('required', false);
-
-            //     if (issueId == LEAVE_REQUEST_ID) {
-
-            //         $("#leave_request_block").slideDown();
-
-            //         $("input[name='from_date']").prop('required', true);
-            //         $("input[name='to_date']").prop('required', true);
-            //     }
-
-            //     //  ATTENDANCE
-            //     else if (issueId == ATTENDANCE_ISSUE_ID) {
-
-            //         $("#attendance_block").slideDown();
-
-            //         $("input[name='attendance_date']").prop('required', true);
-            //     } else if (issueId == NEW_JOINEE) {
-
-            //         $("#new_joinee_block").slideDown();
-
-            //         // make required fields
-            //         $("input[name='vacancies']").prop('required', true);
-            //         $("input[name='designation']").prop('required', true);
-            //         $("textarea[name='job_description']").prop('required', true);
-            //         $("input[name='age_min']").prop('required', true);
-            //         $("input[name='age_max']").prop('required', true);
-            //         $("select[name='gender']").prop('required', true);
-            //         $("input[name='experience']").prop('required', true);
-            //         $("input[name='qualification']").prop('required', true);
-            //         $("input[name='skills']").prop('required', true);
-            //         $("input[name='work_location']").prop('required', true);
-
-            //         //  Hide employee
-            //         $("#employee_common_block").hide();
-            //     }
-
-            // });
-
-
             // $("#issue").on("change", function() {
 
             //     let issueId = $(this).val();
@@ -971,7 +911,96 @@
             // ======================================
             // ISSUE CHANGE
             // ======================================
+            $(document).on('change', '#employee_common', function() {
+                let employeeId = $(this).val();
 
+                if (employeeId != '') {
+
+                    $.ajax({
+                        url: "/get-employee-iou-balance",
+                        type: "GET",
+                        data: {
+                            employee_id: employeeId
+                        },
+
+                        success: function(response) {
+
+                            let balance = response.balance ?? 0;
+
+                            $('input[name="settlement_current_balance"]')
+                                .val(balance);
+
+                            $('input[name="remaining_balance"]')
+                                .val(balance);
+                        }
+                    });
+
+                } else {
+
+                    $('input[name="settlement_current_balance"]')
+                        .val('0.00');
+
+                    $('input[name="remaining_balance"]')
+                        .val('0.00');
+                }
+
+            });
+            $(document).on('keyup change',
+                'input[name="settlement_amount"]',
+                function() {
+
+                    let currentBalance = parseFloat(
+                        $('input[name="settlement_current_balance"]').val()
+                    ) || 0;
+
+                    let settlementAmount = parseFloat($(this).val()) || 0;
+
+                    let remaining = currentBalance - settlementAmount;
+
+                    if (remaining < 0) {
+                        remaining = 0;
+                    }
+
+                    $('input[name="remaining_balance"]')
+                        .val(remaining.toFixed(2));
+
+                });
+            $(document).on('click', '#add_more_bill', function() {
+
+                let html = `
+        <div class="bill-upload-row row mt-2">
+
+            <div class="col-lg-5">
+                <input type="file"
+                       name="settlement_files[]"
+                       class="form-control">
+            </div>
+
+            <div class="col-lg-5">
+                <input type="text"
+                       name="bill_remarks[]"
+                       class="form-control"
+                       placeholder="Bill Remarks">
+            </div>
+
+            <div class="col-lg-2">
+                <button type="button"
+                        class="btn btn-danger remove_bill_row">
+                    Remove
+                </button>
+            </div>
+
+        </div>
+    `;
+
+                $('#bill_upload_wrapper').append(html);
+
+            });
+            $(document).on('click', '.remove_bill_row', function() {
+
+                $(this).closest('.bill-upload-row').remove();
+
+            });
             $("#issue").on("change", function() {
                 let issueId = $(this).val();
                 let deptId = $("#department").val();
@@ -1078,9 +1107,14 @@
                         .trigger('change');
                 } else if (issueId == IOU_REQUEST_ID) {
                     // console.log(IOU_REQUEST_ID);
+                    // if (deptId == HR_ID) {
 
+                    $("#employee_common_block").show();
+
+                    // }
                     $("#iou_request_block").slideDown();
-
+                    $("input[name='employee_common']")
+                        .prop('required', true);
                     $("input[name='iou_request_date']")
                         .prop('required', true);
 
@@ -1098,7 +1132,22 @@
 
                     $("input[name='expense_amount']")
                         .prop('required', true);
+                } else if (issueId == SETTELMENT_ID) {
+
+                    $("#employee_common_block").show();
+
+                    $("#settlement_request_block").slideDown();
+
+                    $("select[name='employee_common']")
+                        .prop('required', true);
+
+                    $("input[name='settlement_amount']")
+                        .prop('required', true);
+
+                    $("select[name='settlement_type']")
+                        .prop('required', true);
                 }
+
                 // ======================================
                 // MACHINE SECTION
                 // ======================================

@@ -7,5 +7,6 @@ return [
     'HR' => '51',
     'IOU' => '24',
     'CLAIM_REQUEST' => '25',
+    'SETTLEMENT' => '26',
 
 ];

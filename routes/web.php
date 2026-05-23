@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AccountsController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BiomedicalController;
 use App\Http\Controllers\BranchController;
@@ -96,6 +97,13 @@ Route::middleware(['auth.custom', 'nocache'])->group(function () {
         ->name('biomedical.view');
     Route::post('/biomedical-ticket/{biomedicalId}/update-status', [BiomedicalController::class, 'updateStatus'])
         ->name('biomedical.updateStatus');
+
+    Route::get('/iou/{ticketId}', [AccountsController::class, 'view'])->name('iou.view');
+    Route::get('/get-employee-iou-balance', [AccountsController::class, 'getEmployeeIouBalance']);
+    Route::post('iou/{iouId}/approve', [AccountsController::class, 'approve'])->name('iou.approve');
+    Route::post('iou/{iouId}/pay', [AccountsController::class, 'pay'])->name('iou.pay');
+    Route::post('iou/{iouId}/settle', [AccountsController::class, 'settle'])->name('iou.settle');
+    Route::post('iou/{iouId}/close', [AccountsController::class, 'close'])->name('iou.close');
 
     Route::get('/search-customer', [MasterController::class, 'searchCustomer']);
     Route::get('/departments', [MasterController::class, 'departments']);
