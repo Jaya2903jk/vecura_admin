@@ -13,38 +13,37 @@ class IouSettlement extends Model
     public $timestamps = false;
 
     protected $fillable = [
-        'iou_id',
+
         'ticket_id',
         'employee_id',
-        'settlement_date',
-        'actual_expense',
-        'returned_amount',
-        'extra_claim_amount',
+        'settlement_type',
+        'settlement_status',
+        'total_amount',
         'remarks',
         'created_by',
         'created_at',
     ];
 
+
+    // protected $fillable = [
+    //     'ticket_id',
+    //     'employee_id',
+    //     'settlement_date',
+    //     'actual_expense',
+    //     'returned_amount',
+    //     'extra_claim_amount',
+    //     'remarks',
+    //     'created_by',
+    //     'created_at',
+    // ];
     protected $casts = [
-        'settlement_date' => 'date',
-        'actual_expense' => 'decimal:2',
-        'returned_amount' => 'decimal:2',
-        'extra_claim_amount' => 'decimal:2',
+
+        // 'settlement_date' => 'date',
+
+        'total_amount' => 'decimal:2',
+
         'created_at' => 'datetime',
     ];
-
-    // ====================================
-    // RELATIONSHIPS
-    // ====================================
-
-    public function iou()
-    {
-        return $this->belongsTo(
-            IouRequest::class,
-            'iou_id',
-            'iou_id'
-        );
-    }
 
     public function employee()
     {

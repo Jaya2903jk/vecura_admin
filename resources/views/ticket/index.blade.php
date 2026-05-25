@@ -913,94 +913,49 @@
             // ======================================
             $(document).on('change', '#employee_common', function() {
                 let employeeId = $(this).val();
-
                 if (employeeId != '') {
-
                     $.ajax({
                         url: "/get-employee-iou-balance",
                         type: "GET",
                         data: {
                             employee_id: employeeId
                         },
-
                         success: function(response) {
-
-                            let balance = response.balance ?? 0;
-
+                            let balance = parseFloat(response.balance) || 0;
                             $('input[name="settlement_current_balance"]')
-                                .val(balance);
-
+                                .val(balance.toFixed(2));
                             $('input[name="remaining_balance"]')
-                                .val(balance);
+                                .val(balance.toFixed(2));
+                            // $('input[name="settlement_amount"]').val('');
+                            // validateSettlement();
                         }
                     });
-
                 } else {
-
-                    $('input[name="settlement_current_balance"]')
-                        .val('0.00');
-
-                    $('input[name="remaining_balance"]')
-                        .val('0.00');
+                    $('input[name="settlement_current_balance"]').val('0.00');
+                    $('input[name="remaining_balance"]').val('0.00');
+                    // $('input[name="settlement_amount"]').val('');
+                    // validateSettlement();
                 }
-
             });
-            $(document).on('keyup change',
-                'input[name="settlement_amount"]',
-                function() {
+            // $(document).on('input', 'input[name="settlement_amount"]', function() {
+            //     let currentBalance = parseFloat(
+            //         $('input[name="settlement_current_balance"]').val()
+            //     ) || 0;
+            //     let settlementAmount = parseFloat($(this).val()) || 0;
+            //     if (settlementAmount > currentBalance) {
+            //         settlementAmount = currentBalance;
+            //         $(this).val(currentBalance.toFixed(2));
+            //     }
 
-                    let currentBalance = parseFloat(
-                        $('input[name="settlement_current_balance"]').val()
-                    ) || 0;
+            //     let remaining = currentBalance - settlementAmount;
 
-                    let settlementAmount = parseFloat($(this).val()) || 0;
+            //     $('input[name="remaining_balance"]')
+            //         .val(remaining.toFixed(2));
+            //     // validateSettlement();
 
-                    let remaining = currentBalance - settlementAmount;
 
-                    if (remaining < 0) {
-                        remaining = 0;
-                    }
+            // });
 
-                    $('input[name="remaining_balance"]')
-                        .val(remaining.toFixed(2));
-
-                });
-            $(document).on('click', '#add_more_bill', function() {
-
-                let html = `
-        <div class="bill-upload-row row mt-2">
-
-            <div class="col-lg-5">
-                <input type="file"
-                       name="settlement_files[]"
-                       class="form-control">
-            </div>
-
-            <div class="col-lg-5">
-                <input type="text"
-                       name="bill_remarks[]"
-                       class="form-control"
-                       placeholder="Bill Remarks">
-            </div>
-
-            <div class="col-lg-2">
-                <button type="button"
-                        class="btn btn-danger remove_bill_row">
-                    Remove
-                </button>
-            </div>
-
-        </div>
-    `;
-
-                $('#bill_upload_wrapper').append(html);
-
-            });
-            $(document).on('click', '.remove_bill_row', function() {
-
-                $(this).closest('.bill-upload-row').remove();
-
-            });
             $("#issue").on("change", function() {
                 let issueId = $(this).val();
                 let deptId = $("#department").val();

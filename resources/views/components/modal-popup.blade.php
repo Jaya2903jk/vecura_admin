@@ -14797,7 +14797,7 @@
                                         class="form-control" value="0.00" readonly>
                                 </div>
 
-                                <div class="col-lg-4">
+                                {{-- <div class="col-lg-4">
                                     <label class="form-label">
                                         Settlement Amount
                                         <span class="text-danger">*</span>
@@ -14805,7 +14805,7 @@
 
                                     <input type="number" step="0.01" name="settlement_amount"
                                         class="form-control" placeholder="Enter Amount">
-                                </div>
+                                </div> --}}
                                 <div class="col-lg-4">
                                     <label class="form-label">
                                         Remaining Balance
@@ -14814,7 +14814,7 @@
                                     <input type="text" name="remaining_balance" class="form-control"
                                         value="0.00" readonly>
                                 </div>
-                                <div class="col-lg-8">
+                                <div class="col-lg-12">
                                     <label class="form-label">
                                         Settlement Type
                                         <span class="text-danger">*</span>
@@ -14834,21 +14834,16 @@
 
                                     </select>
                                 </div>
-
-                                
-
-                                <div class="col-lg-8 mt-2">
+                                <br>
+                                {{-- <div class="col-lg-12">
 
                                     <div class="d-flex justify-content-between align-items-center">
                                         <label class="form-label">
                                             Upload Bills / Proof
                                         </label>
-
                                         <button type="button" class="btn btn-sm btn-primary"
                                             id="add_more_bill">
-
                                             + Add More
-
                                         </button>
                                     </div>
 
@@ -14878,7 +14873,7 @@
                                     </label>
 
                                     <textarea name="settlement_remarks" class="form-control" rows="3" placeholder="Enter Overall Remarks"></textarea>
-                                </div>
+                                </div> --}}
 
                             </div>
                             <div class="col-lg-12">

@@ -111,19 +111,25 @@ class AccountsController extends Controller
                     'rejection',
                     [
                         'decision' => 'rejected',
-                        'rejected_by' => Auth::id(),
+                        'rejected_by' => session('user_id'),
                         'rejected_at' => now(),
                     ],
                     [
                         'action' => 'rejected',
                         'remarks' => $request->remarks,
-                        'user_id' => Auth::id(),
+                        'user_id' => session('user_id'),
                         'date' => now(),
                     ]
                 );
             }
 
             $iou->save();
+            IssueTicket::where('ticketId', $iou->ticket_id)
+                ->update([
+                    'Status' => 1,
+                    // 'ModifiedBy' => session('user_id'),
+                    // 'ModifiedDate' => now(),
+                ]);
             DB::commit();
 
             return response()->json([
@@ -265,6 +271,7 @@ class AccountsController extends Controller
             'employee_id',
             $employeeId
         )->first();
+        // dd($balance);
 
         return response()->json([
             'balance' => number_format(

@@ -43,6 +43,7 @@ class IouRequest extends Model
         'remarks',
         'created_at',
         'updated_at',
+
     ];
 
     public function ticket()
@@ -79,14 +80,14 @@ class IouRequest extends Model
         );
     }
 
-    public function settlements()
-    {
-        return $this->hasMany(
-            IouSettlement::class,
-            'iou_id',
-            'iou_id'
-        );
-    }
+    // public function settlements()
+    // {
+    //     return $this->hasMany(
+    //         IouSettlement::class,
+    //         'iou_id',
+    //         'iou_id'
+    //     );
+    // }
 
     public function claims()
     {

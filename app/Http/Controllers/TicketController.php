@@ -477,6 +477,8 @@ class TicketController extends Controller
                 // dd($request->all());
                 $IOU = config('ticket.IOU');
                 $CLAIM_REQUEST = config('ticket.CLAIM_REQUEST');
+                $SETTLEMENT = config('ticket.SETTLEMENT');
+
                 if ($issueId == $IOU) {
                     $validator = Validator::make($request->all(), [
                         'Department' => 'required',
@@ -487,6 +489,16 @@ class TicketController extends Controller
                         'iou_amount' => 'required',
                         'iou_request_date' => 'required|date',
                         // 'branch_id' => 'required',
+                    ]);
+                } elseif ($issueId == $SETTLEMENT) {
+                    $validator = Validator::make($request->all(), [
+                        'Department' => 'required',
+                        'Complaint' => 'required',
+                        'TypeofEscalation' => 'required',
+                        'feedback' => 'required',
+                        'employee_common' => 'required',
+                        'settlement_amount' => 'required',
+                        'settlement_type' => 'required',
                     ]);
                 } else {
 
@@ -579,6 +591,7 @@ class TicketController extends Controller
                         'remarks' => 'IOU Request Created',
                         'created_by' => $loginUserId,
                     ]);
+                } elseif ($issueId == $SETTLEMENT) {
 
                 }
                 //  ACCOUNTS NOTIFICATION

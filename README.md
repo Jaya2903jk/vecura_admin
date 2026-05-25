@@ -209,3 +209,33 @@ CREATE TABLE BiomedicalTickets (
 );
 ALTER TABLE BiomedicalTickets
 ADD machineIssueIds VARCHAR(MAX) NULL;
+
+CREATE TABLE iou_settlements (
+settlement_id BIGINT IDENTITY(1,1) PRIMARY KEY,
+ticket_id BIGINT NOT NULL,
+employee_id INT NOT NULL,
+
+    settlement_type VARCHAR(30),
+    settlement_status VARCHAR(20),
+
+    total_amount DECIMAL(10,2),
+    remarks TEXT,
+    created_by INT,
+    created_at DATETIME DEFAULT GETDATE(),
+
+);
+CREATE TABLE iou_settlement_items (
+item_id BIGINT IDENTITY(1,1) PRIMARY KEY,
+
+    settlement_id BIGINT NOT NULL,
+
+    expense_type VARCHAR(20),
+
+    amount DECIMAL(10,2),
+
+    bill_number VARCHAR(100),
+    bill_amount DECIMAL(10,2),
+
+    description VARCHAR(MAX)
+
+);

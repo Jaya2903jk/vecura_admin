@@ -678,7 +678,6 @@
 
             <div class="td-card">
 
-                {{-- ── Header ── --}}
                 <div class="td-card-header">
                     <div class="td-card-header-left">
                         <div class="td-header-icon"><i class="ti ti-wallet"></i></div>
@@ -703,7 +702,6 @@
                             </div>
                         </div>
                     </div>
-                    {{-- Action button based on current status --}}
                     @if ($iou->status === 'pending')
                         <button class="td-btn td-btn-primary" onclick="openApprovalModal()">
                             <i class="ti ti-clipboard-check"></i> Review Request
@@ -722,11 +720,6 @@
                         </button>
                     @endif
                 </div>
-
-                {{-- ── Workflow Stepper ── --}}
-
-
-                {{-- ── Amount Summary ── --}}
                 <div class="iou-amount-strip">
                     <div class="iou-amount-cell">
                         <div class="iou-amount-label">Requested</div>
@@ -741,15 +734,9 @@
                         <div class="iou-amount-val info" style="color:#125e80;">
                             ₹{{ number_format($iou->paid_amount ?? 0, 2) }}</div>
                     </div>
-                    {{-- <div class="iou-amount-cell">
-                        <div class="iou-amount-label">Actual Expense</div>
-                        <div class="iou-amount-val warning">₹{{ number_format($iou->settlement_amount ?? 0, 2) }}</div>
-                    </div> --}}
+
                     <div class="iou-amount-cell">
-                        {{-- <div class="iou-amount-label">pending Balance</div>
-                        <div class="iou-amount-val {{ ($iou->pending_balance ?? 0) > 0 ? 'negative' : 'positive' }}">
-                            ₹{{ number_format($iou->pending_balance ?? 0, 2) }}
-                        </div> --}}
+
                         <div class="iou-amount-label">Net pending Balance</div>
                         <div class="iou-amount-val {{ ($balance?->pending_balance ?? 0) > 0 ? 'negative' : 'positive' }}">
                             ₹{{ number_format($balance?->pending_balance ?? 0, 2) }}
@@ -791,8 +778,6 @@
                     </div>
 
                 </div>
-
-                {{-- ── Employee Balance ── --}}
                 @if ($balance)
                     <div class="td-section-row">
                         <div class="td-section-title"><i class="ti ti-user-dollar"
