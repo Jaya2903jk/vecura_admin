@@ -926,35 +926,131 @@
                                 .val(balance.toFixed(2));
                             $('input[name="remaining_balance"]')
                                 .val(balance.toFixed(2));
-                            // $('input[name="settlement_amount"]').val('');
-                            // validateSettlement();
+                          
                         }
                     });
                 } else {
                     $('input[name="settlement_current_balance"]').val('0.00');
                     $('input[name="remaining_balance"]').val('0.00');
-                    // $('input[name="settlement_amount"]').val('');
-                    // validateSettlement();
+                  
                 }
             });
-            // $(document).on('input', 'input[name="settlement_amount"]', function() {
-            //     let currentBalance = parseFloat(
-            //         $('input[name="settlement_current_balance"]').val()
-            //     ) || 0;
-            //     let settlementAmount = parseFloat($(this).val()) || 0;
-            //     if (settlementAmount > currentBalance) {
-            //         settlementAmount = currentBalance;
-            //         $(this).val(currentBalance.toFixed(2));
-            //     }
+            $(document).on('change', '#settlement_type', function () {
+alert('111');
+    let type = $(this).val();
 
-            //     let remaining = currentBalance - settlementAmount;
+    if (type == 'BILL') {
 
-            //     $('input[name="remaining_balance"]')
-            //         .val(remaining.toFixed(2));
-            //     // validateSettlement();
+        $('#bill_section').show();
 
+    } else {
 
-            // });
+        $('#bill_section').hide();
+
+    }
+
+});
+$(document).on('click', '#add_bill_row', function () {
+
+    let row = `
+
+        <tr class="bill-row">
+
+            <td>
+                <input type="text"
+                    name="expense_type[]"
+                    class="form-control"
+                    placeholder="Expense Type">
+            </td>
+
+            <td>
+                <input type="text"
+                    name="bill_number[]"
+                    class="form-control"
+                    placeholder="Bill Number">
+            </td>
+
+            <td>
+                <input type="number"
+                    step="0.01"
+                    name="bill_amount[]"
+                    class="form-control bill-amount"
+                    placeholder="Bill Amount">
+            </td>
+
+            <td>
+                <input type="number"
+                    step="0.01"
+                    name="amount[]"
+                    class="form-control settlement-amount"
+                    placeholder="Settlement Amount">
+            </td>
+
+            <td>
+                <input type="file"
+                    name="settlement_files[]"
+                    class="form-control">
+            </td>
+
+            <td>
+
+                <button type="button"
+                    class="btn btn-danger remove-row">
+
+                    X
+
+                </button>
+
+            </td>
+
+        </tr>
+
+    `;
+
+    $('#bill_table_body').append(row);
+
+});
+
+// REMOVE ROW
+
+$(document).on('click', '.remove-row', function () {
+
+    $(this).closest('tr').remove();
+
+    calculateSettlement();
+
+});
+
+// CALCULATE TOTAL
+
+$(document).on('keyup change', '.settlement-amount', function () {
+
+    calculateSettlement();
+
+});
+
+function calculateSettlement() {
+
+    let total = 0;
+
+    $('.settlement-amount').each(function () {
+
+        total += parseFloat($(this).val()) || 0;
+
+    });
+
+    $('input[name="total_settlement_amount"]')
+        .val(total.toFixed(2));
+
+    let currentBalance =
+        parseFloat($('input[name="settlement_current_balance"]').val()) || 0;
+
+    let remaining = currentBalance - total;
+
+    $('input[name="remaining_balance"]')
+        .val(remaining.toFixed(2));
+
+}
 
             $("#issue").on("change", function() {
                 let issueId = $(this).val();

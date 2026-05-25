@@ -14786,96 +14786,200 @@
                                 </div>
 
                             </div>
-                            <div id="settlement_request_block" class="row mt-2" style="display:none;">
+                          <!-- SETTLEMENT REQUEST BLOCK -->
 
-                                <div class="col-lg-4">
-                                    <label class="form-label">
-                                        Current Balance
-                                    </label>
+<div id="settlement_request_block" class="row mt-2" style="display:none;">
 
-                                    <input type="text" name="settlement_current_balance"
-                                        class="form-control" value="0.00" readonly>
-                                </div>
+    <!-- CURRENT BALANCE -->
 
-                                {{-- <div class="col-lg-4">
-                                    <label class="form-label">
-                                        Settlement Amount
-                                        <span class="text-danger">*</span>
-                                    </label>
+    <div class="col-lg-4">
+        <label class="form-label">
+            Current Balance
+        </label>
 
-                                    <input type="number" step="0.01" name="settlement_amount"
-                                        class="form-control" placeholder="Enter Amount">
-                                </div> --}}
-                                <div class="col-lg-4">
-                                    <label class="form-label">
-                                        Remaining Balance
-                                    </label>
+        <input type="text"
+            name="settlement_current_balance"
+            class="form-control"
+            value="0.00"
+            readonly>
+    </div>
 
-                                    <input type="text" name="remaining_balance" class="form-control"
-                                        value="0.00" readonly>
-                                </div>
-                                <div class="col-lg-12">
-                                    <label class="form-label">
-                                        Settlement Type
-                                        <span class="text-danger">*</span>
-                                    </label>
+    <!-- REMAINING BALANCE -->
 
-                                    <select name="settlement_type" class="form-control">
+    <div class="col-lg-4">
+        <label class="form-label">
+            Remaining Balance
+        </label>
 
-                                        <option value="">Select Type</option>
+        <input type="text"
+            name="remaining_balance"
+            class="form-control"
+            value="0.00"
+            readonly>
+    </div>
 
-                                        <option value="BILL">
-                                            BILL SUBMISSION
-                                        </option>
+    <!-- SETTLEMENT TYPE -->
 
-                                        <option value="RETURN">
-                                            CASH RETURN
-                                        </option>
+    <div class="col-lg-4">
+        <label class="form-label">
+            Settlement Type
+            <span class="text-danger">*</span>
+        </label>
 
-                                    </select>
-                                </div>
-                                <br>
-                                {{-- <div class="col-lg-12">
+        <select name="settlement_type"
+            id="settlement_type"
+            class="form-control">
 
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <label class="form-label">
-                                            Upload Bills / Proof
-                                        </label>
-                                        <button type="button" class="btn btn-sm btn-primary"
-                                            id="add_more_bill">
-                                            + Add More
-                                        </button>
-                                    </div>
+            <option value="">
+                Select Type
+            </option>
 
-                                    <div id="bill_upload_wrapper">
+            <option value="BILL">
+                BILL SUBMISSION
+            </option>
 
-                                        <div class="bill-upload-row row mt-2">
+            <option value="RETURN">
+                CASH RETURN
+            </option>
 
-                                            <div class="col-lg-6">
-                                                <input type="file" name="settlement_files[]"
-                                                    class="form-control">
-                                            </div>
+        </select>
+    </div>
 
-                                            <div class="col-lg-6">
-                                                <input type="text" name="bill_remarks[]"
-                                                    class="form-control" placeholder="Bill Remarks">
-                                            </div>
+    <!-- BILL SECTION -->
 
-                                        </div>
+    <div class="col-lg-12 mt-4"
+        id="bill_section"
+        style="display:none;">
 
-                                    </div>
+        <div class="d-flex justify-content-between align-items-center">
 
-                                </div>
+            <label class="form-label">
+                Bill Details
+            </label>
 
-                                <div class="col-lg-12 mt-3">
-                                    <label class="form-label">
-                                        Overall Remarks
-                                    </label>
+            <button type="button"
+                class="btn btn-sm btn-primary"
+                id="add_bill_row">
 
-                                    <textarea name="settlement_remarks" class="form-control" rows="3" placeholder="Enter Overall Remarks"></textarea>
-                                </div> --}}
+                + Add More
 
-                            </div>
+            </button>
+
+        </div>
+
+        <table class="table table-bordered mt-2">
+
+            <thead>
+
+                <tr>
+
+                    <th>Expense Type</th>
+
+                    <th>Bill No</th>
+
+                    <th>Bill Amount</th>
+
+                    <th>Amount</th>
+
+                    <th>Upload</th>
+
+                    <th>Remove</th>
+
+                </tr>
+
+            </thead>
+
+            <tbody id="bill_table_body">
+
+                <tr class="bill-row">
+
+                    <td>
+                        <input type="text"
+                            name="expense_type[]"
+                            class="form-control"
+                            placeholder="Expense Type">
+                    </td>
+
+                    <td>
+                        <input type="text"
+                            name="bill_number[]"
+                            class="form-control"
+                            placeholder="Bill Number">
+                    </td>
+
+                    <td>
+                        <input type="number"
+                            step="0.01"
+                            name="bill_amount[]"
+                            class="form-control bill-amount"
+                            placeholder="Bill Amount">
+                    </td>
+
+                    <td>
+                        <input type="number"
+                            step="0.01"
+                            name="amount[]"
+                            class="form-control settlement-amount"
+                            placeholder="Settlement Amount">
+                    </td>
+
+                    <td>
+                        <input type="file"
+                            name="settlement_files[]"
+                            class="form-control">
+                    </td>
+
+                    <td>
+
+                        <button type="button"
+                            class="btn btn-danger remove-row">
+
+                            X
+
+                        </button>
+
+                    </td>
+
+                </tr>
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+    <!-- TOTAL SETTLEMENT -->
+
+    <div class="col-lg-4 mt-3">
+
+        <label class="form-label">
+            Total Settlement Amount
+        </label>
+
+        <input type="text"
+            name="total_settlement_amount"
+            class="form-control"
+            value="0.00"
+            readonly>
+
+    </div>
+
+    <!-- REMARKS -->
+
+    <div class="col-lg-12 mt-3">
+
+        <label class="form-label">
+            Remarks
+        </label>
+
+        <textarea name="remarks"
+            class="form-control"
+            rows="3"
+            placeholder="Enter Remarks"></textarea>
+
+    </div>
+
+</div>
                             <div class="col-lg-12">
                                 <div class="mb-2">
                                     <label class="form-label">Feedback<span
