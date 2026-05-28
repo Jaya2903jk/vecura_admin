@@ -10,7 +10,6 @@ use App\Models\IssueTicket;
 use App\Models\MoneyTransaction;
 use App\Models\UserMaster;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 class AccountsController extends Controller
@@ -20,49 +19,92 @@ class AccountsController extends Controller
         $ticket = IssueTicket::with(['department', 'location', 'customer'])
             ->where('ticketId', $ticketId)
             ->firstOrFail();
+        if ($ticket->type == 'Settlement') {
 
-        $iou = IouRequest::with([
-            'transactions',
-            'settlements',
-            'claims',
-            'employee',
-            'department',
-            'category',
-            'issue',
-        ])
-            ->where('ticket_id', $ticketId)
-            ->firstOrFail();
+            $ticket = IssueTicket::where('ticketId', $ticketId)->firstOrFail();
+            $settlement = IouSettlement::with(['employee', 'items', 'approver', 'creator'])
+                ->where('ticket_id', $ticketId)
+                ->firstOrFail();
+            $balance = EmployeeBalance::where('employee_id', $settlement->employee_id)->first();
 
-        $balance = EmployeeBalance::where('employee_id', $iou->employee_id)->first();
-        $metaData = $iou->meta_data ?? [];
-        if (is_string($metaData)) {
-            $metaData = json_decode($metaData, true);
+            $transactions = MoneyTransaction::with('creator')
+                ->where('ticket_id', $ticketId)
+                ->orderBy('created_at', 'asc')
+                ->get();
+            $claimTransfers = MoneyTransaction::with('creator')
+                ->where('ticket_id', $ticketId)
+                ->where('type', 'claim_transfer')
+                ->orderBy('created_at', 'asc')
+                ->get();
+
+            $metaData = $settlement->meta_data ?? [];
+            if (is_string($metaData)) {
+                $metaData = json_decode($metaData, true);
+            }
+
+            $actionHistory = collect($metaData['history'] ?? [])
+                ->map(function ($item) {
+                    $employee = UserMaster::with('designation')
+                        ->where('UserID', $item['user_id'] ?? null)
+                        ->first();
+
+                    return (object) [
+                        'status' => $item['action'] ?? '-',
+                        'remarks' => $item['remarks'] ?? '-',
+                        'changedBy' => $employee->FullName ?? $employee->UserName ?? 'Unknown',
+                        'designation' => $employee->designation->Designation ?? '-',
+                        'changedAt' => $item['date'] ?? null,
+                    ];
+                });
+
+            return view('ticket.view_settlement', compact(
+                'ticket',
+                'settlement',
+                'balance',
+                'transactions',
+                'claimTransfers',
+                'actionHistory'
+            ));
+        } else {
+            $iou = IouRequest::with([
+                'transactions',
+                // 'settlements',
+                'claims',
+                'employee',
+                'department',
+                'category',
+                'issue',
+            ])
+                ->where('ticket_id', $ticketId)
+                ->firstOrFail();
+
+            $balance = EmployeeBalance::where('employee_id', $iou->employee_id)->first();
+            $metaData = $iou->meta_data ?? [];
+            if (is_string($metaData)) {
+                $metaData = json_decode($metaData, true);
+            }
+            $actionHistory = collect($metaData['history'] ?? [])
+                ->map(function ($item) {
+
+                    $employee = UserMaster::with('designation')
+                        ->where('UserID', $item['user_id'] ?? null)
+                        ->first();
+
+                    return (object) [
+                        'status' => $item['action'] ?? '-',
+                        'remarks' => $item['remarks'] ?? '-',
+                        'changedBy' => $employee->FullName
+                            ?? $employee->UserName
+                            ?? 'Unknown',
+                        'designation' => $employee->designation->Designation
+                            ?? '-',
+                        'changedAt' => $item['date'] ?? null,
+                    ];
+                });
+
+            return view('ticket.view_accounts', compact('iou', 'balance', 'ticket', 'actionHistory'));
         }
-        $actionHistory = collect($metaData['history'] ?? [])
-            ->map(function ($item) {
 
-                $employee = UserMaster::with('designation')
-                    ->where('UserID', $item['user_id'] ?? null)
-                    ->first();
-
-                return (object) [
-
-                    'status' => $item['action'] ?? '-',
-
-                    'remarks' => $item['remarks'] ?? '-',
-
-                    'changedBy' => $employee->FullName
-                        ?? $employee->UserName
-                        ?? 'Unknown',
-
-                    'designation' => $employee->designation->Designation
-                        ?? '-',
-
-                    'changedAt' => $item['date'] ?? null,
-                ];
-            });
-
-        return view('ticket.view_accounts', compact('iou', 'balance', 'ticket', 'actionHistory'));
     }
 
     public function approve(Request $request, $iouId)
@@ -283,142 +325,27 @@ class AccountsController extends Controller
         ]);
     }
 
-    public function settle(Request $request, $iouId)
-    {
-        $request->validate([
-            'settlement_date' => 'required|date',
-            'actual_expense' => 'required|numeric|min:0',
-            'returned_amount' => 'nullable|numeric|min:0',
-            'extra_claim_amount' => 'nullable|numeric|min:0',
-            'remarks' => 'required|string|max:1000',
-        ]);
-
-        $iou = IouRequest::findOrFail($iouId);
-
-        if ($iou->status !== 'paid') {
-            return response()->json(['message' => 'Settlement can only be added for Paid requests.'], 422);
-        }
-
-        DB::beginTransaction();
-        try {
-            $returned = $request->returned_amount ?? 0;
-            $extra = $request->extra_claim_amount ?? 0;
-
-            // Create settlement record
-            $settlement = IouSettlement::create([
-                'iou_id' => $iou->iou_id,
-                'ticket_id' => $iou->ticket_id,
-                'employee_id' => $iou->employee_id,
-                'settlement_date' => $request->settlement_date,
-                'actual_expense' => $request->actual_expense,
-                'returned_amount' => $returned,
-                'extra_claim_amount' => $extra,
-                'remarks' => $request->remarks,
-                'created_by' => session('user_id'),
-                'created_at' => now(),
-            ]);
-
-            // Update IOU
-            $iou->status = 'settled';
-            $iou->settlement_amount = $request->actual_expense;
-            $iou->settlement_date = $request->settlement_date;
-
-            // Pending balance = paid - actual_expense (positive means employee owes back)
-            $iou->pending_balance = ($iou->paid_amount ?? 0) - $request->actual_expense;
-            $iou->save();
-
-            // Transaction: returned amount (employee returns money back)
-            if ($returned > 0) {
-                MoneyTransaction::create([
-                    'employee_id' => $iou->employee_id,
-                    'ticket_id' => $iou->ticket_id,
-                    'reference_id' => $settlement->settlement_id,
-                    'type' => 'refund',
-                    'amount' => $returned,
-                    'remarks' => 'Employee returned amount on settlement',
-                    'created_by' => Auth::id(),
-                ]);
-            }
-
-            // Transaction: extra claim (company owes employee)
-            if ($extra > 0) {
-                MoneyTransaction::create([
-                    'employee_id' => $iou->employee_id,
-                    'ticket_id' => $iou->ticket_id,
-                    'reference_id' => $settlement->settlement_id,
-                    'type' => 'claim',
-                    'amount' => $extra,
-                    'remarks' => 'Extra claim by employee on settlement',
-                    'created_by' => Auth::id(),
-                ]);
-            }
-
-            // Update employee balance
-            $this->updateEmployeeBalance($iou->employee_id);
-
-            DB::commit();
-
-            return response()->json(['message' => 'Settlement recorded successfully.']);
-        } catch (\Throwable $e) {
-            DB::rollBack();
-
-            return response()->json(['message' => 'Settlement failed: '.$e->getMessage()], 500);
-        }
-    }
-
-    public function close(Request $request, $iouId)
-    {
-        $request->validate([
-            'remarks' => 'required|string|max:1000',
-        ]);
-
-        $iou = IouRequest::findOrFail($iouId);
-
-        $ticket = IssueTicket::where('ticketId', $iou->ticket_id)->firstOrFail();
-        if ($iou->status !== 'settled') {
-            return response()->json(['message' => 'Only Settled requests can be closed.'], 422);
-        }
-        // dd($ticket);
-        DB::beginTransaction();
-        try {
-            $iou->status = 'closed';
-            $iou->remarks = $iou->remarks
-                ? $iou->remarks."\n[Closed] ".$request->remarks
-                : $request->remarks;
-            $iou->save();
-            $ticket->status = 3; // final state
-            // $ticket->remarks = $request->remarks;
-            $ticket->save();
-            DB::commit();
-
-            return response()->json(['message' => 'IOU ticket closed successfully.']);
-        } catch (\Throwable $e) {
-            DB::rollBack();
-
-            return response()->json(['message' => 'Close failed: '.$e->getMessage()], 500);
-        }
-    }
-
     private function updateEmployeeBalance(int $employeeId): void
     {
         $totalIou = IouRequest::where('employee_id', $employeeId)
             ->whereIn('status', ['approved', 'paid', 'settled', 'closed'])
             ->sum('approved_amount');
 
-        $totalSettled = IouSettlement::where('employee_id', $employeeId)
-            ->sum('actual_expense');
+        // $totalSettled = IouSettlement::where('employee_id', $employeeId)
+        //     ->sum('actual_expense');
 
         $totalClaim = ClaimRequest::where('employee_id', $employeeId)
             ->where('status', 'approved')
             ->sum('expense_amount');
 
-        $pending = $totalIou - $totalSettled - $totalClaim;
+        // $pending = $totalIou - $totalSettled - $totalClaim;
+        $pending = $totalIou - $totalClaim;
 
         EmployeeBalance::updateOrCreate(
             ['employee_id' => $employeeId],
             [
                 'total_iou_amount' => $totalIou,
-                'total_settlement_amount' => $totalSettled,
+                // 'total_settlement_amount' => $totalSettled,
                 'total_claim_amount' => $totalClaim,
                 'pending_balance' => $pending,
             ]

@@ -20,5 +20,6 @@ class EmployeeBalance extends Model
         'total_settlement_amount',
         'total_claim_amount',
         'pending_balance',
+        'pending_claim_amount',
     ];
 }

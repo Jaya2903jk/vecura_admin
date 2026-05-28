@@ -25,4 +25,9 @@ class MoneyTransaction extends Model
         'remarks',
         'created_by',
     ];
+
+    public function creator()
+    {
+        return $this->belongsTo(UserMaster::class, 'created_by');
+    }
 }

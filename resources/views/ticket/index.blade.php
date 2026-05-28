@@ -254,6 +254,7 @@
                                             $isManpower = $subject === 'manpower';
                                             $isBiomedical = $subject === 'biomedical';
                                             $isIOURequest = $subject === 'iou request';
+
                                         @endphp
                                         <div class="d-flex gap-1">
                                             <a class="action-btn"
@@ -911,85 +912,380 @@
             // ======================================
             // ISSUE CHANGE
             // ======================================
+            // $(document).on('change', '#employee_common', function() {
+            //     let employeeId = $(this).val();
+            //     if (employeeId != '') {
+            //         $.ajax({
+            //             url: "/get-employee-iou-balance",
+            //             type: "GET",
+            //             data: {
+            //                 employee_id: employeeId
+            //             },
+            //             success: function(response) {
+            //                 let balance = parseFloat(response.balance) || 0;
+            //                 $('input[name="settlement_current_balance"]')
+            //                     .val(balance.toFixed(2));
+            //                 $('input[name="remaining_balance"]')
+            //                     .val(balance.toFixed(2));
+
+            //             }
+            //         });
+            //     } else {
+            //         $('input[name="settlement_current_balance"]').val('0.00');
+            //         $('input[name="remaining_balance"]').val('0.00');
+
+            //     }
+            // });
+            // $(document).on('change', '#settlement_type', function() {
+            //     // alert('222');
+            //     let type = $(this).val();
+
+            //     if (type === 'BILL') {
+
+            //         $('#bill_section').slideDown();
+
+            //     } else {
+
+            //         $('#bill_section').slideUp();
+
+            //     }
+
+            // });
+
+            // $(document).on('click', '#add_bill_row', function() {
+
+            //     let currentBalance =
+            //         parseFloat($('input[name="settlement_current_balance"]').val()) || 0;
+
+            //     let totalSettlement =
+            //         parseFloat($('input[name="total_settlement_amount"]').val()) || 0;
+
+            //     // STOP IF LIMIT REACHED
+
+            //     if (totalSettlement >= currentBalance) {
+
+            //         Swal.fire({
+            //             title: "Limit Reached",
+            //             text: "Current balance limit reached",
+            //             icon: "warning",
+            //             confirmButtonText: "OK"
+            //         });
+
+            //         return false;
+            //     }
+
+            //     // CHECK LAST ROW FILLED
+
+            //     let lastRow = $('#bill_table_body tr:last');
+
+            //     let expenseType =
+            //         lastRow.find('[name="expense_type[]"]').val();
+
+            //     // let billNo =
+            //     //     lastRow.find('[name="bill_number[]"]').val();
+
+            //     let billAmount =
+            //         lastRow.find('[name="bill_amount[]"]').val();
+
+            //     let settlementAmount =
+            //         lastRow.find('[name="amount[]"]').val();
+
+            //     if (
+            //         expenseType == '' ||
+            //         // billNo == '' ||
+            //         billAmount == '' ||
+            //         settlementAmount == ''
+            //     ) {
+
+            //         Swal.fire({
+            //             title: "Incomplete Row",
+            //             text: "Please fill current row before adding new row",
+            //             icon: "warning",
+            //             confirmButtonText: "OK"
+            //         });
+            //         return false;
+            //     }
+            //     let row = `
+        //  <tr class="bill-row">
+
+        //     <td>
+        //         <select name="expense_type[]"
+        //             class="form-control">
+
+        //             <option value="">
+        //                 Select Expense
+        //             </option>
+
+        //             <option value="Travel">
+        //                 Travel
+        //             </option>
+
+        //             <option value="Food">
+        //                 Food
+        //             </option>
+
+        //             <option value="Hotel">
+        //                 Hotel
+        //             </option>
+
+        //             <option value="Fuel">
+        //                 Fuel
+        //             </option>
+
+        //         </select>
+        //     </td>
+
+
+
+        //     <td>
+        //         <input type="number"
+        //             step="0.01"
+        //             name="bill_amount[]"
+        //             class="form-control bill-amount"
+        //             placeholder="Bill Amount">
+        //     </td>
+
+        //     <td>
+        //         <input type="number"
+        //             step="0.01"
+        //             name="amount[]"
+        //             class="form-control settlement-amount"
+        //             placeholder="Settlement Amount">
+        //     </td>
+
+        //     <td>
+        //         <input type="file"
+        //             name="settlement_files[]"
+        //             class="form-control">
+        //     </td>
+
+        //     <td class="text-center">
+
+        //         <button type="button"
+        //             class="btn btn-danger btn-sm remove-row">
+
+        //             Remove
+
+        //         </button>
+
+        //     </td>
+
+        //  </tr>
+        //   `;
+
+            //     $('#bill_table_body').append(row);
+
+            // });
+
+            // $(document).on('click', '.remove-row', function() {
+            //     $(this).closest('tr').remove();
+            //     calculateSettlement();
+            // });
+            // $(document).on('keyup change', '.settlement-amount', function() {
+            //     calculateSettlement();
+            // });
+            // $(document).on('input', '.settlement-amount', function() {
+            //     calculateSettlement();
+            //     let currentBalance =
+            //         parseFloat($('input[name="settlement_current_balance"]').val()) || 0;
+            //     let total = 0;
+
+            //     $('.settlement-amount').each(function() {
+            //         total += parseFloat($(this).val()) || 0;
+            //     });
+            //     if (total > currentBalance) {
+
+            //         Swal.fire({
+            //             title: "Over Limit",
+            //             text: "Extra amount will be treated as employee expense",
+            //             icon: "info",
+            //             confirmButtonText: "OK"
+            //         });
+            //     }
+            // });
+
+            // function calculateSettlement() {
+            //     let total = 0;
+            //     $('.settlement-amount').each(function() {
+            //         total += parseFloat($(this).val()) || 0;
+            //     });
+            //     let currentBalance =
+            //         parseFloat($('input[name="settlement_current_balance"]').val()) || 0;
+            //     if (total > currentBalance) {
+            //         Swal.fire({
+            //             title: "Bill Row",
+            //             text: "Bill amount exceeds current balance",
+            //             icon: "warning",
+            //             confirmButtonText: "OK"
+            //         });
+            //         $(this).val('');
+            //         return false;
+            //     }
+
+            //     // UPDATE TOTAL
+
+            //     $('input[name="total_settlement_amount"]')
+            //         .val(total.toFixed(2));
+
+            //     // REMAINING
+
+            //     let remaining = currentBalance - total;
+
+            //     $('input[name="remaining_balance"]')
+            //         .val(remaining.toFixed(2));
+
+            //     // DISABLE ADD MORE
+
+            //     if (remaining <= 0) {
+
+            //         $('#add_bill_row')
+            //             .prop('disabled', true)
+            //             .text('Limit Reached');
+            //     } else {
+            //         $('#add_bill_row')
+            //             .prop('disabled', false)
+            //             .text('+ Add More');
+            //     }
+            // }
+            /*
+                        |--------------------------------------------------------------------------
+                        | EMPLOYEE BALANCE FETCH
+                        |--------------------------------------------------------------------------
+
+            /*
+                        $(document).on('change', '#employee_common', function() {
+
+                            let employeeId = $(this).val();
+
+                            if (employeeId == '') {
+
+                                $('#current_balance').val('0.00');
+                                $('#remaining_balance').val('0.00');
+
+                                return;
+                            }
+
+                            $.ajax({
+
+                                url: "/get-employee-iou-balance",
+
+                                type: "GET",
+
+                                data: {
+                                    employee_id: employeeId
+                                },
+
+                                success: function(response) {
+
+                                    let balance =
+                                        parseFloat(response.balance) || 0;
+
+                                    $('input[name="settlement_current_balance"]')
+                                        .val(balance.toFixed(2));
+
+                                    $('#remaining_balance')
+                                        .val(balance.toFixed(2));
+
+                                    calculateSettlement();
+
+                                }
+
+                            });
+
+                        });
+            */
             $(document).on('change', '#employee_common', function() {
                 let employeeId = $(this).val();
-                if (employeeId != '') {
-                    $.ajax({
-                        url: "/get-employee-iou-balance",
-                        type: "GET",
-                        data: {
-                            employee_id: employeeId
-                        },
-                        success: function(response) {
-                            let balance = parseFloat(response.balance) || 0;
-                            $('input[name="settlement_current_balance"]')
-                                .val(balance.toFixed(2));
-                            $('input[name="remaining_balance"]')
-                                .val(balance.toFixed(2));
-                          
-                        }
-                    });
-                } else {
-                    $('input[name="settlement_current_balance"]').val('0.00');
-                    $('input[name="remaining_balance"]').val('0.00');
-                  
+                resetSettlementForm();
+                if (employeeId == '') {
+                    return;
                 }
+                $.ajax({
+                    url: "/get-employee-iou-balance",
+                    type: "GET",
+                    data: {
+                        employee_id: employeeId
+                    },
+                    success: function(response) {
+                        let balance =
+                            parseFloat(response.balance) || 0;
+                        $('input[name="settlement_current_balance"]')
+                            .val(balance.toFixed(2));
+                        $('#remaining_balance')
+                            .val(balance.toFixed(2));
+
+                        addBillRow();
+                    },
+                    error: function() {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'Unable to fetch employee balance'
+                        });
+                    }
+                });
             });
-            $(document).on('change', '#settlement_type', function () {
-alert('111');
-    let type = $(this).val();
 
-    if (type == 'BILL') {
-
-        $('#bill_section').show();
-
-    } else {
-
-        $('#bill_section').hide();
-
-    }
-
-});
-$(document).on('click', '#add_bill_row', function () {
-
-    let row = `
-
-        <tr class="bill-row">
-
+            function addBillRow() {
+                let row = `
+             <tr class="bill-row">
             <td>
-                <input type="text"
-                    name="expense_type[]"
-                    class="form-control"
-                    placeholder="Expense Type">
+                <select name="expense_type[]"
+                    class="form-control">
+                    <option value="">Select</option>
+                    <option value="Travel">Travel</option>
+                    <option value="Food">Food</option>
+                    <option value="Hotel">Hotel</option>
+                    <option value="Fuel">Fuel</option>
+
+                </select>
+
             </td>
 
             <td>
-                <input type="text"
-                    name="bill_number[]"
-                    class="form-control"
-                    placeholder="Bill Number">
+
+                <input type="date"
+                    name="bill_date[]"
+                    class="form-control">
+
             </td>
 
             <td>
+
                 <input type="number"
                     step="0.01"
                     name="bill_amount[]"
                     class="form-control bill-amount"
-                    placeholder="Bill Amount">
+                    placeholder="0.00">
+
             </td>
 
             <td>
-                <input type="number"
-                    step="0.01"
-                    name="amount[]"
-                    class="form-control settlement-amount"
-                    placeholder="Settlement Amount">
+
+                <input type="text"
+                    name="settlement_amount[]"
+                    class="form-control settlement-amount bg-light"
+                    value="0.00"
+                    readonly>
+
             </td>
 
             <td>
+
+                <input type="text"
+                    name="employee_extra_amount[]"
+                    class="form-control employee-extra bg-danger text-white"
+                    value="0.00"
+                    readonly>
+
+            </td>
+
+            <td>
+
                 <input type="file"
                     name="settlement_files[]"
                     class="form-control">
+
             </td>
 
             <td>
@@ -997,61 +1293,341 @@ $(document).on('click', '#add_bill_row', function () {
                 <button type="button"
                     class="btn btn-danger remove-row">
 
-                    X
+                    Remove
 
                 </button>
 
             </td>
 
         </tr>
-
     `;
 
-    $('#bill_table_body').append(row);
+                $('#bill_table_body').append(row);
 
-});
+            }
+            /*
+            |--------------------------------------------------------------------------
+            | RESET FULL FORM
+            |--------------------------------------------------------------------------
+            */
 
-// REMOVE ROW
+            function resetSettlementForm() {
 
-$(document).on('click', '.remove-row', function () {
+                /*
+                |--------------------------------------------------------------------------
+                | RESET INPUTS
+                |--------------------------------------------------------------------------
+                */
 
-    $(this).closest('tr').remove();
+                $('input[name="settlement_current_balance"]')
+                    .val('0.00');
 
-    calculateSettlement();
+                $('#remaining_balance')
+                    .val('0.00');
 
-});
+                $('#total_bill_amount')
+                    .val('0.00');
 
-// CALCULATE TOTAL
+                $('#total_settlement_amount')
+                    .val('0.00');
 
-$(document).on('keyup change', '.settlement-amount', function () {
+                $('#total_employee_extra')
+                    .val('0.00');
 
-    calculateSettlement();
+                /*
+                |--------------------------------------------------------------------------
+                | RESET TYPE
+                |--------------------------------------------------------------------------
+                */
 
-});
+                $('#settlement_type')
+                    .val('');
 
-function calculateSettlement() {
+                /*
+                |--------------------------------------------------------------------------
+                | HIDE BILL SECTION
+                |--------------------------------------------------------------------------
+                */
 
-    let total = 0;
+                $('#bill_section')
+                    .hide();
 
-    $('.settlement-amount').each(function () {
+                /*
+                |--------------------------------------------------------------------------
+                | CLEAR TABLE
+                |--------------------------------------------------------------------------
+                */
 
-        total += parseFloat($(this).val()) || 0;
+                $('#bill_table_body')
+                    .html('');
 
-    });
+            }
+            /*
+            |--------------------------------------------------------------------------
+            | SETTLEMENT TYPE
+            |--------------------------------------------------------------------------
+            */
 
-    $('input[name="total_settlement_amount"]')
-        .val(total.toFixed(2));
+            $(document).on('change', '#settlement_type', function() {
 
-    let currentBalance =
-        parseFloat($('input[name="settlement_current_balance"]').val()) || 0;
+                let type = $(this).val();
 
-    let remaining = currentBalance - total;
+                if (type === 'BILL') {
 
-    $('input[name="remaining_balance"]')
-        .val(remaining.toFixed(2));
+                    $('#bill_section').show();
 
-}
+                } else {
 
+                    $('#bill_section').hide();
+
+                }
+
+            });
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | ADD ROW
+            |--------------------------------------------------------------------------
+            */
+
+            $(document).on('click', '#add_bill_row', function() {
+
+                let row = `
+
+        <tr class="bill-row">
+
+            <td>
+
+                <select name="expense_type[]"
+                    class="form-control">
+
+                    <option value="">Select</option>
+
+                    <option value="Travel">Travel</option>
+
+                    <option value="Food">Food</option>
+
+                    <option value="Hotel">Hotel</option>
+
+                    <option value="Fuel">Fuel</option>
+
+                </select>
+
+            </td>
+
+            <td>
+
+                <input type="date"
+                    name="bill_date[]"
+                    class="form-control">
+
+            </td>
+
+            <td>
+
+                <input type="number"
+                    step="0.01"
+                    name="bill_amount[]"
+                    class="form-control bill-amount"
+                    placeholder="0.00">
+
+            </td>
+
+            <td>
+
+                <input type="text"
+                    name="settlement_amount[]"
+                    class="form-control settlement-amount bg-light"
+                    value="0.00"
+                    readonly>
+
+            </td>
+
+            <td>
+
+                <input type="text"
+                    name="employee_extra_amount[]"
+                    class="form-control employee-extra bg-danger text-white"
+                    value="0.00"
+                    readonly>
+
+            </td>
+
+            <td>
+
+                <input type="file"
+                    name="settlement_files[]"
+                    class="form-control">
+
+            </td>
+
+            <td>
+
+                <button type="button"
+                    class="btn btn-danger remove-row">
+
+                    Remove
+
+                </button>
+
+            </td>
+
+        </tr>
+    `;
+
+                $('#bill_table_body').append(row);
+
+            });
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | REMOVE ROW
+            |--------------------------------------------------------------------------
+            */
+
+            $(document).on('click', '.remove-row', function() {
+
+                $(this).closest('tr').remove();
+
+                calculateSettlement();
+
+            });
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | REALTIME CALCULATION
+            |--------------------------------------------------------------------------
+            */
+
+            $(document).on('keyup change', '.bill-amount', function() {
+
+                calculateSettlement();
+
+            });
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | MAIN ERP CALCULATION ENGINE
+            |--------------------------------------------------------------------------
+            */
+
+            function calculateSettlement() {
+
+                let currentBalance =
+                    parseFloat(
+                        $('input[name="settlement_current_balance"]').val()
+                    ) || 0;
+
+                let remainingBalance = currentBalance;
+
+                let totalBill = 0;
+
+                let totalSettlement = 0;
+
+                let totalExtra = 0;
+
+                /*
+                |--------------------------------------------------------------------------
+                | ROW LOOP
+                |--------------------------------------------------------------------------
+                */
+
+                $('#bill_table_body tr').each(function() {
+
+                    let row = $(this);
+
+                    let billAmount =
+                        parseFloat(
+                            row.find('.bill-amount').val()
+                        ) || 0;
+
+                    totalBill += billAmount;
+
+                    let settlementAmount = 0;
+
+                    let employeeExtra = 0;
+
+                    /*
+                    |--------------------------------------------------------------------------
+                    | COMPANY SETTLEMENT
+                    |--------------------------------------------------------------------------
+                    */
+
+                    if (remainingBalance >= billAmount) {
+
+                        settlementAmount = billAmount;
+
+                    } else {
+
+                        settlementAmount = remainingBalance;
+
+                    }
+
+                    /*
+                    |--------------------------------------------------------------------------
+                    | EMPLOYEE EXTRA
+                    |--------------------------------------------------------------------------
+                    */
+
+                    employeeExtra =
+                        billAmount - settlementAmount;
+
+                    /*
+                    |--------------------------------------------------------------------------
+                    | REDUCE BALANCE
+                    |--------------------------------------------------------------------------
+                    */
+
+                    remainingBalance =
+                        remainingBalance - settlementAmount;
+
+                    if (remainingBalance < 0) {
+
+                        remainingBalance = 0;
+
+                    }
+
+                    /*
+                    |--------------------------------------------------------------------------
+                    | UPDATE ROW
+                    |--------------------------------------------------------------------------
+                    */
+
+                    row.find('.settlement-amount')
+                        .val(settlementAmount.toFixed(2));
+
+                    row.find('.employee-extra')
+                        .val(employeeExtra.toFixed(2));
+
+                    totalSettlement += settlementAmount;
+
+                    totalExtra += employeeExtra;
+
+                });
+
+                /*
+                |--------------------------------------------------------------------------
+                | UPDATE SUMMARY
+                |--------------------------------------------------------------------------
+                */
+
+                $('#total_bill_amount')
+                    .val(totalBill.toFixed(2));
+
+                $('#total_settlement_amount')
+                    .val(totalSettlement.toFixed(2));
+
+                $('#total_employee_extra')
+                    .val(totalExtra.toFixed(2));
+
+                $('#remaining_balance')
+                    .val(remainingBalance.toFixed(2));
+
+            }
             $("#issue").on("change", function() {
                 let issueId = $(this).val();
                 let deptId = $("#department").val();
@@ -1304,62 +1880,37 @@ function calculateSettlement() {
 
                                 res.data.forEach(function(issue) {
 
-                                    //             html += `
 
-                                //     <div class="col-lg-4 mb-2">
-
-                                //         <div class="form-check border rounded p-2 bg-light">
-
-                                //             <input
-                                //                 class="form-check-input"
-                                //                 type="checkbox"
-                                //                 name="machine_issue_ids[]"
-                                //                 value="${issue.machineIssueId}"
-                                //                 id="issue_${issue.machineIssueId}"
-                                //             >
-
-                                //             <label
-                                //                 class="form-check-label ms-1"
-                                //                 for="issue_${issue.machineIssueId}"
-                                //             >
-                                //                 ${issue.IssuesName}
-                                //             </label>
-
-                                //         </div>
-
-                                //     </div>
-
-                                // `;
                                     html += `
 
-    <div class="col-lg-4 mb-3">
+                    <div class="col-lg-4 mb-3">
 
-        <div class="border rounded p-2 h-100">
+                 <div class="border rounded p-2 h-100">
 
-            <div class="form-check d-flex align-items-center">
+                    <div class="form-check d-flex align-items-center">
 
-                <input
+                       <input
                     class="form-check-input me-2"
                     type="checkbox"
                     name="machine_issue_ids[]"
                     value="${issue.machineIssueId}"
                     id="issue_${issue.machineIssueId}"
-                >
+                     >
 
-                <label
+                  <label
                     class="form-check-label"
                     for="issue_${issue.machineIssueId}"
-                >
+                 >
                     ${issue.IssuesName}
-                </label>
+                 </label>
 
-            </div>
+                        </div>
 
-        </div>
+                     </div>
 
-    </div>
+                   </div>
 
-       `;
+                              `;
                                 });
 
                             } else {

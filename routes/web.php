@@ -7,13 +7,16 @@ use App\Http\Controllers\BranchController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\DepartmentController;
 use App\Http\Controllers\DesginationController;
+use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\HrManpowerController;
 use App\Http\Controllers\IssuesMasterController;
 use App\Http\Controllers\MachineController;
+use App\Http\Controllers\LocationController;
 use App\Http\Controllers\MachineIssuesController;
 use App\Http\Controllers\MasterController;
 use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\RoleController;
+use App\Http\Controllers\SettlementController;
 use App\Http\Controllers\StaffController;
 use App\Http\Controllers\TicketController;
 use App\Models\IssueCategory;
@@ -78,7 +81,6 @@ Route::middleware(['auth.custom', 'nocache'])->group(function () {
     Route::get('/manpower/{ticketId}', [HrManpowerController::class, 'view'])
         ->name('manpower.view');
     Route::post('/approval/update', [HrManpowerController::class, 'updateApproval']);
-    // Route::post('/self-assign/{id}', [HrManpowerController::class, 'selfAssign']);
     Route::post(
         '/self-assign/{id}',
         [HrManpowerController::class, 'selfAssign']
@@ -102,8 +104,12 @@ Route::middleware(['auth.custom', 'nocache'])->group(function () {
     Route::get('/get-employee-iou-balance', [AccountsController::class, 'getEmployeeIouBalance']);
     Route::post('iou/{iouId}/approve', [AccountsController::class, 'approve'])->name('iou.approve');
     Route::post('iou/{iouId}/pay', [AccountsController::class, 'pay'])->name('iou.pay');
-    Route::post('iou/{iouId}/settle', [AccountsController::class, 'settle'])->name('iou.settle');
-    Route::post('iou/{iouId}/close', [AccountsController::class, 'close'])->name('iou.close');
+    // Route::post('iou/{iouId}/settle', [AccountsController::class, 'settle'])->name('iou.settle');
+    // Route::post('iou/{iouId}/close', [AccountsController::class, 'close'])->name('iou.close');
+    Route::post('/settlement/{settlementId}/review', [SettlementController::class, 'review'])->name('settlement.review');
+    Route::post('/settlement/{settlementId}/transfer-claim', [SettlementController::class, 'transferClaim'])->name('settlement.transfer');
+    Route::post('/settlement/{settlementId}/record-return', [SettlementController::class, 'recordReturn'])->name('settlement.return');
+    Route::post('/settlement/{settlementId}/close', [SettlementController::class, 'close'])->name('settlement.close');
 
     Route::get('/search-customer', [MasterController::class, 'searchCustomer']);
     Route::get('/departments', [MasterController::class, 'departments']);
@@ -112,7 +118,14 @@ Route::middleware(['auth.custom', 'nocache'])->group(function () {
     Route::get('/get-categories/{department_id}', function ($department_id) {
         return IssueCategory::where('department_id', $department_id)->get();
     });
+
     Route::get('/employees', [MasterController::class, 'employees']);
+
+    Route::get('/expanse', [ExpenseController::class, 'index'])->name('expanse.index');
+    Route::post('/expanse/store', [ExpenseController::class, 'store'])->name('expanse.store');
+
+    Route::get('/location', [LocationController::class, 'index'])->name('location.index');
+    Route::post('/location/store', [LocationController::class, 'store'])->name('location.store');
 });
 Route::get('/test-db', function () {
     $data = DB::select('SELECT TOP 10 * FROM User_Master');

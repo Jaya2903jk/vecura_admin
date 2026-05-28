@@ -14,7 +14,6 @@ class ClaimRequest extends Model
 
     protected $fillable = [
         'ticket_id',
-        'iou_id',
         'employee_id',
         'expense_date',
         'expense_type',
@@ -38,15 +37,6 @@ class ClaimRequest extends Model
     // =========================
     // RELATIONS
     // =========================
-
-    public function iou()
-    {
-        return $this->belongsTo(
-            IouRequest::class,
-            'iou_id',
-            'iou_id'
-        );
-    }
 
     public function employee()
     {

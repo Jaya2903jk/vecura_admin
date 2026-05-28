@@ -14786,104 +14786,94 @@
                                 </div>
 
                             </div>
-                          <!-- SETTLEMENT REQUEST BLOCK -->
+                            <!-- SETTLEMENT REQUEST BLOCK -->
 
-<div id="settlement_request_block" class="row mt-2" style="display:none;">
+                            <div id="settlement_request_block" class="row mt-2" style="display:none;">
 
-    <!-- CURRENT BALANCE -->
+                                <!-- CURRENT BALANCE -->
 
-    <div class="col-lg-4">
-        <label class="form-label">
-            Current Balance
-        </label>
+                                <div class="col-lg-4">
+                                    <label class="form-label">
+                                        Current Balance
+                                    </label>
 
-        <input type="text"
-            name="settlement_current_balance"
-            class="form-control"
-            value="0.00"
-            readonly>
+                                    <input type="text" name="settlement_current_balance"
+                                        class="form-control" value="0.00" readonly>
+                                </div>
+
+                                <!-- REMAINING BALANCE -->
+
+                                <div class="col-lg-4">
+                                    <label class="form-label">
+                                        Remaining Balance
+                                    </label>
+
+                                    <input type="text" name="remaining_balance" class="form-control"
+                                        value="0.00" readonly>
+                                </div>
+
+                                <!-- SETTLEMENT TYPE -->
+
+                                <div class="col-lg-4">
+                                    <label class="form-label">
+                                        Settlement Type
+                                        <span class="text-danger">*</span>
+                                    </label>
+
+                                    <select name="settlement_type" id="settlement_type" class="form-control">
+
+                                        <option value="">
+                                            Select Type
+                                        </option>
+
+                                        <option value="BILL">
+                                            BILL SUBMISSION
+                                        </option>
+
+                                        <option value="RETURN">
+                                            CASH RETURN
+                                        </option>
+
+                                    </select>
+                                </div>
+
+<div class="col-lg-12" id="bill_section" style="display:none;">
+
+    <div class="d-flex justify-content-between mb-3">
+
+        <h5>Bill Details</h5>
+
+        <button type="button"
+            class="btn btn-primary btn-sm"
+            id="add_bill_row">
+
+            + Add Row
+
+        </button>
+
     </div>
 
-    <!-- REMAINING BALANCE -->
+    <div class="table-responsive">
 
-    <div class="col-lg-4">
-        <label class="form-label">
-            Remaining Balance
-        </label>
+        <table class="table table-bordered">
 
-        <input type="text"
-            name="remaining_balance"
-            class="form-control"
-            value="0.00"
-            readonly>
-    </div>
-
-    <!-- SETTLEMENT TYPE -->
-
-    <div class="col-lg-4">
-        <label class="form-label">
-            Settlement Type
-            <span class="text-danger">*</span>
-        </label>
-
-        <select name="settlement_type"
-            id="settlement_type"
-            class="form-control">
-
-            <option value="">
-                Select Type
-            </option>
-
-            <option value="BILL">
-                BILL SUBMISSION
-            </option>
-
-            <option value="RETURN">
-                CASH RETURN
-            </option>
-
-        </select>
-    </div>
-
-    <!-- BILL SECTION -->
-
-    <div class="col-lg-12 mt-4"
-        id="bill_section"
-        style="display:none;">
-
-        <div class="d-flex justify-content-between align-items-center">
-
-            <label class="form-label">
-                Bill Details
-            </label>
-
-            <button type="button"
-                class="btn btn-sm btn-primary"
-                id="add_bill_row">
-
-                + Add More
-
-            </button>
-
-        </div>
-
-        <table class="table table-bordered mt-2">
-
-            <thead>
+            <thead class="table-dark">
 
                 <tr>
 
                     <th>Expense Type</th>
 
-                    <th>Bill No</th>
+                    <th>Bill Date</th>
 
                     <th>Bill Amount</th>
 
-                    <th>Amount</th>
+                    <th>Settlement Amount</th>
 
-                    <th>Upload</th>
+                    <th>Employee Extra</th>
 
-                    <th>Remove</th>
+                    <th>File</th>
+
+                    <th>Action</th>
 
                 </tr>
 
@@ -14894,47 +14884,76 @@
                 <tr class="bill-row">
 
                     <td>
-                        <input type="text"
-                            name="expense_type[]"
-                            class="form-control"
-                            placeholder="Expense Type">
+
+                        <select name="expense_type[]"
+                            class="form-control">
+
+                            <option value="">Select</option>
+
+                            <option value="Travel">Travel</option>
+
+                            <option value="Food">Food</option>
+
+                            <option value="Hotel">Hotel</option>
+
+                            <option value="Fuel">Fuel</option>
+
+                        </select>
+
                     </td>
 
                     <td>
-                        <input type="text"
-                            name="bill_number[]"
-                            class="form-control"
-                            placeholder="Bill Number">
+
+                        <input type="date"
+                            name="bill_date[]"
+                            class="form-control">
+
                     </td>
 
                     <td>
+
                         <input type="number"
                             step="0.01"
                             name="bill_amount[]"
                             class="form-control bill-amount"
-                            placeholder="Bill Amount">
+                            placeholder="0.00">
+
                     </td>
 
                     <td>
-                        <input type="number"
-                            step="0.01"
-                            name="amount[]"
-                            class="form-control settlement-amount"
-                            placeholder="Settlement Amount">
+
+                        <input type="text"
+                            name="settlement_amount[]"
+                            class="form-control settlement-amount bg-light"
+                            value="0.00"
+                            readonly>
+
                     </td>
 
                     <td>
+
+                        <input type="text"
+                            name="employee_extra_amount[]"
+                            class="form-control employee-extra bg-danger text-white"
+                            value="0.00"
+                            readonly>
+
+                    </td>
+
+                    <td>
+
                         <input type="file"
                             name="settlement_files[]"
                             class="form-control">
+
                     </td>
 
-                    <td>
+                    <td class="text-center">
 
                         <button type="button"
                             class="btn btn-danger remove-row">
 
-                            X
+                            Remove
 
                         </button>
 
@@ -14948,38 +14967,62 @@
 
     </div>
 
-    <!-- TOTAL SETTLEMENT -->
+</div>
+<div class="row mt-4">
 
-    <div class="col-lg-4 mt-3">
+    <div class="col-lg-3">
 
-        <label class="form-label">
-            Total Settlement Amount
-        </label>
+        <label>Total Bill</label>
 
         <input type="text"
-            name="total_settlement_amount"
+            id="total_bill_amount"
             class="form-control"
-            value="0.00"
-            readonly>
+            readonly
+            value="0.00">
 
     </div>
 
-    <!-- REMARKS -->
+    <div class="col-lg-3">
 
-    <div class="col-lg-12 mt-3">
+        <label>Company Settlement</label>
 
-        <label class="form-label">
-            Remarks
-        </label>
+        <input type="text"
+            id="total_settlement_amount"
+            name="total_settlement_amount"
+            class="form-control bg-success text-white"
+            readonly
+            value="0.00">
 
-        <textarea name="remarks"
-            class="form-control"
-            rows="3"
-            placeholder="Enter Remarks"></textarea>
+    </div>
+
+    <div class="col-lg-3">
+
+        <label>Employee Extra</label>
+
+        <input type="text"
+            id="total_employee_extra"
+            name="employee_extra_amount"
+            class="form-control bg-danger text-white"
+            readonly
+            value="0.00">
+
+    </div>
+
+    <div class="col-lg-3">
+
+        <label>Remaining Balance</label>
+
+        <input type="text"
+            id="remaining_balance"
+            name="remaining_balance"
+            class="form-control bg-primary text-white"
+            readonly
+            value="0.00">
 
     </div>
 
 </div>
+                            </div>
                             <div class="col-lg-12">
                                 <div class="mb-2">
                                     <label class="form-label">Feedback<span

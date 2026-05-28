@@ -12,6 +12,16 @@ class LocationMaster extends Model
     public $timestamps = false;
 
     protected $fillable = [
-        'LocationName', 'LocationCode', 'LocationAddress', 'StateCode', 'CityCode', 'LocPinCode', 'ZoneState'
+        'LocationName',
+        'LocationCode',
+        'LocationAddress',
+        'StateCode',
+        'CityCode',
+        'LocPinCode',
+        'ZoneState',
+        'CountryCode',
+        'LStatus',
+        'GSTNo',
+        'phoneno'
     ];
 }

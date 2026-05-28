@@ -230,6 +230,12 @@
                                         <li><a href="{{ route('permission.index') }}"
                                                 class="{{ Request::is('login-and-register-settings') ? 'active' : '' }}">Permission
                                             </a></li>
+                                        <li><a href="{{ route('expanse.index') }}"
+                                                class="{{ Request::is('expanse') ? 'active' : '' }}">Expense
+                                            </a></li>
+                                        <li><a href="{{ route('location.index') }}"
+                                                class="{{ Request::is('location') ? 'active' : '' }}">Location
+                                            </a></li>
 
                                     </ul>
                                 </li>
