@@ -75,6 +75,8 @@
                                 <tr>
                                     <th>Location Code</th>
                                     <th>Location Name</th>
+                                    <th>City</th>
+                                    <th>State</th>
                                     <th>Address</th>
                                     <th>Pincode</th>
                                     <th>GST No</th>
@@ -87,7 +89,9 @@
                                     <tr>
                                         <td>{{ $location->LocationCode }}</td>
                                         <td>{{ $location->LocationName }}</td>
-                                        <td>{{ $location->LocationAddress }}</td>
+                                        <td>{{ $location->city ? $location->city->city_name : '-' }}</td>
+                                        <td>{{ $location->state ? $location->state->state_name : '-' }}</td>
+                                        <td> {{ $location->LocationAddress }}</td>
                                         <td>{{ $location->LocPinCode }}</td>
                                         <td>{{ $location->GSTNo ?? '-' }}</td>
                                         <td>{{ $location->phoneno ?? '-' }}</td>
@@ -168,66 +172,8 @@
                     </div>
                     <form id="locationForm" class="needs-validation" novalidate>
                         @csrf
-                        {{-- <div class="modal-body">
-
-                            <div class="mb-3">
-                                <label class="form-label">Location Code<span class="text-danger ms-1">*</span></label>
-                                <input type="text" name="location_code" id="location_code" class="form-control"
-                                    placeholder="Enter location code">
-                            </div>
-
-                            <div class="mb-3">
-                                <label class="form-label">Location Name<span class="text-danger ms-1">*</span></label>
-                                <input type="text" name="location_name" id="location_name" class="form-control"
-                                    placeholder="Enter location name">
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label">Location Address<span class="text-danger ms-1">*</span></label>
-                                <textarea name="location_address" id="location_address" class="form-control" rows="3"
-                                    placeholder="Enter location address"></textarea>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label">Pincode<span class="text-danger ms-1">*</span></label>
-                                <input type="text" name="pincode" id="pincode" class="form-control"
-                                    placeholder="Enter pincode">
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label">State Code</label>
-                                <input type="text" name="state_code" id="state_code" class="form-control"
-                                    placeholder="Enter state code">
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label">City Code</label>
-                                <input type="text" name="city_code" id="city_code" class="form-control"
-                                    placeholder="Enter city code">
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label">Zone State</label>
-                                <input type="text" name="zone_state" id="zone_state" class="form-control"
-                                    placeholder="Enter zone state">
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label">GST No</label>
-                                <input type="text" name="gst_no" id="gst_no" class="form-control"
-                                    placeholder="Enter GST number">
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label">Phone No</label>
-                                <input type="text" name="phone_no" id="phone_no" class="form-control"
-                                    placeholder="Enter phone number">
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label">Status</label>
-                                <select name="status" class="form-control">
-                                    <option value="Active">Active</option>
-                                    <option value="Inactive">Inactive</option>
-                                </select>
-                            </div>
-                        </div> --}}
                         <div class="modal-body">
-
                             <div class="row">
-
                                 <div class="col-md-6 mb-3">
                                     <label class="form-label">
                                         Location Code<span class="text-danger ms-1">*</span>
@@ -235,7 +181,6 @@
                                     <input type="text" name="location_code" id="location_code" class="form-control"
                                         placeholder="Enter location code">
                                 </div>
-
                                 <div class="col-md-6 mb-3">
                                     <label class="form-label">
                                         Location Name<span class="text-danger ms-1">*</span>
@@ -243,42 +188,36 @@
                                     <input type="text" name="location_name" id="location_name" class="form-control"
                                         placeholder="Enter location name">
                                 </div>
-
                                 <div class="col-md-6 mb-3">
                                     <label class="form-label">
                                         Pincode<span class="text-danger ms-1">*</span>
                                     </label>
-                                    <input type="text" name="pincode" id="pincode" class="form-control"
+                                    <input type="number" name="pincode" id="pincode" class="form-control"
                                         placeholder="Enter pincode">
                                 </div>
-
                                 <div class="col-md-6 mb-3">
                                     <label class="form-label">State Code</label>
                                     <input type="text" name="state_code" id="state_code" class="form-control"
                                         placeholder="Enter state code">
                                 </div>
-
                                 <div class="col-md-6 mb-3">
                                     <label class="form-label">City Code</label>
                                     <input type="text" name="city_code" id="city_code" class="form-control"
                                         placeholder="Enter city code">
                                 </div>
-
                                 <div class="col-md-6 mb-3">
                                     <label class="form-label">Zone State</label>
                                     <input type="text" name="zone_state" id="zone_state" class="form-control"
                                         placeholder="Enter zone state">
                                 </div>
-
                                 <div class="col-md-6 mb-3">
                                     <label class="form-label">GST No</label>
                                     <input type="text" name="gst_no" id="gst_no" class="form-control"
                                         placeholder="Enter GST number">
                                 </div>
-
                                 <div class="col-md-6 mb-3">
                                     <label class="form-label">Phone No</label>
-                                    <input type="text" name="phone_no" id="phone_no" class="form-control"
+                                    <input type="number" name="phone_no" id="phone_no" class="form-control"
                                         placeholder="Enter phone number">
                                 </div>
 
@@ -424,15 +363,16 @@
     </div>
     <script src="{{ asset('build/plugins/sweetalert2/sweetalert2.min.js') }}"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    {{-- <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script> --}}
+
     <script>
         $(document).ready(function() {
+
             $('#locationForm').on('submit', function(e) {
                 e.preventDefault();
 
                 let form = this;
                 let formData = new FormData(form);
-                let submitBtn = $('#         ');
+                let submitBtn = $('#submitBtn');
 
                 submitBtn.prop('disabled', true).text('Processing...');
 
@@ -441,12 +381,12 @@
 
                 $.ajax({
                     url: "{{ route('location.store') }}",
-                    type: "POST",
+                    type: 'POST',
                     data: formData,
                     processData: false,
                     contentType: false,
                     headers: {
-                        'X-CSRF-TOKEN': $('input[name="_token"]').val()
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') // ← fixed
                     },
                     success: function(response) {
                         submitBtn.prop('disabled', false).text('Add New Location');
@@ -454,17 +394,16 @@
                             $('#add_modal').modal('hide');
                             form.reset();
                             Swal.fire({
-                                icon: "success",
-                                title: "Location Created Successfully",
+                                icon: 'success',
+                                title: 'Location Created Successfully',
                                 showConfirmButton: false,
                                 timer: 1500
                             });
                             setTimeout(function() {
                                 location.reload();
-                            }, 1500);
+                            }, 1600);
                         }
                     },
-
                     error: function(xhr) {
                         submitBtn.prop('disabled', false).text('Add New Location');
                         if (xhr.status === 422) {
@@ -472,35 +411,29 @@
                             $.each(errors, function(key, value) {
                                 let input = $('[name="' + key + '"]');
                                 input.addClass('is-invalid');
-
                                 if (input.next('.invalid-feedback').length) {
                                     input.next('.invalid-feedback').text(value[0]);
                                 } else {
                                     input.after(
                                         '<div class="invalid-feedback dynamic">' +
-                                        value[0] + '</div>'
-                                    );
+                                        value[0] + '</div>');
                                 }
                             });
-
                             $('html, body').animate({
                                 scrollTop: $('.is-invalid:first').offset().top - 100
                             }, 500);
-
                         } else {
-
                             Swal.fire({
-                                icon: "error",
-                                title: "Error",
-                                text: "Something went wrong!",
+                                icon: 'error',
+                                title: 'Error',
+                                text: 'Something went wrong!'
                             });
-
-                            console.log(xhr.responseText);
+                            console.error(xhr.responseText);
                         }
                     }
-
                 });
             });
+
         });
     </script>
 @endsection
