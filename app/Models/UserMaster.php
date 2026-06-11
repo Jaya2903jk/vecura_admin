@@ -54,6 +54,7 @@ class UserMaster extends Model
         'POSignature',
         'team',
         'headsType',
+        'branch_id',
     ];
     // App\Models\UserMaster.php
 
@@ -67,6 +68,10 @@ class UserMaster extends Model
     {
         return $this->belongsTo(Designation::class, 'Designation', 'DesignationCode');
     }
+   public function branch()
+{
+    return $this->belongsTo(NewBranch::class, 'branch_id', 'branch_id');
+}
 
     // departmetn -name-designationm
 }

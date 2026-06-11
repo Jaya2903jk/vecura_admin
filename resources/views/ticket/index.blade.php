@@ -174,7 +174,10 @@
                                     <td>{{ $t->department->DepartmentName ?? '-' }}</td>
 
                                     {{-- Branch --}}
-                                    <td>{{ $t->location->LocationName ?? 'Coop' }}</td>
+                                    <td>
+                                        {{ $t->location->LocationName ?? 'Coop' }}
+                                        {{-- {{ $t->customer?->branch_id ? $t->customer?->branch?->branch_name ?? '-' : $t->location?->LocationName ?? '-' }} --}}
+                                    </td>
 
                                     {{-- Reg No --}}
                                     <td>
@@ -250,19 +253,28 @@
                                     <td>
 
                                         @php
+                                            $ticketType = strtolower(trim($t->type ?? ''));
                                             $subject = strtolower(trim($t->Subject));
                                             $isManpower = $subject === 'manpower';
                                             $isBiomedical = $subject === 'biomedical';
                                             $isIOURequest = $subject === 'iou request';
-
+                                            // $isPettyCash = $subject === 'petty cash';
+                                            // $isPCBill = $subject === 'pc_bill';
+                                             $isPCRequest = $ticketType === 'petty cash';
+                                           $isPCBill    = $ticketType === 'petty bill';
                                         @endphp
                                         <div class="d-flex gap-1">
+
                                             <a class="action-btn"
                                                 href="@if ($isManpower) {{ route('manpower.view', $t->ticketId) }}
                                                       @elseif($isBiomedical)
                                                       {{ route('biomedical.view', $t->ticketId) }}
                                                        @elseif($isIOURequest)
                                                       {{ route('iou.view', $t->ticketId) }}
+                                                       @elseif($isPCRequest)
+                                                      {{ route('pc.view', $t->ticketId) }}
+                                                        @elseif($isPCBill)
+                                                      {{ route('pc.bill.view', $t->ticketId) }}
                                                        @else
                                                       {{ route('ticket.view', $t->ticketId) }} @endif
                                                          ">
@@ -558,6 +570,8 @@
             const IOU_REQUEST_ID = "{{ config('ticket.IOU') }}";
             const CLAIM_REQUEST_ID = "{{ config('ticket.CLAIM_REQUEST') }}";
             const SETTELMENT_ID = "{{ config('ticket.SETTLEMENT') }}";
+            const PC_REQUEST_ID = "{{ config('ticket.PC_REQUEST') }}";
+            const PC_SETTLEMENT_ID = "{{ config('ticket.PC_SETTLEMENT') }}";
 
             // const CLAIM_REQUEST_ID = 25;
             $.ajax({
@@ -671,14 +685,12 @@
 
             $('#ticketForm').on('submit', function(e) {
                 e.preventDefault();
-                // alert('ok');
                 let form = this;
                 let formData = new FormData(form);
                 let submitBtn = $(form).find('button[type="submit"]');
                 submitBtn.prop('disabled', true).text('Processing...');
                 $('.is-invalid').removeClass('is-invalid');
                 $('.invalid-feedback.dynamic').remove();
-
                 $.ajax({
                     // url: "{{ url('tickets') }}",
                     url: "{{ route('tickets.store') }}",
@@ -820,7 +832,6 @@
 
                                 table.append(row);
                             });
-
                             //  block duplicate ticket
                             // if (hasOpen) {
                             //     $('#submitBtn')
@@ -841,359 +852,7 @@
                     }
                 });
             });
-            // $("#issue").on("change", function() {
 
-            //     let issueId = $(this).val();
-            //     let deptId = $("#department").val();
-
-            //     $("#leave_request_block").hide();
-            //     $("#attendance_block").hide();
-            //     $("#new_joinee_block").hide();
-
-            //     $("input[name='from_date'], input[name='to_date'], input[name='attendance_date']")
-            //         .val('')
-            //         .prop('required', false);
-
-            //     // RESET REQUIRED ONLY FOR NEW JOINEE FIELDS
-            //     $("input[name='vacancies'], input[name='designation'], input[name='job_description'], input[name='age_min'], input[name='age_max'], input[name='experience'], input[name='qualification'], input[name='skills'], input[name='work_location']")
-            //         .prop('required', false);
-
-            //     $("select[name='gender']").prop('required', false);
-
-            //     // SHOW EMPLOYEE AGAIN IF HR
-            //     if (deptId == HR_ID) {
-            //         $("#employee_common_block").show();
-            //     }
-
-            //     // LEAVE REQUEST
-            //     if (issueId == LEAVE_REQUEST_ID) {
-
-            //         $("#leave_request_block").slideDown();
-
-            //         $("input[name='from_date']").prop('required', true);
-            //         $("input[name='to_date']").prop('required', true);
-
-            //     }
-
-            //     // ATTENDANCE
-            //     else if (issueId == ATTENDANCE_ISSUE_ID) {
-
-            //         $("#attendance_block").slideDown();
-
-            //         $("input[name='attendance_date']").prop('required', true);
-
-            //     }
-
-            //     // NEW JOINEE
-            //     else if (issueId == NEW_JOINEE) {
-
-            //         $("#new_joinee_block").slideDown();
-
-            //         $("input[name='vacancies']").prop('required', true);
-            //         $("input[name='designation']").prop('required', true);
-            //         $("textarea[name='job_description']").prop('required', true);
-            //         $("input[name='age_min']").prop('required', true);
-            //         $("input[name='age_max']").prop('required', true);
-            //         $("select[name='gender']").prop('required', true);
-            //         $("input[name='experience']").prop('required', true);
-            //         $("input[name='qualification']").prop('required', true);
-            //         $("input[name='skills']").prop('required', true);
-            //         $("input[name='work_location']").prop('required', true);
-
-            //         // KEEP EMPLOYEE FIELD VISIBLE FOR HR
-            //         $("#employee_common_block").hide();
-            //         $("#employee_common")
-            //             .prop('required', false)
-            //             .val('')
-            //             .trigger('change');
-            //     }
-            // });
-
-            // ======================================
-            // ISSUE CHANGE
-            // ======================================
-            // $(document).on('change', '#employee_common', function() {
-            //     let employeeId = $(this).val();
-            //     if (employeeId != '') {
-            //         $.ajax({
-            //             url: "/get-employee-iou-balance",
-            //             type: "GET",
-            //             data: {
-            //                 employee_id: employeeId
-            //             },
-            //             success: function(response) {
-            //                 let balance = parseFloat(response.balance) || 0;
-            //                 $('input[name="settlement_current_balance"]')
-            //                     .val(balance.toFixed(2));
-            //                 $('input[name="remaining_balance"]')
-            //                     .val(balance.toFixed(2));
-
-            //             }
-            //         });
-            //     } else {
-            //         $('input[name="settlement_current_balance"]').val('0.00');
-            //         $('input[name="remaining_balance"]').val('0.00');
-
-            //     }
-            // });
-            // $(document).on('change', '#settlement_type', function() {
-            //     // alert('222');
-            //     let type = $(this).val();
-
-            //     if (type === 'BILL') {
-
-            //         $('#bill_section').slideDown();
-
-            //     } else {
-
-            //         $('#bill_section').slideUp();
-
-            //     }
-
-            // });
-
-            // $(document).on('click', '#add_bill_row', function() {
-
-            //     let currentBalance =
-            //         parseFloat($('input[name="settlement_current_balance"]').val()) || 0;
-
-            //     let totalSettlement =
-            //         parseFloat($('input[name="total_settlement_amount"]').val()) || 0;
-
-            //     // STOP IF LIMIT REACHED
-
-            //     if (totalSettlement >= currentBalance) {
-
-            //         Swal.fire({
-            //             title: "Limit Reached",
-            //             text: "Current balance limit reached",
-            //             icon: "warning",
-            //             confirmButtonText: "OK"
-            //         });
-
-            //         return false;
-            //     }
-
-            //     // CHECK LAST ROW FILLED
-
-            //     let lastRow = $('#bill_table_body tr:last');
-
-            //     let expenseType =
-            //         lastRow.find('[name="expense_type[]"]').val();
-
-            //     // let billNo =
-            //     //     lastRow.find('[name="bill_number[]"]').val();
-
-            //     let billAmount =
-            //         lastRow.find('[name="bill_amount[]"]').val();
-
-            //     let settlementAmount =
-            //         lastRow.find('[name="amount[]"]').val();
-
-            //     if (
-            //         expenseType == '' ||
-            //         // billNo == '' ||
-            //         billAmount == '' ||
-            //         settlementAmount == ''
-            //     ) {
-
-            //         Swal.fire({
-            //             title: "Incomplete Row",
-            //             text: "Please fill current row before adding new row",
-            //             icon: "warning",
-            //             confirmButtonText: "OK"
-            //         });
-            //         return false;
-            //     }
-            //     let row = `
-        //  <tr class="bill-row">
-
-        //     <td>
-        //         <select name="expense_type[]"
-        //             class="form-control">
-
-        //             <option value="">
-        //                 Select Expense
-        //             </option>
-
-        //             <option value="Travel">
-        //                 Travel
-        //             </option>
-
-        //             <option value="Food">
-        //                 Food
-        //             </option>
-
-        //             <option value="Hotel">
-        //                 Hotel
-        //             </option>
-
-        //             <option value="Fuel">
-        //                 Fuel
-        //             </option>
-
-        //         </select>
-        //     </td>
-
-
-
-        //     <td>
-        //         <input type="number"
-        //             step="0.01"
-        //             name="bill_amount[]"
-        //             class="form-control bill-amount"
-        //             placeholder="Bill Amount">
-        //     </td>
-
-        //     <td>
-        //         <input type="number"
-        //             step="0.01"
-        //             name="amount[]"
-        //             class="form-control settlement-amount"
-        //             placeholder="Settlement Amount">
-        //     </td>
-
-        //     <td>
-        //         <input type="file"
-        //             name="settlement_files[]"
-        //             class="form-control">
-        //     </td>
-
-        //     <td class="text-center">
-
-        //         <button type="button"
-        //             class="btn btn-danger btn-sm remove-row">
-
-        //             Remove
-
-        //         </button>
-
-        //     </td>
-
-        //  </tr>
-        //   `;
-
-            //     $('#bill_table_body').append(row);
-
-            // });
-
-            // $(document).on('click', '.remove-row', function() {
-            //     $(this).closest('tr').remove();
-            //     calculateSettlement();
-            // });
-            // $(document).on('keyup change', '.settlement-amount', function() {
-            //     calculateSettlement();
-            // });
-            // $(document).on('input', '.settlement-amount', function() {
-            //     calculateSettlement();
-            //     let currentBalance =
-            //         parseFloat($('input[name="settlement_current_balance"]').val()) || 0;
-            //     let total = 0;
-
-            //     $('.settlement-amount').each(function() {
-            //         total += parseFloat($(this).val()) || 0;
-            //     });
-            //     if (total > currentBalance) {
-
-            //         Swal.fire({
-            //             title: "Over Limit",
-            //             text: "Extra amount will be treated as employee expense",
-            //             icon: "info",
-            //             confirmButtonText: "OK"
-            //         });
-            //     }
-            // });
-
-            // function calculateSettlement() {
-            //     let total = 0;
-            //     $('.settlement-amount').each(function() {
-            //         total += parseFloat($(this).val()) || 0;
-            //     });
-            //     let currentBalance =
-            //         parseFloat($('input[name="settlement_current_balance"]').val()) || 0;
-            //     if (total > currentBalance) {
-            //         Swal.fire({
-            //             title: "Bill Row",
-            //             text: "Bill amount exceeds current balance",
-            //             icon: "warning",
-            //             confirmButtonText: "OK"
-            //         });
-            //         $(this).val('');
-            //         return false;
-            //     }
-
-            //     // UPDATE TOTAL
-
-            //     $('input[name="total_settlement_amount"]')
-            //         .val(total.toFixed(2));
-
-            //     // REMAINING
-
-            //     let remaining = currentBalance - total;
-
-            //     $('input[name="remaining_balance"]')
-            //         .val(remaining.toFixed(2));
-
-            //     // DISABLE ADD MORE
-
-            //     if (remaining <= 0) {
-
-            //         $('#add_bill_row')
-            //             .prop('disabled', true)
-            //             .text('Limit Reached');
-            //     } else {
-            //         $('#add_bill_row')
-            //             .prop('disabled', false)
-            //             .text('+ Add More');
-            //     }
-            // }
-            /*
-                        |--------------------------------------------------------------------------
-                        | EMPLOYEE BALANCE FETCH
-                        |--------------------------------------------------------------------------
-
-            /*
-                        $(document).on('change', '#employee_common', function() {
-
-                            let employeeId = $(this).val();
-
-                            if (employeeId == '') {
-
-                                $('#current_balance').val('0.00');
-                                $('#remaining_balance').val('0.00');
-
-                                return;
-                            }
-
-                            $.ajax({
-
-                                url: "/get-employee-iou-balance",
-
-                                type: "GET",
-
-                                data: {
-                                    employee_id: employeeId
-                                },
-
-                                success: function(response) {
-
-                                    let balance =
-                                        parseFloat(response.balance) || 0;
-
-                                    $('input[name="settlement_current_balance"]')
-                                        .val(balance.toFixed(2));
-
-                                    $('#remaining_balance')
-                                        .val(balance.toFixed(2));
-
-                                    calculateSettlement();
-
-                                }
-
-                            });
-
-                        });
-            */
             $(document).on('change', '#employee_common', function() {
                 let employeeId = $(this).val();
                 resetSettlementForm();
@@ -1300,25 +959,12 @@
             </td>
 
         </tr>
-    `;
-
+         `;
                 $('#bill_table_body').append(row);
 
             }
-            /*
-            |--------------------------------------------------------------------------
-            | RESET FULL FORM
-            |--------------------------------------------------------------------------
-            */
 
             function resetSettlementForm() {
-
-                /*
-                |--------------------------------------------------------------------------
-                | RESET INPUTS
-                |--------------------------------------------------------------------------
-                */
-
                 $('input[name="settlement_current_balance"]')
                     .val('0.00');
 
@@ -1334,67 +980,26 @@
                 $('#total_employee_extra')
                     .val('0.00');
 
-                /*
-                |--------------------------------------------------------------------------
-                | RESET TYPE
-                |--------------------------------------------------------------------------
-                */
-
                 $('#settlement_type')
                     .val('');
-
-                /*
-                |--------------------------------------------------------------------------
-                | HIDE BILL SECTION
-                |--------------------------------------------------------------------------
-                */
-
                 $('#bill_section')
                     .hide();
-
-                /*
-                |--------------------------------------------------------------------------
-                | CLEAR TABLE
-                |--------------------------------------------------------------------------
-                */
-
                 $('#bill_table_body')
                     .html('');
 
             }
-            /*
-            |--------------------------------------------------------------------------
-            | SETTLEMENT TYPE
-            |--------------------------------------------------------------------------
-            */
 
             $(document).on('change', '#settlement_type', function() {
-
                 let type = $(this).val();
-
                 if (type === 'BILL') {
-
                     $('#bill_section').show();
-
                 } else {
-
                     $('#bill_section').hide();
-
                 }
-
             });
 
-
-            /*
-            |--------------------------------------------------------------------------
-            | ADD ROW
-            |--------------------------------------------------------------------------
-            */
-
             $(document).on('click', '#add_bill_row', function() {
-
                 let row = `
-
         <tr class="bill-row">
 
             <td>
@@ -1474,68 +1079,26 @@
             </td>
 
         </tr>
-    `;
-
+          `;
                 $('#bill_table_body').append(row);
-
             });
-
-
-            /*
-            |--------------------------------------------------------------------------
-            | REMOVE ROW
-            |--------------------------------------------------------------------------
-            */
-
             $(document).on('click', '.remove-row', function() {
-
                 $(this).closest('tr').remove();
-
                 calculateSettlement();
-
             });
-
-
-            /*
-            |--------------------------------------------------------------------------
-            | REALTIME CALCULATION
-            |--------------------------------------------------------------------------
-            */
-
             $(document).on('keyup change', '.bill-amount', function() {
-
                 calculateSettlement();
-
             });
-
-
-            /*
-            |--------------------------------------------------------------------------
-            | MAIN ERP CALCULATION ENGINE
-            |--------------------------------------------------------------------------
-            */
 
             function calculateSettlement() {
-
                 let currentBalance =
                     parseFloat(
                         $('input[name="settlement_current_balance"]').val()
                     ) || 0;
-
                 let remainingBalance = currentBalance;
-
                 let totalBill = 0;
-
                 let totalSettlement = 0;
-
                 let totalExtra = 0;
-
-                /*
-                |--------------------------------------------------------------------------
-                | ROW LOOP
-                |--------------------------------------------------------------------------
-                */
-
                 $('#bill_table_body tr').each(function() {
 
                     let row = $(this);
@@ -1548,85 +1111,34 @@
                     totalBill += billAmount;
 
                     let settlementAmount = 0;
-
                     let employeeExtra = 0;
-
-                    /*
-                    |--------------------------------------------------------------------------
-                    | COMPANY SETTLEMENT
-                    |--------------------------------------------------------------------------
-                    */
-
                     if (remainingBalance >= billAmount) {
-
                         settlementAmount = billAmount;
-
                     } else {
-
                         settlementAmount = remainingBalance;
-
                     }
-
-                    /*
-                    |--------------------------------------------------------------------------
-                    | EMPLOYEE EXTRA
-                    |--------------------------------------------------------------------------
-                    */
-
                     employeeExtra =
                         billAmount - settlementAmount;
-
-                    /*
-                    |--------------------------------------------------------------------------
-                    | REDUCE BALANCE
-                    |--------------------------------------------------------------------------
-                    */
-
                     remainingBalance =
                         remainingBalance - settlementAmount;
-
                     if (remainingBalance < 0) {
-
                         remainingBalance = 0;
-
                     }
-
-                    /*
-                    |--------------------------------------------------------------------------
-                    | UPDATE ROW
-                    |--------------------------------------------------------------------------
-                    */
-
                     row.find('.settlement-amount')
                         .val(settlementAmount.toFixed(2));
-
                     row.find('.employee-extra')
                         .val(employeeExtra.toFixed(2));
-
                     totalSettlement += settlementAmount;
-
                     totalExtra += employeeExtra;
-
                 });
-
-                /*
-                |--------------------------------------------------------------------------
-                | UPDATE SUMMARY
-                |--------------------------------------------------------------------------
-                */
-
                 $('#total_bill_amount')
                     .val(totalBill.toFixed(2));
-
                 $('#total_settlement_amount')
                     .val(totalSettlement.toFixed(2));
-
                 $('#total_employee_extra')
                     .val(totalExtra.toFixed(2));
-
                 $('#remaining_balance')
                     .val(remainingBalance.toFixed(2));
-
             }
             $("#issue").on("change", function() {
                 let issueId = $(this).val();
@@ -1647,17 +1159,23 @@
                 $("#machine_issue_type").val('');
                 $("#iou_request_block").hide();
                 $("#claim_request_block").hide();
+
+                $("#pc_request_block").hide();
+                $('#pc_wallet_balance').val('').removeData('balance');
+                $('#pc_request_amount').val('');
+                $('#pc_balance_warning').hide();
+
+                $("#pc_bill_block").hide();
+                $('#pc_bill_wallet_balance').val('').removeData('balance');
+                $('#pc_bill_items_body').html('');
+                $('#pc_bill_total').val('₹ 0.00');
+                $('#pc_bill_exceed_warning').hide();
+
                 $("input[name='from_date'], input[name='to_date'], input[name='attendance_date']")
                     .val('')
                     .prop('required', false);
-
-                // ======================================
-                // RESET REQUIRED
-                // ======================================
-
                 $("input[name='vacancies'], input[name='designation'], input[name='job_description'], input[name='age_min'], input[name='age_max'], input[name='experience'], input[name='qualification'], input[name='skills'], input[name='work_location']")
                     .prop('required', false);
-
                 $("select[name='gender']").prop('required', false);
                 $("input[name='iou_request_date'], input[name='iou_amount']")
                     .prop('required', false);
@@ -1669,40 +1187,17 @@
                 // ======================================
                 // HR EMPLOYEE
                 // ======================================
-
                 if (deptId == HR_ID) {
-
                     $("#employee_common_block").show();
-
                 }
-
-                // ======================================
-                // LEAVE REQUEST
-                // ======================================
-
                 if (issueId == LEAVE_REQUEST_ID) {
-
                     $("#leave_request_block").slideDown();
-
                     $("input[name='from_date']").prop('required', true);
-
                     $("input[name='to_date']").prop('required', true);
-                }
-
-                // ======================================
-                // ATTENDANCE
-                // ======================================
-                else if (issueId == ATTENDANCE_ISSUE_ID) {
-
+                } else if (issueId == ATTENDANCE_ISSUE_ID) {
                     $("#attendance_block").slideDown();
-
                     $("input[name='attendance_date']").prop('required', true);
-                }
-
-                // ======================================
-                // NEW JOINEE
-                // ======================================
-                else if (issueId == NEW_JOINEE) {
+                } else if (issueId == NEW_JOINEE) {
 
                     $("#new_joinee_block").slideDown();
 
@@ -1733,12 +1228,7 @@
                         .val('')
                         .trigger('change');
                 } else if (issueId == IOU_REQUEST_ID) {
-                    // console.log(IOU_REQUEST_ID);
-                    // if (deptId == HR_ID) {
-
                     $("#employee_common_block").show();
-
-                    // }
                     $("#iou_request_block").slideDown();
                     $("input[name='employee_common']")
                         .prop('required', true);
@@ -1748,90 +1238,60 @@
                     $("input[name='iou_amount']")
                         .prop('required', true);
                 } else if (issueId == CLAIM_REQUEST_ID) {
-
                     $("#claim_request_block").slideDown();
-
                     $("input[name='expense_date']")
                         .prop('required', true);
-
                     $("select[name='expense_type']")
                         .prop('required', true);
-
                     $("input[name='expense_amount']")
                         .prop('required', true);
                 } else if (issueId == SETTELMENT_ID) {
-
                     $("#employee_common_block").show();
-
                     $("#settlement_request_block").slideDown();
-
                     $("select[name='employee_common']")
                         .prop('required', true);
-
                     $("input[name='settlement_amount']")
                         .prop('required', true);
-
                     $("select[name='settlement_type']")
                         .prop('required', true);
+                } else if (issueId == PC_REQUEST_ID) {
+                    $("#pc_request_block").slideDown();
+                    fetchPettyCashBalance();
+                } else if (issueId == PC_SETTLEMENT_ID) {
+                    $("#pc_bill_block").slideDown();
+                    fetchPcBillWalletBalance();
                 }
-
-                // ======================================
-                // MACHINE SECTION
-                // ======================================
 
                 // 21 = New Request
                 // 22 = Replacement
                 // 23 = Service Request
-
-                if (
-                    issueId == 21 ||
-                    issueId == 22 ||
-                    issueId == 23
-                ) {
-
+                if (issueId == 21 || issueId == 22 || issueId == 23) {
                     $("#machine_block").slideDown();
-
-                    // ONLY SERVICE REQUEST SHOW TYPE
-
                     if (issueId == 23) {
-
                         $("#machine_issue_type_block").slideDown();
-
                     } else {
-
                         $("#machine_issue_type_block").hide();
                     }
-
-                    // LOAD MACHINES
-
                     $.ajax({
-
                         url: "/machines",
-
                         type: "GET",
-
                         success: function(res) {
-
                             let options =
                                 '<option value="">Select Machine</option>';
-
                             res.data.forEach(function(machine) {
 
                                 options += `
                         <option value="${machine.MachineId}">
                             ${machine.MachineName}
                         </option>
-                    `;
+                        `;
                             });
-
                             $("#machine_id").html(options);
                         }
                     });
                 }
 
             });
-
-
             // ======================================
             // MACHINE ISSUE TYPE CHANGE
             // ======================================
@@ -1846,33 +1306,23 @@
                 $("#machine_issues_checkbox").html('');
 
                 $("#machine_issues_checkbox_block").hide();
-
-                // ONLY SERVICE REQUEST
                 if (issueId != 23) {
                     return;
                 }
-
-                // BOTH REQUIRED
                 if (
                     machineId != '' &&
                     type != ''
                 ) {
 
                     $.ajax({
-
                         url: "/machine-issues-list",
-
                         type: "GET",
-
                         data: {
                             machine_id: machineId,
                             type: type
                         },
-
                         success: function(res) {
-
                             let html = '';
-
                             if (res.data.length > 0) {
 
                                 $("#machine_issues_checkbox_block")
@@ -1932,20 +1382,233 @@
                     });
                 }
             });
+            // ── Fetch branch petty cash balance ──────────────────────────────────────
+            // 1. function
+
+            function fetchPettyCashBalance() {
+                $('#pc_wallet_balance').val('Loading...');
+                $('#pc_request_amount').val('');
+                $('#pc_balance_warning').hide();
+
+                $.ajax({
+                    url: '/get-petty-cash-balance',
+                    type: 'GET',
+                    success: function(res) {
+                        let balance = parseFloat(res.balance) || 0;
+                        $('#pc_wallet_balance')
+                            .val('₹ ' + balance.toFixed(2))
+                            .data('balance', balance);
+                    },
+                    error: function() {
+                        $('#pc_wallet_balance').val('Unable to fetch');
+                    }
+                });
+            }
+
+            // 2. warning check
+            $(document).on('keyup change', '#pc_request_amount', function() {
+                let requested = parseFloat($(this).val()) || 0;
+                let balance = parseFloat($('#pc_wallet_balance').data('balance')) || 0;
+                if (requested > balance && balance > 0) {
+                    $('#pc_balance_warning').show();
+                } else {
+                    $('#pc_balance_warning').hide();
+                }
+            });
+            // ── Expense master options ─────────────────────────────────────────────────
+            let expenseOptions = '<option value="">Select Category</option>';
+
+            function loadExpenseMaster(callback) {
+                if (expenseOptions !== '<option value="">Select Category</option>') {
+                    if (callback) callback();
+                    return;
+                }
+                $.ajax({
+                    url: '/expense-master',
+                    type: 'GET',
+                    success: function(res) {
+                        res.data.forEach(function(e) {
+                            expenseOptions +=
+                                `<option value="${e.ExpenseId}">${e.ExpenseName}</option>`;
+                        });
+                        if (callback) callback();
+                    },
+                    error: function() {
+                        console.log('Failed to load expense master');
+                    }
+                });
+            }
+
+            // ── Fetch wallet for bill ──────────────────────────────────────────────────
+            function fetchPcBillWalletBalance() {
+                $('#pc_bill_wallet_balance').val('Loading...');
+
+                $.ajax({
+                    url: '/get-petty-cash-balance',
+                    type: 'GET',
+                    success: function(res) {
+                        let balance = parseFloat(res.balance) || 0;
+                        $('#pc_bill_wallet_balance')
+                            .val('₹ ' + balance.toFixed(2))
+                            .data('balance', balance);
+
+                        loadExpenseMaster(function() {
+                            addBillItemRow();
+                        });
+                    },
+                    error: function() {
+                        $('#pc_bill_wallet_balance').val('Unable to fetch');
+                    }
+                });
+            }
+
+            let billRowIndex = 0;
+
+            function addBillItemRow() {
+                let idx = billRowIndex++;
+
+                let row = `
+    <tr class="bill-item-row" data-index="${idx}">
+        <td style="padding:8px;">
+            <select name="pc_expense_id[]"
+                    class="form-control form-control-sm">
+                ${expenseOptions}
+            </select>
+        </td>
+        <td style="padding:8px;">
+            <input type="text"
+                   name="pc_bill_number[]"
+                   class="form-control form-control-sm"
+                   placeholder="Bill No">
+        </td>
+        <td style="padding:8px;">
+            <input type="number"
+                   name="pc_bill_amount[]"
+                   class="form-control form-control-sm pc-bill-amount"
+                   placeholder="0.00"
+                   step="0.01"
+                   min="0.01">
+        </td>
+        <td style="padding:8px;">
+            <input type="file"
+                   name="bill_files[${idx}]"
+                   class="form-control form-control-sm bill-file-input"
+                   accept=".jpg,.jpeg,.png,.pdf"
+                   data-index="${idx}">
+            <div id="preview_${idx}" style="display:none; margin-top:4px;">
+                <small class="text-success">
+                    <i class="ti ti-paperclip me-1"></i>
+                    <span class="file-name"></span>
+                    <a href="#" class="text-danger ms-1 remove-file" data-index="${idx}">
+                        <i class="ti ti-x" style="font-size:11px;"></i>
+                    </a>
+                </small>
+            </div>
+        </td>
+        <td style="padding:8px; text-align:center; vertical-align:middle;">
+            <button type="button"
+                    class="btn btn-sm btn-danger remove-bill-item"
+                    style="padding:4px 8px;">
+                <i class="ti ti-trash"></i>
+            </button>
+        </td>
+    </tr>`;
+
+                $('#pc_bill_items_body').append(row);
+            }
+            $(document).on('change', '.bill-file-input', function() {
+                let idx = $(this).data('index');
+                let file = this.files[0];
+                let preview = $(`#preview_${idx}`);
+
+                if (file) {
+                    if (file.size > 2 * 1024 * 1024) {
+                        Swal.fire('Error', 'File size must be less than 2MB', 'error');
+                        $(this).val('');
+                        preview.hide();
+                        return;
+                    }
+                    let allowed = ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf'];
+                    if (!allowed.includes(file.type)) {
+                        Swal.fire('Error', 'Only JPG, PNG, PDF files allowed', 'error');
+                        $(this).val('');
+                        preview.hide();
+                        return;
+                    }
+
+                    preview.find('.file-name').text(file.name);
+                    preview.show();
+                } else {
+                    preview.hide();
+                }
+            });
+
+            $(document).on('click', '.remove-file', function(e) {
+                e.preventDefault();
+                let idx = $(this).data('index');
+                $(`input[name="bill_files[${idx}]"]`).val('');
+                $(`#preview_${idx}`).hide();
+            });
+            $(document).on('click', '#add_bill_item', function() {
+                if (expenseOptions === '<option value="">Select Category</option>') {
+                    loadExpenseMaster(function() {
+                        addBillItemRow();
+                    });
+                } else {
+                    addBillItemRow();
+                }
+            });
+            $(document).on('click', '.remove-bill-item', function() {
+                if ($('#pc_bill_items_body tr').length <= 1) {
+                    Swal.fire('Info', 'At least one bill item is required', 'info');
+                    return;
+                }
+                $(this).closest('tr').remove();
+                calculateBillTotal();
+            });
+
+            $(document).on('keyup change', '.pc-bill-amount', function() {
+                calculateBillTotal();
+            });
+
+            function calculateBillTotal() {
+                let total = 0;
+                let balance = parseFloat($('#pc_bill_wallet_balance').data('balance')) || 0;
+
+                $('.pc-bill-amount').each(function() {
+                    total += parseFloat($(this).val()) || 0;
+                });
+                $('#pc_bill_total_display').text('₹ ' + total.toFixed(2));
+                $('#pc_bill_total').val(total.toFixed(2));
+
+                if (total > balance && balance > 0) {
+                    $('#pc_bill_exceed_warning').show();
+                    $('#pc_bill_total_display').removeClass('text-primary').addClass('text-danger');
+                } else {
+                    $('#pc_bill_exceed_warning').hide();
+                    $('#pc_bill_total_display').removeClass('text-danger').addClass('text-primary');
+                }
+            }
+
+            // ── Reset pc_bill_block ────────────────────────────────────────────────────
+            $("#pc_bill_block").hide();
+            $('#pc_bill_wallet_balance').val('').removeData('balance');
+            $('#pc_bill_items_body').html('');
+            $('#pc_bill_total_display').text('₹ 0.00').removeClass('text-danger').addClass('text-primary');
+            $('#pc_bill_total').val('0');
+            $('#pc_bill_exceed_warning').hide();
+            billRowIndex = 0;
         });
     </script>
     <script>
         document.getElementById('typeFilter').addEventListener('change', function() {
             let type = this.value;
-
             let url = new URL(window.location.href);
-
             if (type) {
                 url.searchParams.set('type', type);
             } else {
                 url.searchParams.delete('type');
             }
-
             window.location.href = url.toString();
         });
         document.getElementById('clearFilters').addEventListener('click', function() {

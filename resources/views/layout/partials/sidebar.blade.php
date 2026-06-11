@@ -195,7 +195,7 @@
                             <ul>
                                 <li class="submenu">
                                     <a href="javascript:void(0);"
-                                        class="{{ Request::is('category', 'branch', 'department', 'designation', 'issues-master', 'language-settings2', 'language-settings3', 'maintenance-mode-settings', 'login-and-register-settings', 'preferences-settings') ? 'active subdrop' : '' }}">
+                                        class="{{ Request::is('category', 'branch', 'department', 'designation', 'issues-master', 'location', 'country', 'zone', 'state', 'city', 'new-branch', 'language-settings2', 'language-settings3', 'maintenance-mode-settings', 'login-and-register-settings', 'preferences-settings') ? 'active subdrop' : '' }}">
                                         <i class="ti ti-world-cog"></i><span>All Masters</span>
                                         <span class="menu-arrow"></span>
                                     </a>
@@ -235,6 +235,21 @@
                                             </a></li>
                                         <li><a href="{{ route('location.index') }}"
                                                 class="{{ Request::is('location') ? 'active' : '' }}">Location
+                                            </a></li>
+                                        <li><a href="{{ route('country.index') }}"
+                                                class="{{ Request::is('country') ? 'active' : '' }}">Country
+                                            </a></li>
+                                        <li><a href="{{ route('zone.index') }}"
+                                                class="{{ Request::is('zone') ? 'active' : '' }}">Zone
+                                            </a></li>
+                                        <li><a href="{{ route('state.index') }}"
+                                                class="{{ Request::is('state') ? 'active' : '' }}">State
+                                            </a></li>
+                                        <li><a href="{{ route('city.index') }}"
+                                                class="{{ Request::is('city') ? 'active' : '' }}">City
+                                            </a></li>
+                                        <li><a href="{{ route('new-branch.index') }}"
+                                                class="{{ Request::is('new-branch') ? 'active' : '' }}">Branch Master
                                             </a></li>
 
                                     </ul>
@@ -661,7 +676,11 @@
                                 <a href="{{ route('tickets') }}">
                                     <i class="ti ti-ticket"></i><span>Tickets</span>
                                 </a>
-
+                            </li>
+                            <li class="{{ Request::is('ticket-summary*') ? 'active' : '' }}">
+                                <a href="{{ route('ticket.summary') }}">
+                                    <i class="ti ti-chart-bar"></i><span>Ticket Summary</span>
+                                </a>
                             </li>
                             {{-- <li class="{{ Request::is('tickets', 'ticket-details') ? 'active' : '' }}">
                                 <a href="{{ route('vsupport') }}">

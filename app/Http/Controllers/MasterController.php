@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ComplaintActionLog;
+use App\Models\LocationMaster;
+use App\Models\UserMaster;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use App\Models\UserMaster;
-use App\Models\LocationMaster;
-use App\Models\ComplaintActionLog;
 
 class MasterController extends Controller
 {
@@ -18,9 +18,10 @@ class MasterController extends Controller
 
         return response()->json([
             'status' => true,
-            'data' => $data
+            'data' => $data,
         ]);
     }
+
     public function issueCategories(Request $request)
     {
         $query = DB::table('issue_categories');
@@ -28,11 +29,13 @@ class MasterController extends Controller
             $query->where('department_id', $request->department_id);
         }
         $data = $query->get();
+
         return response()->json([
             'status' => true,
-            'data' => $data
+            'data' => $data,
         ]);
     }
+
     public function getIssuesByCategory($categoryId)
     {
         try {
@@ -55,12 +58,12 @@ class MasterController extends Controller
 
             return response()->json([
                 'status' => true,
-                'data' => $issues
+                'data' => $issues,
             ]);
         } catch (\Exception $e) {
             return response()->json([
                 'status' => false,
-                'message' => $e->getMessage()
+                'message' => $e->getMessage(),
             ], 500);
         }
     }
@@ -74,26 +77,27 @@ class MasterController extends Controller
 
         return response()->json([
             'status' => true,
-            'data' => $roles
+            'data' => $roles,
         ]);
     }
+
     public function levels($departmentId)
     {
-        if (!is_numeric($departmentId)) {
+        if (! is_numeric($departmentId)) {
             return response()->json([
                 'status' => false,
-                'message' => 'Invalid Department ID'
+                'message' => 'Invalid Department ID',
             ], 400);
         }
 
         $rows = DB::table('issueMaster')
-            ->where('Departmentid', (int)$departmentId)
+            ->where('Departmentid', (int) $departmentId)
             ->get();
 
         $values = [];
 
         foreach ($rows as $row) {
-            if (!empty($row->Issuelevel5)) {
+            if (! empty($row->Issuelevel5)) {
                 $values[] = $row->Issuelevel5;
             }
         }
@@ -106,20 +110,22 @@ class MasterController extends Controller
             'data' => collect($values)->map(function ($val, $i) {
                 return [
                     'id' => $i + 1,
-                    'label' => $val
+                    'label' => $val,
                 ];
-            })
+            }),
         ]);
     }
+
     public function locations()
     {
         $locations = LocationMaster::orderBy('LocationName')->get();
 
         return response()->json([
             'status' => true,
-            'data' => $locations
+            'data' => $locations,
         ]);
     }
+
     public function getLogs($complaintId)
     {
         $logs = ComplaintActionLog::where('ComplaintId', $complaintId)
@@ -128,9 +134,10 @@ class MasterController extends Controller
 
         return response()->json([
             'status' => true,
-            'data' => $logs
+            'data' => $logs,
         ]);
     }
+
     public function searchCustomer(Request $req)
     {
         $user = UserMaster::find($req->auth_user_id);
@@ -148,9 +155,10 @@ class MasterController extends Controller
 
         return response()->json([
             'status' => true,
-            'data' => $data
+            'data' => $data,
         ]);
     }
+
     public function searchService(Request $req)
     {
         $data = DB::table('Servicemaster')
@@ -160,9 +168,10 @@ class MasterController extends Controller
 
         return response()->json([
             'status' => true,
-            'data' => $data
+            'data' => $data,
         ]);
     }
+
     public function employees(Request $request)
     {
         $userId = session('user_id');
@@ -170,8 +179,7 @@ class MasterController extends Controller
 
         $query = UserMaster::where('UserStatus', 'Active')
             ->select('UserID', 'FullName', 'UserCode');
-// dd( $roleId, $userId);
-        // ✅ If NOT admin → only show logged-in user
+
         if ($roleId != 13) {
             $query->where('UserID', $userId);
         }
@@ -180,7 +188,27 @@ class MasterController extends Controller
 
         return response()->json([
             'status' => true,
-            'data' => $employees
+            'data' => $employees,
+        ]);
+    }
+
+    public function getPettyCashBalance()
+    {
+        $userId = session('user_id');
+        $user = UserMaster::with('branch')->find($userId);
+
+        $wallet = DB::table('branch_wallet')
+            ->where('branch_id', $user->branch_id)
+            ->select('current_balance', 'total_credited', 'total_debited', 'last_updated')
+            ->first();
+
+        return response()->json([
+            'balance' => $wallet->current_balance ?? 0,
+            'total_credited' => $wallet->total_credited ?? 0,
+            'total_debited' => $wallet->total_debited ?? 0,
+            'last_updated' => $wallet
+                                ? date('d M Y h:i A', strtotime($wallet->last_updated))
+                                : null,
         ]);
     }
 }

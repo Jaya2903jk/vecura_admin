@@ -8,5 +8,8 @@ return [
     'IOU' => '24',
     'CLAIM_REQUEST' => '25',
     'SETTLEMENT' => '26',
+    'PC_REQUEST' => '27',
+    'PC_SETTLEMENT' => '28',
+
 
 ];
