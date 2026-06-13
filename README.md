@@ -175,3 +175,67 @@ CreatedBy VARCHAR(100),
 CreatedDate DATETIME DEFAULT GETDATE(),
 
 );
+
+CREATE TABLE BiomedicalTickets (
+
+    id INT IDENTITY(1,1) PRIMARY KEY,
+
+    ticketId INT NOT NULL,
+
+    departmentId INT NOT NULL,
+
+    categoryId INT NOT NULL,
+
+    issueId INT NOT NULL,
+
+    machineId INT NOT NULL,
+
+    machineIssueType VARCHAR(50) NULL,
+
+    comments VARCHAR(MAX) NULL,
+
+    status VARCHAR(50) DEFAULT 'Pending',
+
+    meta_data NVARCHAR(MAX) NULL,
+
+    created_by INT NULL,
+
+    updated_by INT NULL,
+
+    created_at DATETIME DEFAULT GETDATE(),
+
+    updated_at DATETIME NULL
+
+);
+ALTER TABLE BiomedicalTickets
+ADD machineIssueIds VARCHAR(MAX) NULL;
+
+CREATE TABLE iou_settlements (
+settlement_id BIGINT IDENTITY(1,1) PRIMARY KEY,
+ticket_id BIGINT NOT NULL,
+employee_id INT NOT NULL,
+
+    settlement_type VARCHAR(30),
+    settlement_status VARCHAR(20),
+
+    total_amount DECIMAL(10,2),
+    remarks TEXT,
+    created_by INT,
+    created_at DATETIME DEFAULT GETDATE(),
+
+);
+CREATE TABLE iou_settlement_items (
+item_id BIGINT IDENTITY(1,1) PRIMARY KEY,
+
+    settlement_id BIGINT NOT NULL,
+
+    expense_type VARCHAR(20),
+
+    amount DECIMAL(10,2),
+
+    bill_number VARCHAR(100),
+    bill_amount DECIMAL(10,2),
+
+    description VARCHAR(MAX)
+
+);

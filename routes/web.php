@@ -1,19 +1,33 @@
 <?php
 
+use App\Http\Controllers\AccountsController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\BiomedicalController;
 use App\Http\Controllers\BranchController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\DepartmentController;
 use App\Http\Controllers\DesginationController;
+use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\HrManpowerController;
 use App\Http\Controllers\IssuesMasterController;
 use App\Http\Controllers\MachineController;
+use App\Http\Controllers\LocationController;
+use App\Http\Controllers\CountryController;
+use App\Http\Controllers\ZoneController;
+use App\Http\Controllers\StateController;
+use App\Http\Controllers\CityController;
+use App\Http\Controllers\NewBranchController;
+use App\Http\Controllers\TicketSummaryController;
 use App\Http\Controllers\MachineIssuesController;
 use App\Http\Controllers\MasterController;
 use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\RoleController;
+use App\Http\Controllers\SettlementController;
 use App\Http\Controllers\StaffController;
 use App\Http\Controllers\TicketController;
+use App\Http\Controllers\PcRequestController;
+use App\Http\Controllers\PcBillController;
+use App\Http\Controllers\FacilityIssueCategoryController;
 use App\Models\IssueCategory;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
@@ -59,7 +73,13 @@ Route::middleware(['auth.custom', 'nocache'])->group(function () {
     Route::get('/machines', [MachineController::class, 'getMachines']);
     Route::get('/machine-issues-list', [MachineIssuesController::class, 'getMachineIssues']);
 
+    Route::get('/facility-issue-category',          [FacilityIssueCategoryController::class, 'index'])->name('facility.issue.category.index');
+    Route::post('/facility-issue-category',          [FacilityIssueCategoryController::class, 'store'])->name('facility.issue.category.store');
+    Route::put('/facility-issue-category/{id}',      [FacilityIssueCategoryController::class, 'update'])->name('facility.issue.category.update');
+    Route::delete('/facility-issue-category/{id}',   [FacilityIssueCategoryController::class, 'destroy'])->name('facility.issue.category.destroy');
+
     Route::get('/tickets', [TicketController::class, 'index'])->name('tickets');
+    Route::get('/ticket-summary', [TicketSummaryController::class, 'index'])->name('ticket.summary');
     Route::post('/tickets', [TicketController::class, 'store'])->name('tickets.store');
     Route::get('/ticket/{id}', [TicketController::class, 'viewTicket'])->name('ticket.view');
     Route::get('/check-customer-ticket', [TicketController::class, 'checkCustomerTicket']);
@@ -76,7 +96,6 @@ Route::middleware(['auth.custom', 'nocache'])->group(function () {
     Route::get('/manpower/{ticketId}', [HrManpowerController::class, 'view'])
         ->name('manpower.view');
     Route::post('/approval/update', [HrManpowerController::class, 'updateApproval']);
-    // Route::post('/self-assign/{id}', [HrManpowerController::class, 'selfAssign']);
     Route::post(
         '/self-assign/{id}',
         [HrManpowerController::class, 'selfAssign']
@@ -89,6 +108,34 @@ Route::middleware(['auth.custom', 'nocache'])->group(function () {
         '/candidate/store/{id}',
         [HrManpowerController::class, 'candidateStore']
     );
+    // Route::get('/biomedical/{ticketId}', [BiomedicalController::class, 'view'])->name('biomedical.view');
+
+    Route::get('/biomedical/{ticketId}', [BiomedicalController::class, 'view'])
+        ->name('biomedical.view');
+    Route::post('/biomedical-ticket/{biomedicalId}/update-status', [BiomedicalController::class, 'updateStatus'])
+        ->name('biomedical.updateStatus');
+
+    Route::get('/iou/{ticketId}', [AccountsController::class, 'view'])->name('iou.view');
+    Route::get('/get-employee-iou-balance', [AccountsController::class, 'getEmployeeIouBalance']);
+    Route::post('iou/{iouId}/approve', [AccountsController::class, 'approve'])->name('iou.approve');
+    Route::post('iou/{iouId}/pay', [AccountsController::class, 'pay'])->name('iou.pay');
+    // Route::post('iou/{iouId}/settle', [AccountsController::class, 'settle'])->name('iou.settle');
+    // Route::post('iou/{iouId}/close', [AccountsController::class, 'close'])->name('iou.close');
+    Route::post('/settlement/{settlementId}/review', [SettlementController::class, 'review'])->name('settlement.review');
+    Route::post('/settlement/{settlementId}/transfer-claim', [SettlementController::class, 'transferClaim'])->name('settlement.transfer');
+    Route::post('/settlement/{settlementId}/record-return', [SettlementController::class, 'recordReturn'])->name('settlement.return');
+    Route::post('/settlement/{settlementId}/close', [SettlementController::class, 'close'])->name('settlement.close');
+
+
+    // web.php
+    Route::get('/pc-request/{ticketId}', [PcRequestController::class, 'view'])->name('pc.view');
+    Route::post('/pc-request/{requestId}/status', [PcRequestController::class, 'updateStatus'])->name('pc.request.status');
+
+    // PC Bill
+    Route::get('/pc-bill/{ticketId}',              [PcBillController::class, 'view'])->name('pc.bill.view');
+    Route::post('/pc-bill/{submissionId}/status',  [PcBillController::class, 'updateStatus'])->name('pc.bill.status');
+    Route::get('/expense-master',                  [PcBillController::class, 'getExpenseMaster']);
+
     Route::get('/search-customer', [MasterController::class, 'searchCustomer']);
     Route::get('/departments', [MasterController::class, 'departments']);
     Route::get('/issue-categories', [MasterController::class, 'issueCategories']);
@@ -96,7 +143,51 @@ Route::middleware(['auth.custom', 'nocache'])->group(function () {
     Route::get('/get-categories/{department_id}', function ($department_id) {
         return IssueCategory::where('department_id', $department_id)->get();
     });
+    Route::get('/expense-master', [PcBillController::class, 'getExpenseMaster']);
+Route::get('/facility-categories', [MasterController::class, 'getFacilityCategories']);
+
+
     Route::get('/employees', [MasterController::class, 'employees']);
+
+    Route::get('/expanse', [ExpenseController::class, 'index'])->name('expanse.index');
+    Route::post('/expanse/store', [ExpenseController::class, 'store'])->name('expanse.store');
+
+    Route::get('/get-petty-cash-balance', [MasterController::class, 'getPettyCashBalance']);
+
+    Route::get('/location', [LocationController::class, 'index'])->name('location.index');
+    Route::post('/location/store', [LocationController::class, 'store'])->name('location.store');
+    Route::put('/location/{id}', [LocationController::class, 'update'])->name('location.update');
+    Route::delete('/location/{id}', [LocationController::class, 'destroy'])->name('location.destroy');
+
+    // Country Master
+    Route::get('/country', [CountryController::class, 'index'])->name('country.index');
+    Route::post('/country/store', [CountryController::class, 'store'])->name('country.store');
+    Route::put('/country/{id}', [CountryController::class, 'update'])->name('country.update');
+    Route::delete('/country/{id}', [CountryController::class, 'destroy'])->name('country.destroy');
+
+    // Zone Master
+    Route::get('/zone', [ZoneController::class, 'index'])->name('zone.index');
+    Route::post('/zone/store', [ZoneController::class, 'store'])->name('zone.store');
+    Route::put('/zone/{id}', [ZoneController::class, 'update'])->name('zone.update');
+    Route::delete('/zone/{id}', [ZoneController::class, 'destroy'])->name('zone.destroy');
+
+    // State Master
+    Route::get('/state', [StateController::class, 'index'])->name('state.index');
+    Route::post('/state/store', [StateController::class, 'store'])->name('state.store');
+    Route::put('/state/{id}', [StateController::class, 'update'])->name('state.update');
+    Route::delete('/state/{id}', [StateController::class, 'destroy'])->name('state.destroy');
+
+    // City Master
+    Route::get('/city', [CityController::class, 'index'])->name('city.index');
+    Route::post('/city/store', [CityController::class, 'store'])->name('city.store');
+    Route::put('/city/{id}', [CityController::class, 'update'])->name('city.update');
+    Route::delete('/city/{id}', [CityController::class, 'destroy'])->name('city.destroy');
+
+    // Branch Master (new schema)
+    Route::get('/new-branch', [NewBranchController::class, 'index'])->name('new-branch.index');
+    Route::post('/new-branch/store', [NewBranchController::class, 'store'])->name('new-branch.store');
+    Route::put('/new-branch/{id}', [NewBranchController::class, 'update'])->name('new-branch.update');
+    Route::delete('/new-branch/{id}', [NewBranchController::class, 'destroy'])->name('new-branch.destroy');
 });
 Route::get('/test-db', function () {
     $data = DB::select('SELECT TOP 10 * FROM User_Master');

@@ -5,10 +5,11 @@
         <div class="content">
 
             <div class="d-flex align-items-sm-center flex-sm-row flex-column gap-2 mb-3 pb-3 border-bottom">
+
                 <div class="flex-grow-1">
                     <h4 class="fw-bold mb-0">Designation<span
-                            class="badge badge-soft-primary border border-primary page-header-badge ms-2">Total Designation :
-                            9</span></h4>
+                            class="badge badge-soft-primary border border-primary fs-13 fw-medium ms-2">Total Designation :
+                            54</span></h4>
                 </div>
                 <div class="text-end d-flex">
                     <div class="dropdown me-1">
@@ -27,16 +28,16 @@
                 </div>
             </div>
 
-            <div class="d-flex align-items-center justify-content-between flex-wrap row-gap-3 mb-3">
-                <div class="search-set">
-                    <div class="d-flex align-items-center flex-wrap gap-2">
-                        <div class="table-search d-flex align-items-center mb-0">
-                            <div class="search-input">
-                                <a href="javascript:void(0);" class="btn-searchset"></a>
+            {{-- <div class="d-flex align-items-center justify-content-between flex-wrap row-gap-3 mb-3">
+               <div class="search-set mb-3">
+                        <div class="d-flex align-items-center flex-wrap gap-2">
+                            <div class="table-search d-flex align-items-center mb-0">
+                                <div class="search-input">
+                                    <a href="javascript:void(0);" class="btn-searchset"></a>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
                 <div class="d-flex table-dropdown pb-1 right-content align-items-center flex-wrap row-gap-3">
                     <div class="dropdown me-2">
                         <a href="javascript:void(0);"
@@ -60,7 +61,7 @@
                         </div>
                     </div>
                 </div>
-            </div>
+            </div> --}}
 
             <div class="card border-0">
                 <div class="card-body p-0">
@@ -71,7 +72,6 @@
                                 <tr>
                                     <th>Designation Code</th>
                                     <th>Designation</th>
-                                    {{-- <th>Description</th> --}}
                                     <th>Status</th>
                                     <th>Action</th>
                                 </tr>
@@ -124,6 +124,7 @@
 
                 </div>
             </div>
+            
             <div class="table-footer-bar d-flex justify-content-between align-items-center">
                 <div class="d-flex align-items-center gap-3">
 
@@ -142,9 +143,10 @@
                     </div>
 
                 </div>
-                <div class="pagination-box">
+                {{-- <div class="pagination-box">
                     {{ $designations->appends(['per_page' => $perPage])->links('pagination::bootstrap-5') }}
-                </div>
+                </div> --}}
+                <x-pagination :paginator="$designations" :append="['per_page' => $perPage]" />
 
             </div>
             <script>

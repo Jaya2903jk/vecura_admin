@@ -23,8 +23,6 @@
                 @endisset
             </div>
             <!-- End Page Header -->
-
-
             <div class="toolbar-card">
                 <div class="ticket-toolbar">
                     <div class="toolbar-group">
@@ -56,6 +54,9 @@
                                 </option>
                                 <option value="hr" {{ request('type') == 'hr' ? 'selected' : '' }}>
                                     Hr
+                                </option>
+                                <option value="biomedical" {{ request('type') == 'biomedical' ? 'selected' : '' }}>
+                                    Biomedical
                                 </option>
                             </select>
                         </div>
@@ -173,7 +174,10 @@
                                     <td>{{ $t->department->DepartmentName ?? '-' }}</td>
 
                                     {{-- Branch --}}
-                                    <td>{{ $t->location->LocationName ?? 'Coop' }}</td>
+                                    <td>
+                                        {{ $t->location->LocationName ?? 'Coop' }}
+                                        {{-- {{ $t->customer?->branch_id ? $t->customer?->branch?->branch_name ?? '-' : $t->location?->LocationName ?? '-' }} --}}
+                                    </td>
 
                                     {{-- Reg No --}}
                                     <td>
@@ -234,17 +238,7 @@
 
                                     {{-- Action --}}
                                     <td>{{ $t->CreatedDate ?? '-' }}</td>
-
                                     {{-- <td>
-                                        <div class="d-flex gap-1">
-                                            <a class="action-btn" href="{{ route('ticket.view', $t->ticketId) }}">
-                                                <i class="ti ti-eye"></i>
-                                            </a>
-
-
-                                        </div>
-                                    </td> --}}
-                                    <td>
                                         @php
                                             $isManpower = strtolower(trim($t->Subject)) === 'manpower';
                                         @endphp
@@ -255,8 +249,39 @@
                                                 <i class="ti ti-eye"></i>
                                             </a>
                                         </div>
-                                    </td>
+                                    </td> --}}
+                                    <td>
 
+                                        @php
+                                            $ticketType = strtolower(trim($t->type ?? ''));
+                                            $subject = strtolower(trim($t->Subject));
+                                            $isManpower = $subject === 'manpower';
+                                            $isBiomedical = $subject === 'biomedical';
+                                            $isIOURequest = $subject === 'iou request';
+                                            // $isPettyCash = $subject === 'petty cash';
+                                            // $isPCBill = $subject === 'pc_bill';
+                                            $isPCRequest = $ticketType === 'petty cash';
+                                            $isPCBill = $ticketType === 'petty bill';
+                                        @endphp
+                                        <div class="d-flex gap-1">
+
+                                            <a class="action-btn"
+                                                href="@if ($isManpower) {{ route('manpower.view', $t->ticketId) }}
+                                                      @elseif($isBiomedical)
+                                                      {{ route('biomedical.view', $t->ticketId) }}
+                                                       @elseif($isIOURequest)
+                                                      {{ route('iou.view', $t->ticketId) }}
+                                                       @elseif($isPCRequest)
+                                                      {{ route('pc.view', $t->ticketId) }}
+                                                        @elseif($isPCBill)
+                                                      {{ route('pc.bill.view', $t->ticketId) }}
+                                                       @else
+                                                      {{ route('ticket.view', $t->ticketId) }} @endif
+                                                         ">
+                                                <i class="ti ti-eye"></i>
+                                            </a>
+                                        </div>
+                                    </td>
                                 </tr>
                             @empty
                                 <tr>
@@ -514,9 +539,9 @@
                     </div>
 
                 </div>
-                <div class="pagination-box">
-                    {{ $tickets->appends(['per_page' => $perPage])->links('pagination::bootstrap-5') }}
-                </div>
+
+                <x-pagination :paginator="$tickets" :append="['per_page' => $perPage]" />
+
 
             </div>
             <script>
@@ -533,13 +558,25 @@
 
     </div>
     <script src="{{ asset('build/plugins/sweetalert2/sweetalert2.min.js') }}"></script>
+
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
         $(document).ready(function() {
             const LEAVE_REQUEST_ID = "{{ $leaveRequestId }}";
             const ATTENDANCE_ISSUE_ID = "{{ config('ticket.ATTENDANCE_ISSUE') }}";
             const NEW_JOINEE = "{{ config('ticket.NEW_JOINEE') }}";
-            const HR_ID = 51;
+            const HR_ID = "{{ config('ticket.HR') }}";
+            const IOU_REQUEST_ID = "{{ config('ticket.IOU') }}";
+            const CLAIM_REQUEST_ID = "{{ config('ticket.CLAIM_REQUEST') }}";
+            const SETTELMENT_ID = "{{ config('ticket.SETTLEMENT') }}";
+            const PC_REQUEST_ID = "{{ config('ticket.PC_REQUEST') }}";
+            const PC_SETTLEMENT_ID = "{{ config('ticket.PC_SETTLEMENT') }}";
+
+            const FL_NEW = "{{ config('ticket.FL_NEW') }}";
+            const FL_REPLACEMENT = "{{ config('ticket.FL_REPLACEMENT') }}";
+            const FL_SERVICE = "{{ config('ticket.FL_SERVICE') }}";
+
+            // const CLAIM_REQUEST_ID = 25;
             $.ajax({
                 url: "/employees",
                 type: "GET",
@@ -574,12 +611,10 @@
             //  Show only if V Support (ID = 33)
             $("#department").on("change", function() {
                 let deptId = $(this).val();
-
                 if (deptId == 33) {
                     $("#vsupport_block").show();
                 } else {
                     $("#vsupport_block").hide();
-
                     // reset values
                     $("#assign_to").val("");
                     $("#source").val("");
@@ -589,7 +624,6 @@
 
             $("#department").change(function() {
                 $("#leave_request_block").hide();
-
                 let deptId = $(this).val();
                 $("#employee_common_block").hide();
                 $("#leave_request_block").hide();
@@ -597,8 +631,6 @@
                 $("input[name='from_date'], input[name='to_date'], input[name='attendance_date']")
                     .val('')
                     .prop('required', false);
-
-                // HR → show employee
                 if (deptId == HR_ID) {
                     $("#employee_common_block").show();
                     $("#employee_common").prop('required', true);
@@ -630,7 +662,6 @@
                 let categoryId = $(this).val();
                 $("#leave_request_block").hide();
                 $("#attendance_block").hide();
-
                 $("#issue").html('<option value="">Loading...</option>');
 
                 if (categoryId != "") {
@@ -651,14 +682,12 @@
 
             $('#ticketForm').on('submit', function(e) {
                 e.preventDefault();
-                // alert('ok');
                 let form = this;
                 let formData = new FormData(form);
                 let submitBtn = $(form).find('button[type="submit"]');
                 submitBtn.prop('disabled', true).text('Processing...');
                 $('.is-invalid').removeClass('is-invalid');
                 $('.invalid-feedback.dynamic').remove();
-
                 $.ajax({
                     // url: "{{ url('tickets') }}",
                     url: "{{ route('tickets.store') }}",
@@ -670,20 +699,7 @@
                         'X-CSRF-TOKEN': $('input[name="_token"]').val()
                     },
 
-                    // success: function(response) {
-                    //     Livewire.emit('notificationAdded');
-                    //     Livewire.emit('refreshNotification');
-                    //     Swal.fire({
-                    //         // position: "top-end",
-                    //         icon: "success", // fixed (was type)
-                    //         title: "Ticket Created Successfully",
-                    //         showConfirmButton: false,
-                    //         timer: 1500
-                    //     });
-                    //     setTimeout(function() {
-                    //         window.location.href = "{{ route('tickets') }}";
-                    //     }, 2000);
-                    // },
+
                     success: function(response) {
                         // Livewire.emit('notificationAdded');
                         // Livewire.emit('refreshNotification');
@@ -813,7 +829,6 @@
 
                                 table.append(row);
                             });
-
                             //  block duplicate ticket
                             // if (hasOpen) {
                             //     $('#submitBtn')
@@ -835,138 +850,768 @@
                 });
             });
 
+            $(document).on('change', '#employee_common', function() {
+                let employeeId = $(this).val();
+                resetSettlementForm();
+                if (employeeId == '') {
+                    return;
+                }
+                $.ajax({
+                    url: "/get-employee-iou-balance",
+                    type: "GET",
+                    data: {
+                        employee_id: employeeId
+                    },
+                    success: function(response) {
+                        let balance =
+                            parseFloat(response.balance) || 0;
+                        $('input[name="settlement_current_balance"]')
+                            .val(balance.toFixed(2));
+                        $('#remaining_balance')
+                            .val(balance.toFixed(2));
 
-            // $("#issue").on("change", function() {
-            //     let issueId = $(this).val();
-            //     // let deptId = $("#department").val();
+                        addBillRow();
+                    },
+                    error: function() {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'Unable to fetch employee balance'
+                        });
+                    }
+                });
+            });
 
-            //     $("#leave_request_block").hide();
-            //     $("#attendance_block").hide();
-            //     $("#new_joinee_block").hide();
+            function addBillRow() {
+                let row = `
+             <tr class="bill-row">
+            <td>
+                <select name="expense_type[]"
+                    class="form-control">
+                    <option value="">Select</option>
+                    <option value="Travel">Travel</option>
+                    <option value="Food">Food</option>
+                    <option value="Hotel">Hotel</option>
+                    <option value="Fuel">Fuel</option>
 
+                </select>
 
-            //     $("input[name='from_date'], input[name='to_date'], input[name='attendance_date']")
-            //         .val('')
-            //         .prop('required', false);
-            //     $("input, select, textarea").prop('required', false);
+            </td>
 
-            //     if (issueId == LEAVE_REQUEST_ID) {
+            <td>
 
-            //         $("#leave_request_block").slideDown();
+                <input type="date"
+                    name="bill_date[]"
+                    class="form-control">
 
-            //         $("input[name='from_date']").prop('required', true);
-            //         $("input[name='to_date']").prop('required', true);
-            //     }
+            </td>
 
-            //     //  ATTENDANCE
-            //     else if (issueId == ATTENDANCE_ISSUE_ID) {
+            <td>
 
-            //         $("#attendance_block").slideDown();
+                <input type="number"
+                    step="0.01"
+                    name="bill_amount[]"
+                    class="form-control bill-amount"
+                    placeholder="0.00">
 
-            //         $("input[name='attendance_date']").prop('required', true);
-            //     } else if (issueId == NEW_JOINEE) {
+            </td>
 
-            //         $("#new_joinee_block").slideDown();
+            <td>
 
-            //         // make required fields
-            //         $("input[name='vacancies']").prop('required', true);
-            //         $("input[name='designation']").prop('required', true);
-            //         $("textarea[name='job_description']").prop('required', true);
-            //         $("input[name='age_min']").prop('required', true);
-            //         $("input[name='age_max']").prop('required', true);
-            //         $("select[name='gender']").prop('required', true);
-            //         $("input[name='experience']").prop('required', true);
-            //         $("input[name='qualification']").prop('required', true);
-            //         $("input[name='skills']").prop('required', true);
-            //         $("input[name='work_location']").prop('required', true);
+                <input type="text"
+                    name="settlement_amount[]"
+                    class="form-control settlement-amount bg-light"
+                    value="0.00"
+                    readonly>
 
-            //         //  Hide employee
-            //         $("#employee_common_block").hide();
-            //     }
+            </td>
+            <td>
+                <input type="text"
+                    name="employee_extra_amount[]"
+                    class="form-control employee-extra bg-danger text-white"
+                    value="0.00"
+                    readonly>
+            </td>
+            <td>
+                <input type="file"
+                    name="settlement_files[]"
+                    class="form-control">
 
-            // });
+            </td>
+
+            <td>
+
+                <button type="button"
+                    class="btn btn-danger remove-row">
+
+                    Remove
+
+                </button>
+
+            </td>
+
+        </tr>
+         `;
+                $('#bill_table_body').append(row);
+
+            }
+
+            function resetSettlementForm() {
+                $('input[name="settlement_current_balance"]')
+                    .val('0.00');
+
+                $('#remaining_balance')
+                    .val('0.00');
+
+                $('#total_bill_amount')
+                    .val('0.00');
+
+                $('#total_settlement_amount')
+                    .val('0.00');
+
+                $('#total_employee_extra')
+                    .val('0.00');
+
+                $('#settlement_type')
+                    .val('');
+                $('#bill_section')
+                    .hide();
+                $('#bill_table_body')
+                    .html('');
+
+            }
+
+            $(document).on('change', '#settlement_type', function() {
+                let type = $(this).val();
+                if (type === 'BILL') {
+                    $('#bill_section').show();
+                } else {
+                    $('#bill_section').hide();
+                }
+            });
+
+            $(document).on('click', '#add_bill_row', function() {
+                let row = `
+        <tr class="bill-row">
+
+            <td>
+
+                <select name="expense_type[]"
+                    class="form-control">
+
+                    <option value="">Select</option>
+
+                    <option value="Travel">Travel</option>
+
+                    <option value="Food">Food</option>
+
+                    <option value="Hotel">Hotel</option>
+
+                    <option value="Fuel">Fuel</option>
+
+                </select>
+
+            </td>
+
+            <td>
+
+                <input type="date"
+                    name="bill_date[]"
+                    class="form-control">
+
+            </td>
+
+            <td>
+
+                <input type="number"
+                    step="0.01"
+                    name="bill_amount[]"
+                    class="form-control bill-amount"
+                    placeholder="0.00">
+
+            </td>
+
+            <td>
+
+                <input type="text"
+                    name="settlement_amount[]"
+                    class="form-control settlement-amount bg-light"
+                    value="0.00"
+                    readonly>
+
+            </td>
+
+            <td>
+
+                <input type="text"
+                    name="employee_extra_amount[]"
+                    class="form-control employee-extra bg-danger text-white"
+                    value="0.00"
+                    readonly>
+
+            </td>
+
+            <td>
+
+                <input type="file"
+                    name="settlement_files[]"
+                    class="form-control">
+
+            </td>
+
+            <td>
+
+                <button type="button"
+                    class="btn btn-danger remove-row">
+
+                    Remove
+
+                </button>
+
+            </td>
+
+        </tr>
+          `;
+                $('#bill_table_body').append(row);
+            });
+            $(document).on('click', '.remove-row', function() {
+                $(this).closest('tr').remove();
+                calculateSettlement();
+            });
+            $(document).on('keyup change', '.bill-amount', function() {
+                calculateSettlement();
+            });
+
+            function calculateSettlement() {
+                let currentBalance =
+                    parseFloat(
+                        $('input[name="settlement_current_balance"]').val()
+                    ) || 0;
+                let remainingBalance = currentBalance;
+                let totalBill = 0;
+                let totalSettlement = 0;
+                let totalExtra = 0;
+                $('#bill_table_body tr').each(function() {
+
+                    let row = $(this);
+
+                    let billAmount =
+                        parseFloat(
+                            row.find('.bill-amount').val()
+                        ) || 0;
+
+                    totalBill += billAmount;
+
+                    let settlementAmount = 0;
+                    let employeeExtra = 0;
+                    if (remainingBalance >= billAmount) {
+                        settlementAmount = billAmount;
+                    } else {
+                        settlementAmount = remainingBalance;
+                    }
+                    employeeExtra =
+                        billAmount - settlementAmount;
+                    remainingBalance =
+                        remainingBalance - settlementAmount;
+                    if (remainingBalance < 0) {
+                        remainingBalance = 0;
+                    }
+                    row.find('.settlement-amount')
+                        .val(settlementAmount.toFixed(2));
+                    row.find('.employee-extra')
+                        .val(employeeExtra.toFixed(2));
+                    totalSettlement += settlementAmount;
+                    totalExtra += employeeExtra;
+                });
+                $('#total_bill_amount')
+                    .val(totalBill.toFixed(2));
+                $('#total_settlement_amount')
+                    .val(totalSettlement.toFixed(2));
+                $('#total_employee_extra')
+                    .val(totalExtra.toFixed(2));
+                $('#remaining_balance')
+                    .val(remainingBalance.toFixed(2));
+            }
+
             $("#issue").on("change", function() {
-
                 let issueId = $(this).val();
                 let deptId = $("#department").val();
-
+                // ======================================
+                // RESET BLOCKS
+                // ======================================
                 $("#leave_request_block").hide();
                 $("#attendance_block").hide();
                 $("#new_joinee_block").hide();
+                $("#machine_block").hide();
+                $("#machine_issue_type_block").hide();
+                $("#machine_issues_checkbox_block").hide();
+                $("#machine_issues_checkbox").html('');
+                $("#machine_id").html(
+                    '<option value="">Select Machine</option>'
+                );
+                $("#machine_issue_type").val('');
+                $("#iou_request_block").hide();
+                $("#claim_request_block").hide();
+
+                $("#pc_request_block").hide();
+                $('#pc_wallet_balance').val('').removeData('balance');
+                $('#pc_request_amount').val('');
+                $('#pc_balance_warning').hide();
+
+                $("#pc_bill_block").hide();
+                $('#pc_bill_wallet_balance').val('').removeData('balance');
+                $('#pc_bill_items_body').html('');
+                $('#pc_bill_total').val('₹ 0.00');
+                $('#pc_bill_exceed_warning').hide();
+
+$("#fl_facility_block").hide();
+$("#facility_category_id").html('<option value="">Select Facility Category</option>');
+$("select[name='facility_category_id']").prop('required', false);
 
                 $("input[name='from_date'], input[name='to_date'], input[name='attendance_date']")
                     .val('')
                     .prop('required', false);
-
-                // RESET REQUIRED ONLY FOR NEW JOINEE FIELDS
                 $("input[name='vacancies'], input[name='designation'], input[name='job_description'], input[name='age_min'], input[name='age_max'], input[name='experience'], input[name='qualification'], input[name='skills'], input[name='work_location']")
                     .prop('required', false);
-
                 $("select[name='gender']").prop('required', false);
+                $("input[name='iou_request_date'], input[name='iou_amount']")
+                    .prop('required', false);
+                $("input[name='expense_date'], input[name='expense_amount']")
+                    .prop('required', false);
 
-                // SHOW EMPLOYEE AGAIN IF HR
+                $("select[name='expense_type']")
+                    .prop('required', false);
+                // ======================================
+                // HR EMPLOYEE
+                // ======================================
                 if (deptId == HR_ID) {
                     $("#employee_common_block").show();
                 }
-
-                // LEAVE REQUEST
                 if (issueId == LEAVE_REQUEST_ID) {
-
                     $("#leave_request_block").slideDown();
-
                     $("input[name='from_date']").prop('required', true);
                     $("input[name='to_date']").prop('required', true);
-
-                }
-
-                // ATTENDANCE
-                else if (issueId == ATTENDANCE_ISSUE_ID) {
-
+                } else if (issueId == ATTENDANCE_ISSUE_ID) {
                     $("#attendance_block").slideDown();
-
                     $("input[name='attendance_date']").prop('required', true);
-
-                }
-
-                // NEW JOINEE
-                else if (issueId == NEW_JOINEE) {
+                } else if (issueId == NEW_JOINEE) {
 
                     $("#new_joinee_block").slideDown();
 
                     $("input[name='vacancies']").prop('required', true);
+
                     $("input[name='designation']").prop('required', true);
+
                     $("textarea[name='job_description']").prop('required', true);
+
                     $("input[name='age_min']").prop('required', true);
+
                     $("input[name='age_max']").prop('required', true);
+
                     $("select[name='gender']").prop('required', true);
+
                     $("input[name='experience']").prop('required', true);
+
                     $("input[name='qualification']").prop('required', true);
+
                     $("input[name='skills']").prop('required', true);
+
                     $("input[name='work_location']").prop('required', true);
 
-                    // KEEP EMPLOYEE FIELD VISIBLE FOR HR
                     $("#employee_common_block").hide();
+
                     $("#employee_common")
                         .prop('required', false)
                         .val('')
                         .trigger('change');
+                } else if (issueId == IOU_REQUEST_ID) {
+                    $("#employee_common_block").show();
+                    $("#iou_request_block").slideDown();
+                    $("input[name='employee_common']")
+                        .prop('required', true);
+                    $("input[name='iou_request_date']")
+                        .prop('required', true);
+
+                    $("input[name='iou_amount']")
+                        .prop('required', true);
+                } else if (issueId == CLAIM_REQUEST_ID) {
+                    $("#claim_request_block").slideDown();
+                    $("input[name='expense_date']")
+                        .prop('required', true);
+                    $("select[name='expense_type']")
+                        .prop('required', true);
+                    $("input[name='expense_amount']")
+                        .prop('required', true);
+                } else if (issueId == SETTELMENT_ID) {
+                    $("#employee_common_block").show();
+                    $("#settlement_request_block").slideDown();
+                    $("select[name='employee_common']")
+                        .prop('required', true);
+                    $("input[name='settlement_amount']")
+                        .prop('required', true);
+                    $("select[name='settlement_type']")
+                        .prop('required', true);
+                } else if (issueId == PC_REQUEST_ID) {
+                    $("#pc_request_block").slideDown();
+                    fetchPettyCashBalance();
+                } else if (issueId == PC_SETTLEMENT_ID) {
+                    $("#pc_bill_block").slideDown();
+                    fetchPcBillWalletBalance();
+                } else if (issueId == FL_NEW || issueId == FL_REPLACEMENT || issueId == FL_SERVICE) {
+                    $("#fl_facility_block").slideDown();
+                    loadFacilityCategories();
+                }
+
+                if (issueId == 21 || issueId == 22 || issueId == 23) {
+                    $("#machine_block").slideDown();
+                    if (issueId == 23) {
+                        $("#machine_issue_type_block").slideDown();
+                    } else {
+                        $("#machine_issue_type_block").hide();
+                    }
+                    $.ajax({
+                        url: "/machines",
+                        type: "GET",
+                        success: function(res) {
+                            let options =
+                                '<option value="">Select Machine</option>';
+                            res.data.forEach(function(machine) {
+
+                                options += `
+                        <option value="${machine.MachineId}">
+                            ${machine.MachineName}
+                        </option>
+                        `;
+                            });
+                            $("#machine_id").html(options);
+                        }
+                    });
+                }
+
+            });
+            // ======================================
+            // MACHINE ISSUE TYPE CHANGE
+            // ======================================
+            $("#machine_issue_type, #machine_id").on("change", function() {
+
+                let issueId = $("#issue").val();
+                let machineId = $("#machine_id").val();
+                let type = $("#machine_issue_type").val();
+                $("#machine_issues_checkbox").html('');
+                $("#machine_issues_checkbox_block").hide();
+                if (issueId != 23) {
+                    return;
+                }
+                if (
+                    machineId != '' &&
+                    type != ''
+                ) {
+                    $.ajax({
+                        url: "/machine-issues-list",
+                        type: "GET",
+                        data: {
+                            machine_id: machineId,
+                            type: type
+                        },
+                        success: function(res) {
+                            let html = '';
+                            if (res.data.length > 0) {
+
+                                $("#machine_issues_checkbox_block")
+                                    .slideDown();
+
+                                res.data.forEach(function(issue) {
+
+
+                                    html += `
+
+                    <div class="col-lg-4 mb-3">
+
+                 <div class="border rounded p-2 h-100">
+
+                    <div class="form-check d-flex align-items-center">
+
+                       <input
+                    class="form-check-input me-2"
+                    type="checkbox"
+                    name="machine_issue_ids[]"
+                    value="${issue.machineIssueId}"
+                    id="issue_${issue.machineIssueId}"
+                     >
+
+                  <label
+                    class="form-check-label"
+                    for="issue_${issue.machineIssueId}"
+                 >
+                    ${issue.IssuesName}
+                 </label>
+
+                        </div>
+
+                     </div>
+
+                   </div>
+
+                              `;
+                                });
+
+                            } else {
+
+                                $("#machine_issues_checkbox_block")
+                                    .slideDown();
+
+                                html = `
+                        <div class="text-danger">
+                            No Machine Issues Found
+                        </div>
+                    `;
+                            }
+
+                            $("#machine_issues_checkbox").html(
+                                '<div class="row">' + html + '</div>'
+                            );
+                        }
+                    });
+                }
+            });
+            // ── Fetch branch petty cash balance ──────────────────────────────────────
+            // 1. function
+
+            function fetchPettyCashBalance() {
+                $('#pc_wallet_balance').val('Loading...');
+                $('#pc_request_amount').val('');
+                $('#pc_balance_warning').hide();
+
+                $.ajax({
+                    url: '/get-petty-cash-balance',
+                    type: 'GET',
+                    success: function(res) {
+                        let balance = parseFloat(res.balance) || 0;
+                        $('#pc_wallet_balance')
+                            .val('₹ ' + balance.toFixed(2))
+                            .data('balance', balance);
+                    },
+                    error: function() {
+                        $('#pc_wallet_balance').val('Unable to fetch');
+                    }
+                });
+            }
+            $(document).on('keyup change', '#pc_request_amount', function() {
+                let requested = parseFloat($(this).val()) || 0;
+                let balance = parseFloat($('#pc_wallet_balance').data('balance')) || 0;
+                if (requested > balance && balance > 0) {
+                    $('#pc_balance_warning').show();
+                } else {
+                    $('#pc_balance_warning').hide();
+                }
+            });
+            // ── Expense master options ─────────────────────────────────────────────────
+            let expenseOptions = '<option value="">Select Category</option>';
+
+            function loadExpenseMaster(callback) {
+                if (expenseOptions !== '<option value="">Select Category</option>') {
+                    if (callback) callback();
+                    return;
+                }
+                $.ajax({
+                    url: '/expense-master',
+                    type: 'GET',
+                    success: function(res) {
+                        res.data.forEach(function(e) {
+                            expenseOptions +=
+                                `<option value="${e.ExpenseId}">${e.ExpenseName}</option>`;
+                        });
+                        if (callback) callback();
+                    },
+                    error: function() {
+                        console.log('Failed to load expense master');
+                    }
+                });
+            }
+
+            // ── Fetch wallet for bill ──────────────────────────────────────────────────
+            function fetchPcBillWalletBalance() {
+                $('#pc_bill_wallet_balance').val('Loading...');
+
+                $.ajax({
+                    url: '/get-petty-cash-balance',
+                    type: 'GET',
+                    success: function(res) {
+                        let balance = parseFloat(res.balance) || 0;
+                        $('#pc_bill_wallet_balance')
+                            .val('₹ ' + balance.toFixed(2))
+                            .data('balance', balance);
+
+                        loadExpenseMaster(function() {
+                            addBillItemRow();
+                        });
+                    },
+                    error: function() {
+                        $('#pc_bill_wallet_balance').val('Unable to fetch');
+                    }
+                });
+            }
+
+            let billRowIndex = 0;
+
+            function addBillItemRow() {
+                let idx = billRowIndex++;
+
+                let row = `
+             <tr class="bill-item-row" data-index="${idx}">
+             <td style="padding:8px;">
+             <select name="pc_expense_id[]"
+                    class="form-control form-control-sm">
+                ${expenseOptions}
+             </select>
+             </td>
+             <td style="padding:8px;">
+             <input type="text"
+                   name="pc_bill_number[]"
+                   class="form-control form-control-sm"
+                   placeholder="Bill No">
+              </td>
+             <td style="padding:8px;">
+                  <input type="number"
+                   name="pc_bill_amount[]"
+                   class="form-control form-control-sm pc-bill-amount"
+                   placeholder="0.00"
+                   step="0.01"
+                   min="0.01">
+              </td>
+              <td style="padding:8px;">
+                  <input type="file"
+                   name="bill_files[${idx}]"
+                   class="form-control form-control-sm bill-file-input"
+                   accept=".jpg,.jpeg,.png,.pdf"
+                   data-index="${idx}">
+                  <div id="preview_${idx}" style="display:none; margin-top:4px;">
+                <small class="text-success">
+                    <i class="ti ti-paperclip me-1"></i>
+                    <span class="file-name"></span>
+                    <a href="#" class="text-danger ms-1 remove-file" data-index="${idx}">
+                        <i class="ti ti-x" style="font-size:11px;"></i>
+                    </a>
+                </small>
+            </div>
+        </td>
+        <td style="padding:8px; text-align:center; vertical-align:middle;">
+            <button type="button"
+                    class="btn btn-sm btn-danger remove-bill-item"
+                    style="padding:4px 8px;">
+                <i class="ti ti-trash"></i>
+            </button>
+        </td>
+    </tr>`;
+
+                $('#pc_bill_items_body').append(row);
+            }
+            $(document).on('change', '.bill-file-input', function() {
+                let idx = $(this).data('index');
+                let file = this.files[0];
+                let preview = $(`#preview_${idx}`);
+
+                if (file) {
+                    if (file.size > 2 * 1024 * 1024) {
+                        Swal.fire('Error', 'File size must be less than 2MB', 'error');
+                        $(this).val('');
+                        preview.hide();
+                        return;
+                    }
+                    let allowed = ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf'];
+                    if (!allowed.includes(file.type)) {
+                        Swal.fire('Error', 'Only JPG, PNG, PDF files allowed', 'error');
+                        $(this).val('');
+                        preview.hide();
+                        return;
+                    }
+
+                    preview.find('.file-name').text(file.name);
+                    preview.show();
+                } else {
+                    preview.hide();
                 }
             });
 
+            $(document).on('click', '.remove-file', function(e) {
+                e.preventDefault();
+                let idx = $(this).data('index');
+                $(`input[name="bill_files[${idx}]"]`).val('');
+                $(`#preview_${idx}`).hide();
+            });
+            $(document).on('click', '#add_bill_item', function() {
+                if (expenseOptions === '<option value="">Select Category</option>') {
+                    loadExpenseMaster(function() {
+                        addBillItemRow();
+                    });
+                } else {
+                    addBillItemRow();
+                }
+            });
+            $(document).on('click', '.remove-bill-item', function() {
+                if ($('#pc_bill_items_body tr').length <= 1) {
+                    Swal.fire('Info', 'At least one bill item is required', 'info');
+                    return;
+                }
+                $(this).closest('tr').remove();
+                calculateBillTotal();
+            });
+
+            $(document).on('keyup change', '.pc-bill-amount', function() {
+                calculateBillTotal();
+            });
+
+            function calculateBillTotal() {
+                let total = 0;
+                let balance = parseFloat($('#pc_bill_wallet_balance').data('balance')) || 0;
+
+                $('.pc-bill-amount').each(function() {
+                    total += parseFloat($(this).val()) || 0;
+                });
+                $('#pc_bill_total_display').text('₹ ' + total.toFixed(2));
+                $('#pc_bill_total').val(total.toFixed(2));
+
+                if (total > balance && balance > 0) {
+                    $('#pc_bill_exceed_warning').show();
+                    $('#pc_bill_total_display').removeClass('text-primary').addClass('text-danger');
+                } else {
+                    $('#pc_bill_exceed_warning').hide();
+                    $('#pc_bill_total_display').removeClass('text-danger').addClass('text-primary');
+                }
+            }
+
+            $("#pc_bill_block").hide();
+            $('#pc_bill_wallet_balance').val('').removeData('balance');
+            $('#pc_bill_items_body').html('');
+            $('#pc_bill_total_display').text('₹ 0.00').removeClass('text-danger').addClass('text-primary');
+            $('#pc_bill_total').val('0');
+            $('#pc_bill_exceed_warning').hide();
+            billRowIndex = 0;
+
+            function loadFacilityCategories() {
+                $.ajax({
+                    url: "/facility-categories",
+                    type: "GET",
+                    success: function(res) {
+                        let options = '<option value="">Select Facility Category</option>';
+                        res.data.forEach(function(f) {
+                            options += `<option value="${f.id}">${f.name}</option>`;
+                        });
+                        $("#facility_category_id").html(options);
+                    }
+                });
+            }
         });
     </script>
     <script>
         document.getElementById('typeFilter').addEventListener('change', function() {
             let type = this.value;
-
             let url = new URL(window.location.href);
-
             if (type) {
                 url.searchParams.set('type', type);
             } else {
                 url.searchParams.delete('type');
             }
-
             window.location.href = url.toString();
         });
         document.getElementById('clearFilters').addEventListener('click', function() {

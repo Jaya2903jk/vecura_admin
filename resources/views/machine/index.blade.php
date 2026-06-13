@@ -5,10 +5,11 @@
         <div class="content">
 
             <div class="d-flex align-items-sm-center flex-sm-row flex-column gap-2 mb-3 pb-3 border-bottom">
+               
                 <div class="flex-grow-1">
                     <h4 class="fw-bold mb-0">Machine<span
-                            class="badge badge-soft-primary border border-primary page-header-badge ms-2">Total Machines :
-                            1</span></h4>
+                            class="badge badge-soft-primary border border-primary fs-13 fw-medium ms-2">Total Machines :
+                            54</span></h4>
                 </div>
                 <div class="text-end d-flex">
                     <div class="dropdown me-1">
@@ -141,9 +142,9 @@
                     </div>
 
                 </div>
-                <div class="pagination-box">
-                    {{ $Machines->appends(['per_page' => $perPage])->links('pagination::bootstrap-5') }}
-                </div>
+
+                <x-pagination :paginator="$Machines" :append="['per_page' => $perPage]" />
+
 
             </div>
             <script>

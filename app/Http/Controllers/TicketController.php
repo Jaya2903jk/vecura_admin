@@ -4,13 +4,24 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\BiomedicalTicket;
 use App\Models\ComplaintFollowup;
 use App\Models\CustomerRefundComplaint;
+use App\Models\EmployeeBalance;
 use App\Models\HrManpowerRequest;
 use App\Models\HrTicketDetail;
+use App\Models\IouRequest;
+use App\Models\IouSettlement;
+use App\Models\IouSettlementItem;
+use App\Models\BranchWallet;
+use App\Models\PcBillItem;
+use App\Models\PcBillRequest;
+use App\Models\PcSettlement;
+use App\Models\PcBillSubmission;
 use App\Models\IssueCategory;
 use App\Models\IssueMaster;
 use App\Models\IssueTicket;
+use App\Models\MoneyTransaction;
 use App\Models\PatientPersonalDetail;
 use App\Models\UserMaster;
 use App\Services\NotificationService;
@@ -23,16 +34,19 @@ class TicketController extends Controller
     public function index(Request $request)
     {
         $currentUserId = session('user_id');
-
         // Logged in user
         $loginUser = UserMaster::where('UserID', $currentUserId)->first();
-        // dd($loginUser);
-        $totalTickets = IssueTicket::whereIn('type', ['vsupport', 'hr'])->count();
+        $totalTickets = IssueTicket::whereIn('type', ['vsupport', 'hr', 'biomedical', 'accounts', 'Settlement', 'petty cash','petty bill'])->count();
 
         $perPage = $request->get('per_page', 10);
         $status = $request->status;
         $type = $request->type;
-        $q = IssueTicket::with(['department', 'customer', 'location', 'complaints'])
+        $q = IssueTicket::with([
+            'department',
+            'customer',
+            'location',
+            'complaints'
+        ])
             ->withCount([
                 'complaints',
                 'complaints as pending_count' => function ($query) {
@@ -46,7 +60,7 @@ class TicketController extends Controller
                 },
             ])
             ->orderBy('CreatedDate', 'desc')
-            ->whereIn('type', ['vsupport', 'hr']);
+            ->whereIn('type', ['vsupport', 'hr', 'biomedical', 'accounts', 'Settlement', 'petty cash','petty bill']);
 
         if ($request->has('type') && $type != '') {
             $q->where('type', $type);
@@ -113,20 +127,13 @@ class TicketController extends Controller
                     'message' => 'User not found',
                 ], 404);
             }
-
             $userCode = $loginUser->UserCode;
-
-            /*
-        ======================================================
-        LOCATION RESOLUTION
-        ======================================================
-        */
+            // $BIOMEDICAL_DEPARTMENT = 31;
             $patient = null;
 
             if ($request->customer_code) {
                 $patient = PatientPersonalDetail::where('RegistrationNo', $request->customer_code)->first();
             }
-
             // $employeeId = $request->employee_id ?? $request->employee_id_attendance;
             $employeeId = $request->employee_common;
             if ($request->Department == 51) {
@@ -135,13 +142,18 @@ class TicketController extends Controller
             } else {
                 $locCode = $patient?->Loc_Id ?? $loginUser->Loc_id ?? 'GEN';
             }
-
             $month = date('ym');
+            $BIOMEDICAL_DEPARTMENT = 31;
+            $NEW_REQUEST = 21;
+            $REPLACEMENT_REQUEST = 22;
+            $SERVICE_REQUEST = 23;
+            $ACCOUNTS_DEPARTMENT = 32;
             /*
         ======================================================
         HR FLOW
         ======================================================
         */
+            $issueId = $request->TypeofEscalation;
             if ($request->Department == 51) {
                 $LEAVE_REQUEST_ID = config('ticket.LEAVE_REQUEST');
                 $ATTENDANCE_ISSUE_ID = config('ticket.ATTENDANCE_ISSUE');
@@ -207,7 +219,7 @@ class TicketController extends Controller
                 $category = IssueCategory::find($request->Complaint);
                 $issue = IssueMaster::find($request->TypeofEscalation);
 
-                $prefix = $locCode.$month.'T';
+                $prefix = $locCode . $month . 'T';
                 $ticketNo = $this->generateTicketNo($prefix);
 
                 $ticketId = DB::connection('sqlsrv')
@@ -315,17 +327,731 @@ class TicketController extends Controller
                 NotificationService::send(
                     23900,
                     'New HR Ticket Created',
-                    'HR Ticket #'.$ticketId.' created',
+                    'HR Ticket #' . $ticketId . ' created',
+                    'ticket',
+                    $ticketId
+                );
+            } elseif ($request->Department == $BIOMEDICAL_DEPARTMENT) {
+                if ($request->TypeofEscalation == $SERVICE_REQUEST) {
+                    $validator = Validator::make($request->all(), [
+                        'Department' => 'required',
+                        'Complaint' => 'required',
+                        'TypeofEscalation' => 'required',
+                        'machine_id' => 'required',
+                        'machine_issue_type' => 'required',
+                        'machine_issue_ids' => 'required|array|min:1',
+                        'feedback' => 'required',
+                    ]);
+                } else {
+
+                    // NEW REQUEST / REPLACEMENT
+                    $validator = Validator::make($request->all(), [
+                        'Department' => 'required',
+                        'Complaint' => 'required',
+                        'TypeofEscalation' => 'required',
+                        'machine_id' => 'required',
+                        'feedback' => 'required',
+                    ]);
+                }
+
+                if ($validator->fails()) {
+
+                    return response()->json([
+                        'errors' => $validator->errors(),
+                    ], 422);
+                }
+                $category = IssueCategory::find($request->Complaint);
+                $issue = IssueMaster::find($request->TypeofEscalation);
+                $prefix = $locCode . $month . 'T';
+                $ticketNo = $this->generateTicketNo($prefix);
+                /*
+                ======================================================
+                MAIN TICKET
+                ======================================================
+                */
+
+                $ticketId = DB::connection('sqlsrv')
+                    ->table('issueTicket')
+                    ->insertGetId([
+                        'Department' => $request->Department,
+                        // 'Subject' => $category->category_name ?? null,
+                        'Subject' => 'BioMedical',
+                        'Issuelevel2' => $category->category_name ?? null,
+                        'Issuelevel3' => $category->category_name ?? null,
+                        'Issuelevel5' => $category->category_name ?? null,
+                        'CustomerCode' => $request->customer_code ?? 'Biomedical',
+                        'CustomerName' => $request->customer_name ?? 'Biomedical Ticket',
+                        'LocId' => $locCode,
+                        'Branch' => $locCode,
+                        'Status' => 0,
+                        'type' => 'biomedical',
+                        'CreatedBy' => $userCode,
+                        'CreatedDate' => now(),
+                        'AcceptedBy' => $userCode,
+                        'RequiredTime' => 1,
+                        'RequiredTimeType' => 'Day',
+                        'FromProduct' => $request->from_product ?? '',
+                        'ToProduct' => $request->ToProduct ?? '',
+                        'BankName' => $request->bank_name ?? '',
+                        'CardNo' => $request->card_no ?? '',
+                        'CashAmt' => $request->cash_amt ?? 0,
+                        'CardAmt' => $request->card_amt ?? 0,
+                        'ScheduledDate' => $request->scheduled_date ?? null,
+                        'BillRaisedType' => $request->bill_raised_type ?? null,
+                        'NewBillType' => $request->new_bill_type ?? null,
+                        'ProductCode' => $request->product_code ?? null,
+                        'ServiceCode' => $request->service_code ?? null,
+                        'ServiceName' => $request->service_name ?? null,
+                        'DiscountAmt' => $request->discount_amt ?? 0,
+                        'BillNoFrom' => $request->bill_no_from ?? '',
+                        'BillNoTo' => $request->bill_no_to ?? '',
+                        'NewRequestedBillDate' => $request->new_requested_bill_date ?? null,
+                        'BillType' => $request->bill_type ?? '',
+                        'OriyanaId' => $request->oriyana_id ?? '',
+                        'MobileNo' => $request->alternateMobile ?? '',
+                        'EmpName' => $loginUser->UserName ?? '',
+                        'ApprovedStatus' => 'Pending',
+                        'ApprovedBy' => '',
+                        'Email' => $loginUser->Email ?? '',
+                        'UserId' => $employeeId ?? '',
+
+                    ]);
+
+                /*
+                ======================================================
+                MACHINE ISSUE IDS
+                ======================================================
+                */
+
+                $machineIssueIds = null;
+
+                if (
+                    $request->TypeofEscalation == $SERVICE_REQUEST
+                    &&
+                    ! empty($request->machine_issue_ids)
+                ) {
+                    $machineIssueIds = implode(
+                        ',',
+                        $request->machine_issue_ids
+                    );
+                }
+                $biomedicalTicket = BiomedicalTicket::create([
+                    'ticketId' => $ticketId,
+                    'departmentId' => $request->Department,
+                    'categoryId' => $request->Complaint,
+                    'issueId' => $request->TypeofEscalation,
+                    'machineId' => $request->machine_id,
+                    'machineIssueType' => $request->machine_issue_type,
+                    'machineIssueIds' => $machineIssueIds,
+                    'comments' => $request->feedback,
+                    'status' => 'Pending',
+                    'created_by' => $loginUserId,
+                    'created_at' => now(),
+                    // 'meta_data' => json_encode([
+                    //     'machine_issue_ids' => $request->machine_issue_ids ?? [],
+                    //     'history' => [
+                    //         [
+                    //             'status' => 'Pending',
+                    //             'remarks' => 'Biomedical Ticket Created',
+                    //             'created_by' => $loginUserId,
+                    //             'created_at' => now()->toDateTimeString(),
+                    //         ],
+                    //     ],
+                    // ]),
+                ]);
+                NotificationService::send(
+                    23900,
+                    'New Biomedical Ticket',
+                    'Biomedical Ticket #' . $ticketId . ' created',
+                    'ticket',
+                    $ticketId
+                );
+                DB::commit();
+
+                return response()->json([
+                    'status' => true,
+                    'message' => 'Biomedical Ticket Created Successfully',
+                    'ticket_id' => $ticketId,
+                    'ticket_no' => $ticketNo,
+                ]);
+            } elseif ($request->Department == $ACCOUNTS_DEPARTMENT) {
+                $IOU = config('ticket.IOU');
+                $CLAIM_REQUEST = config('ticket.CLAIM_REQUEST');
+                $SETTLEMENT = config('ticket.SETTLEMENT');
+                $PC_REQUEST    = config('ticket.PC_REQUEST');
+                $PC_SETTLEMENT = config('ticket.PC_SETTLEMENT');
+
+                if ($issueId == $IOU) {
+                    $validator = Validator::make($request->all(), [
+                        'Department' => 'required',
+                        'Complaint' => 'required',
+                        'TypeofEscalation' => 'required',
+                        'feedback' => 'required',
+                        'employee_common' => 'required',
+                        'iou_amount' => 'required',
+                        'iou_request_date' => 'required|date',
+                        // 'branch_id' => 'required',
+                    ]);
+                } elseif ($issueId == $SETTLEMENT) {
+                    $validator = Validator::make($request->all(), [
+                        'Department' => 'required',
+                        'Complaint' => 'required',
+                        'TypeofEscalation' => 'required',
+                        'feedback' => 'required',
+                        'employee_common' => 'required',
+                        'settlement_type' => 'required',
+                        'expense_type.*' => 'required',
+                        'bill_date.*' => 'required|date',
+                        'bill_amount.*' => 'required|numeric|min:1',
+
+                        'settlement_files.*' => 'nullable|mimes:jpg,jpeg,png,pdf|max:2048',
+                    ]);
+                } elseif ($issueId == $PC_REQUEST) {
+
+                    $validator = Validator::make($request->all(), [
+                        'Department'        => 'required',
+                        'Complaint'         => 'required',
+                        'TypeofEscalation'  => 'required',
+                        'feedback'          => 'required',
+                        'pc_request_amount' => 'required|numeric|min:1',
+                    ]);
+                } elseif ($issueId == $PC_SETTLEMENT) {
+
+                    $validator = Validator::make($request->all(), [
+                        'Department'          => 'required',
+                        'Complaint'           => 'required',
+                        'TypeofEscalation'    => 'required',
+                        'feedback'            => 'required',
+                        'pc_expense_id.*'        => 'required',
+                        'pc_bill_number.*'       => 'required',
+                        'pc_bill_amount.*'       => 'required|numeric|min:0.01',
+                        'bill_files.*'        => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
+                    ]);
+                } else {
+                    $validator = Validator::make($request->all(), [
+                        'Department' => 'required',
+                        'Complaint' => 'required',
+                        'TypeofEscalation' => 'required',
+                        'feedback' => 'required',
+                        'employee_common' => 'required',
+                    ]);
+                }
+
+                if ($validator->fails()) {
+                    return response()->json(['errors' => $validator->errors()], 422);
+                }
+
+                $category = IssueCategory::find($request->Complaint);
+                $issue = IssueMaster::find($request->TypeofEscalation);
+
+                $prefix = $locCode . $month . 'T';
+                $ticketNo = $this->generateTicketNo($prefix);
+
+                if ($issueId == $IOU) {
+                    $ticketId = DB::connection('sqlsrv')
+                        ->table('issueTicket')
+                        ->insertGetId([
+                            'Department' => $request->Department,
+                            'Subject' => $category->category_name ?? null,
+                            'Issuelevel2' => $category->category_name ?? null,
+                            'Issuelevel3' => $category->category_name ?? null,
+                            'Issuelevel5' => $category->category_name ?? null,
+                            'CustomerCode' => $request->customer_code ?? 'Accounts',
+                            'CustomerName' => $request->customer_name ?? 'Accounts Ticket',
+                            'LocId' => $locCode,
+                            'Branch' => $locCode,
+                            'Status' => 0,
+                            'type' => 'accounts',
+                            'CreatedBy' => $userCode,
+                            'CreatedDate' => now(),
+                            'AcceptedBy' => $userCode,
+                            'RequiredTime' => 1,
+                            'RequiredTimeType' => 'Day',
+                            'FromProduct' => $request->from_product ?? '',
+                            'ToProduct' => $request->ToProduct ?? '',
+                            'BankName' => $request->bank_name ?? '',
+                            'CardNo' => $request->card_no ?? '',
+                            'CashAmt' => $request->cash_amt ?? 0,
+                            'CardAmt' => $request->card_amt ?? 0,
+                            'ScheduledDate' => $request->scheduled_date ?? null,
+                            'BillRaisedType' => $request->bill_raised_type ?? null,
+                            'NewBillType' => $request->new_bill_type ?? null,
+                            'ProductCode' => $request->product_code ?? null,
+                            'ServiceCode' => $request->service_code ?? null,
+                            'ServiceName' => $request->service_name ?? null,
+                            'DiscountAmt' => $request->discount_amt ?? 0,
+                            'BillNoFrom' => $request->bill_no_from ?? '',
+                            'BillNoTo' => $request->bill_no_to ?? '',
+                            'NewRequestedBillDate' => $request->new_requested_bill_date ?? null,
+                            'BillType' => $request->bill_type ?? '',
+                            'OriyanaId' => $request->oriyana_id ?? '',
+                            'MobileNo' => $request->alternateMobile ?? '',
+                            'EmpName' => $loginUser->UserName ?? '',
+                            'ApprovedStatus' => 'Pending',
+                            'ApprovedBy' => '',
+                            'Email' => $loginUser->Email ?? '',
+                            'UserId' => $employeeId ?? '',
+
+                        ]);
+
+                    $iou = IouRequest::create([
+                        'ticket_id' => $ticketId,
+                        'Department' => $request->Department,
+                        'Category' => $request->Complaint ?? null,
+                        'TypeOfEscalation' => $request->TypeofEscalation ?? null,
+                        'employee_id' => $employeeId,
+                        'branch_id' => $request->branch_id,
+                        'request_date' => $request->iou_request_date,
+                        'requested_amount' => $request->iou_amount,
+                        'pending_balance' => $request->iou_amount,
+                        'purpose' => $request->feedback,
+                        'status' => 'pending',
+                    ]);
+
+                    MoneyTransaction::create([
+                        'employee_id' => $employeeId,
+                        'ticket_id' => $ticketId,
+                        'reference_id' => $iou->iou_id,
+                        'type' => 'iou_request',
+                        'amount' => $request->iou_amount,
+                        'remarks' => 'IOU Request Created',
+                        'created_by' => $loginUserId,
+                    ]);
+                } elseif ($issueId == $SETTLEMENT) {
+                    $validator = Validator::make($request->all(), [
+                        'employee_common' => 'required',
+                        'settlement_type' => 'required',
+                        'expense_type.*' => 'required',
+                        'bill_date.*' => 'required|date',
+                        'bill_amount.*' => 'required|numeric|min:1',
+                        'settlement_files.*' => 'nullable|mimes:jpg,jpeg,png,pdf|max:2048',
+                    ]);
+
+                    if ($validator->fails()) {
+
+                        return response()->json([
+                            'status' => false,
+                            'errors' => $validator->errors(),
+                        ], 422);
+                    }
+                    $ticketId = DB::connection('sqlsrv')
+                        ->table('issueTicket')
+                        ->insertGetId([
+                            'Department' => $request->Department,
+                            'Subject' => $category->category_name ?? null,
+                            'Issuelevel2' => $category->category_name ?? null,
+                            'Issuelevel3' => $category->category_name ?? null,
+                            'Issuelevel5' => $category->category_name ?? null,
+                            'CustomerCode' => $request->customer_code ?? 'Settlement',
+                            'CustomerName' => $request->customer_name ?? 'Accounts Ticket',
+                            'LocId' => $locCode,
+                            'Branch' => $locCode,
+                            'Status' => 0,
+                            'type' => 'Settlement',
+                            'CreatedBy' => $userCode,
+                            'CreatedDate' => now(),
+                            'AcceptedBy' => $userCode,
+                            'RequiredTime' => 1,
+                            'RequiredTimeType' => 'Day',
+                            'FromProduct' => $request->from_product ?? '',
+                            'ToProduct' => $request->ToProduct ?? '',
+                            'BankName' => $request->bank_name ?? '',
+                            'CardNo' => $request->card_no ?? '',
+                            'CashAmt' => $request->cash_amt ?? 0,
+                            'CardAmt' => $request->card_amt ?? 0,
+                            'ScheduledDate' => $request->scheduled_date ?? null,
+                            'BillRaisedType' => $request->bill_raised_type ?? null,
+                            'NewBillType' => $request->new_bill_type ?? null,
+                            'ProductCode' => $request->product_code ?? null,
+                            'ServiceCode' => $request->service_code ?? null,
+                            'ServiceName' => $request->service_name ?? null,
+                            'DiscountAmt' => $request->discount_amt ?? 0,
+                            'BillNoFrom' => $request->bill_no_from ?? '',
+                            'BillNoTo' => $request->bill_no_to ?? '',
+                            'NewRequestedBillDate' => $request->new_requested_bill_date ?? null,
+                            'BillType' => $request->bill_type ?? '',
+                            'OriyanaId' => $request->oriyana_id ?? '',
+                            'MobileNo' => $request->alternateMobile ?? '',
+                            'EmpName' => $loginUser->UserName ?? '',
+                            'ApprovedStatus' => 'Pending',
+                            'ApprovedBy' => '',
+                            'Email' => $loginUser->Email ?? '',
+                            'UserId' => $employeeId ?? '',
+
+                        ]);
+
+                    $currentBalance = (float) $request->settlement_current_balance;
+                    $remainingBalance = $currentBalance;
+                    $totalBillAmount = 0;
+                    $companySettlementAmount = 0;
+                    $employeeClaimAmount = 0;
+                    foreach ($request->bill_amount as $billAmount) {
+                        $totalBillAmount += (float) $billAmount;
+                    }
+
+                    $settlementRows = [];
+                    foreach ($request->bill_amount as $index => $billAmount) {
+                        $billAmount = (float) $billAmount;
+                        if ($remainingBalance >= $billAmount) {
+
+                            $settlementAmount = $billAmount;
+                        } else {
+
+                            $settlementAmount = max($remainingBalance, 0);
+                        }
+
+                        $employeeExtra = $billAmount - $settlementAmount;
+
+                        $remainingBalance -= $settlementAmount;
+
+                        if ($remainingBalance < 0) {
+                            $remainingBalance = 0;
+                        }
+                        $companySettlementAmount += $settlementAmount;
+                        $employeeClaimAmount += $employeeExtra;
+                        $billFile = null;
+                        if ($request->hasFile('settlement_files')) {
+                            if (isset($request->file('settlement_files')[$index])) {
+                                $file = $request->file('settlement_files')[$index];
+                                $billFile = time() . '_' . $index . '.' . $file->getClientOriginalExtension();
+                                // $file->move(
+                                //     public_path('uploads/settlements'),
+                                //     $billFile
+                                // );
+                            }
+                        }
+                        $settlementRows[] = [
+                            'expense_type' => $request->expense_type[$index] ?? null,
+                            'bill_date' => $request->bill_date[$index] ?? null,
+                            'bill_amount' => $billAmount,
+                            'settlement_amount' => $settlementAmount,
+                            'employee_claim_amount' => $employeeExtra,
+                            'bill_file' => $billFile,
+                            'remarks' => $request->remarks ?? null,
+                        ];
+                    }
+                    // $settlement = IouSettlement::create([
+                    //     'ticket_id' => $ticketId,
+                    //     'employee_id' => $employeeId,
+                    //     'current_balance' => $currentBalance,
+                    //     'total_bill_amount' => $totalBillAmount,
+                    //     'company_settlement_amount' => $companySettlementAmount,
+                    //     'employee_claim_amount' => $employeeClaimAmount,
+                    //     'remaining_balance' => $remainingBalance,
+                    //     'settlement_type' => $request->settlement_type,
+                    //     'settlement_status' => 'PENDING',
+                    //     'remarks' => $request->feedback,
+                    //     'created_by' => $loginUserId,
+                    // ]);
+                    $settlement = IouSettlement::create([
+                        'ticket_id' => $ticketId,
+                        'employee_id' => $employeeId,
+                        'current_balance' => $currentBalance,
+                        'total_bill_amount' => $totalBillAmount,
+                        'company_settlement_amount' => $companySettlementAmount,
+                        'employee_claim_amount' => $employeeClaimAmount,
+                        'remaining_balance' => $remainingBalance,
+                        'settlement_type' => $request->settlement_type,
+                        'settlement_status' => 'PENDING',
+                        'remarks' => $request->feedback,
+                        'created_by' => $loginUserId,
+                        'meta_data' => json_encode([
+                            'history' => [
+                                [
+                                    'action' => 'CREATED',
+                                    'remarks' => $request->feedback,
+                                    'user_id' => $loginUserId,
+                                    'date' => now()->toDateTimeString(),
+                                ],
+                            ],
+                        ]),
+                    ]);
+                    foreach ($settlementRows as $row) {
+                        IouSettlementItem::create([
+                            'settlement_id' => $settlement->settlement_id,
+                            'expense_type' => $row['expense_type'],
+                            'bill_date' => $row['bill_date'],
+                            'bill_amount' => $row['bill_amount'],
+                            'settlement_amount' => $row['settlement_amount'],
+                            'employee_claim_amount' => $row['employee_claim_amount'],
+                            'bill_file' => $row['bill_file'],
+                            'remarks' => $row['remarks'],
+                        ]);
+                    }
+                    IssueTicket::where('ticketId', $settlement->ticket_id)
+                        ->where('Status', 0)
+                        ->update(['Status' => 1]);
+                    // $employeeBalance = EmployeeBalance::firstOrCreate(
+                    //     [
+                    //         'employee_id' => $employeeId,
+                    //     ],
+                    //     [
+                    //         'total_iou_amount' => 0,
+                    //         'total_settlement_amount' => 0,
+                    //         'total_claim_amount' => 0,
+                    //         'pending_balance' => 0,
+                    //     ]
+                    // );
+                    // $employeeBalance->total_settlement_amount += $companySettlementAmount;
+                    // $employeeBalance->total_claim_amount += $employeeClaimAmount;
+                    // $employeeBalance->pending_balance =
+                    //     $employeeBalance->pending_balance - $companySettlementAmount;
+                    // if ($employeeBalance->pending_balance < 0) {
+                    //     $employeeBalance->pending_balance = 0;
+                    // }
+                    // $employeeBalance->save();
+
+                    // MoneyTransaction::create([
+                    //     'employee_id' => $employeeId,
+                    //     'ticket_id' => $ticketId,
+                    //     'reference_id' => $settlement->settlement_id,
+                    //     'type' => 'iou_settlement',
+                    //     'amount' => $companySettlementAmount,
+                    //     'remarks' => 'IOU Settlement Created',
+                    //     'created_by' => $loginUserId,
+                    // ]);
+                } elseif ($issueId == $PC_REQUEST) {
+
+                    // ── Validator ─────────────────────────────────────────────────────
+                    $validator = Validator::make($request->all(), [
+                        'Department'        => 'required',
+                        'Complaint'         => 'required',
+                        'TypeofEscalation'  => 'required',
+                        'feedback'          => 'required',
+                        'pc_request_amount' => 'required|numeric|min:1',
+                    ]);
+
+                    if ($validator->fails()) {
+                        return response()->json(['errors' => $validator->errors()], 422);
+                    }
+
+                    $user     = UserMaster::find($loginUserId);
+                    $branchId = $user->branch_id;
+                    $locCode = $user->branch->branch_code;
+
+                    $wallet   = DB::table('branch_wallet')
+                        ->where('branch_id', $branchId)
+                        ->first();
+
+                    $walletId               = $wallet->wallet_id       ?? null;
+                    $walletBalanceAtRaise   = $wallet->current_balance ?? 0.00;
+
+                    $category = IssueCategory::find($request->Complaint);
+                    $prefix   = $locCode . $month . 'T';
+                    $ticketNo = $this->generateTicketNo($prefix);
+                    // ── Insert issueTicket ─────────────────────────────────────────────
+
+                    $ticketId = DB::connection('sqlsrv')
+                        ->table('issueTicket')
+                        ->insertGetId([
+                            'Department' => $request->Department,
+                            'Subject' => $category->category_name ?? null,
+                            'Issuelevel2' => $category->category_name ?? null,
+                            'Issuelevel3' => $category->category_name ?? null,
+                            'Issuelevel5' => $category->category_name ?? null,
+                            'CustomerCode' => $request->customer_code ?? 'PC_REQUEST',
+                            'CustomerName' => $request->customer_name ?? 'Petty Cash Request',
+                            'LocId' => $locCode,
+                            'Branch' => $locCode,
+                            'Status' => 0,
+                            'type' => 'petty cash',
+                            'CreatedBy' => $userCode,
+                            'CreatedDate' => now(),
+                            'AcceptedBy' => $userCode,
+                            'RequiredTime' => 1,
+                            'RequiredTimeType' => 'Day',
+                            'FromProduct' => $request->from_product ?? '',
+                            'ToProduct' => $request->ToProduct ?? '',
+                            'BankName' => $request->bank_name ?? '',
+                            'CardNo' => $request->card_no ?? '',
+                            'CashAmt' => $request->cash_amt ?? 0,
+                            'CardAmt' => $request->card_amt ?? 0,
+                            'ScheduledDate' => $request->scheduled_date ?? null,
+                            'BillRaisedType' => $request->bill_raised_type ?? null,
+                            'NewBillType' => $request->new_bill_type ?? null,
+                            'ProductCode' => $request->product_code ?? null,
+                            'ServiceCode' => $request->service_code ?? null,
+                            'ServiceName' => $request->service_name ?? null,
+                            'DiscountAmt' => $request->discount_amt ?? 0,
+                            'BillNoFrom' => $request->bill_no_from ?? '',
+                            'BillNoTo' => $request->bill_no_to ?? '',
+                            'NewRequestedBillDate' => $request->new_requested_bill_date ?? null,
+                            'BillType' => $request->bill_type ?? '',
+                            'OriyanaId' => $request->oriyana_id ?? '',
+                            'MobileNo' => $request->alternateMobile ?? '',
+                            'EmpName' => $loginUser->UserName ?? '',
+                            'ApprovedStatus' => 'Pending',
+                            'ApprovedBy' => '',
+                            'Email' => $loginUser->Email ?? '',
+                            'UserId' => $employeeId ?? '',
+                            // 'branch_id' => $branchId,
+
+                        ]);
+
+                    // ── Insert pc_request ──────────────────────────────────────────────
+                    DB::table('pc_request')->insert([
+                        'ticket_id'               => $ticketId,
+                        'branch_id'               => $branchId,
+                        'wallet_id'               => $walletId,
+                        'raised_by'               => $loginUserId,
+                        'requested_amount'        => $request->pc_request_amount,
+                        'approved_amount'         => null,
+                        'reason'                  => $request->feedback,
+                        'urgency'                 => 'normal',
+                        'accounts_status'         => 'open',
+                        'mgmt_status'             => null,
+                        'transfer_ref'            => null,
+                        'transferred_at'          => null,
+                        'ticket_status'           => 'open',
+                        'wallet_balance_at_raise' => $walletBalanceAtRaise,
+                        'closed_at'               => null,
+                        'created_at'              => now(),
+                        'updated_at'              => now(),
+                    ]);
+                } elseif ($issueId == $PC_SETTLEMENT) {
+                     $validator = Validator::make($request->all(), [
+                        'Department'          => 'required',
+                        'Complaint'           => 'required',
+                        'TypeofEscalation'    => 'required',
+                        'feedback'            => 'required',
+                        'pc_expense_id.*'        => 'required',
+                        'pc_bill_number.*'       => 'required',
+                        'pc_bill_amount.*'       => 'required|numeric|min:0.01',
+                        'bill_files.*'        => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
+                    ]);
+
+                    if ($validator->fails()) {
+                        return response()->json(['errors' => $validator->errors()], 422);
+                    }
+
+                    $user     = UserMaster::find($loginUserId);
+                    $branchId = $user->branch_id;
+                    $locCode  = $user->branch->branch_code ?? $loginUser->Loc_id ?? 'GEN';
+
+                    $wallet               = BranchWallet::where('branch_id', $branchId)->first();
+                    $walletId             = $wallet->wallet_id       ?? null;
+                    $walletBalanceAtRaise = $wallet->current_balance ?? 0.00;
+
+                    $totalBillAmount = array_sum(array_map('floatval', $request->pc_bill_amount  ?? []));
+
+                    $category = IssueCategory::find($request->Complaint);
+                    $prefix   = $locCode . $month . 'T';
+                    $ticketNo = $this->generateTicketNo($prefix);
+
+                    $ticketId = DB::connection('sqlsrv')
+                        ->table('issueTicket')
+                        ->insertGetId([
+                            'Department'           => $request->Department,
+                            'Subject'              => $category->category_name ?? 'PC Bill',
+                            'Issuelevel2'          => $category->category_name ?? null,
+                            'Issuelevel3'          => $category->category_name ?? null,
+                            'Issuelevel5'          => $category->category_name ?? null,
+                            'CustomerCode' => $request->customer_code ?? 'PC_BILL',
+                            'CustomerName' => $request->customer_name ?? 'Petty Cash Bill Submission',
+                            'LocId'                => $locCode,
+                            'Branch'               => $locCode,
+                            'Status'               => 0,
+                            'type'                 => 'petty bill',
+                            'CreatedBy'            => $userCode,
+                            'CreatedDate'          => now(),
+                            'AcceptedBy'           => $userCode,
+                            'RequiredTime'         => 1,
+                            'RequiredTimeType'     => 'Day',
+                             'FromProduct' => $request->from_product ?? '',
+                            'ToProduct' => $request->ToProduct ?? '',
+                            'BankName' => $request->bank_name ?? '',
+                            'CardNo' => $request->card_no ?? '',
+                            'CashAmt' => $request->cash_amt ?? 0,
+                            'CardAmt' => $request->card_amt ?? 0,
+                            'ScheduledDate' => $request->scheduled_date ?? null,
+                            'BillRaisedType' => $request->bill_raised_type ?? null,
+                            'NewBillType' => $request->new_bill_type ?? null,
+                            'ProductCode' => $request->product_code ?? null,
+                            'ServiceCode' => $request->service_code ?? null,
+                            'ServiceName' => $request->service_name ?? null,
+                            'DiscountAmt' => $request->discount_amt ?? 0,
+                            'BillNoFrom' => $request->bill_no_from ?? '',
+                            'BillNoTo' => $request->bill_no_to ?? '',
+                            'NewRequestedBillDate' => $request->new_requested_bill_date ?? null,
+                            'BillType' => $request->bill_type ?? '',
+                            'OriyanaId' => $request->oriyana_id ?? '',
+                            'MobileNo' => $request->alternateMobile ?? '',
+                            'EmpName' => $loginUser->UserName ?? '',
+                            'ApprovedStatus' => 'Pending',
+                            'ApprovedBy' => '',
+                            'Email' => $loginUser->Email ?? '',
+                            'UserId' => $employeeId ?? '',
+                        ]);
+
+                    $submission = PcBillSubmission::create([
+                        'ticket_id'               => $ticketId,
+                        'branch_id'               => $branchId,
+                        'wallet_id'               => $walletId,
+                        'raised_by'               => $loginUserId,
+                        // 'category'                => 'misc',
+                        'description'             => $request->pc_bill_description ?? null,
+                        'total_bill_amount'       => $totalBillAmount,
+                        'accounts_status'         => 'open',
+                        'ticket_status'           => 'open',
+                        'wallet_balance_at_raise' => $walletBalanceAtRaise,
+                        'meta_data'               => json_encode([
+                            'history' => [[
+                                'action'       => 'CREATED',
+                                'remarks'      => $request->feedback,
+                                'changed_by'   => $loginUserId,
+                                'changed_name' => $user->UserName ?? '',
+                                'date'         => now()->toDateTimeString(),
+                            ]]
+                        ]),
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ]);
+
+                    // ── Upload path ────────────────────────────────────────────────────
+                    $uploadPath = public_path('uploads/pc_bills');
+                    if (!file_exists($uploadPath)) {
+                        mkdir($uploadPath, 0755, true);
+                    }
+
+                    foreach ($request->pc_bill_amount  as $index => $amount) {
+                        if (empty($amount)) continue;
+
+                        $attachmentPath = null;
+
+                        // if ($request->hasFile("bill_files.$index")) {
+                        //     $file           = $request->file("bill_files.$index");
+                        //     $fileName       = time() . '_' . $index . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
+                        //     $file->move($uploadPath, $fileName);
+                        //     $attachmentPath = 'uploads/pc_bills/' . $fileName;
+                        // }
+
+                        PcBillItem::create([
+                            'submission_id'    => $submission->submission_id,
+                            'expense_id'       => $request->pc_expense_id[$index]       ?? null,
+                            // 'bill_description' => $request->bill_description[$index] ?? null,
+                            'bill_number'      => $request->pc_bill_number[$index]      ?? null,
+                            // 'bill_date'        => $request->bill_date[$index],
+                            'amount'           => (float) $amount,
+                            // 'attachment_path'  => $attachmentPath,
+                            'item_status'      => 'pending',
+                            'created_at'       => now(),
+                        ]);
+                    }
+                }
+                //  NOTIFICATION
+                NotificationService::send(
+                    23900,
+                    'New Account Ticket Created',
+                    'Account Ticket #' . $ticketId . ' created',
                     'ticket',
                     $ticketId
                 );
             }
-
             /*
-        ======================================================
-        CUSTOMER FLOW
-        ======================================================
-        */ else {
+             ======================================================
+             CUSTOMER FLOW
+             ======================================================
+            */ else {
                 $validator = Validator::make($request->all(), [
                     'Department' => 'required',
                     'Complaint' => 'required',
@@ -345,7 +1071,7 @@ class TicketController extends Controller
                 $category = IssueCategory::find($request->Complaint);
                 $issue = IssueMaster::find($request->TypeofEscalation);
 
-                $prefix = $locCode.$month.'T';
+                $prefix = $locCode . $month . 'T';
                 $ticketNo = $this->generateTicketNo($prefix);
 
                 $ticketId = DB::connection('sqlsrv')
@@ -422,7 +1148,7 @@ class TicketController extends Controller
                 NotificationService::send(
                     23900,
                     'New Ticket Assigned',
-                    'Ticket #'.$ticketId.' assigned to you',
+                    'Ticket #' . $ticketId . ' assigned to you',
                     'ticket',
                     $ticketId
                 );
@@ -449,18 +1175,18 @@ class TicketController extends Controller
 
     private function generateTicketNo($prefix)
     {
-        $last = IssueTicket::where('TicketCode', 'LIKE', $prefix.'%')
+        $last = IssueTicket::where('TicketCode', 'LIKE', $prefix . '%')
             ->orderBy('ticketId', 'desc')
             ->first();
 
         $next = 1;
 
         if ($last && $last->TicketCode) {
-            preg_match('/'.$prefix.'(\d+)/', $last->TicketCode, $m);
+            preg_match('/' . $prefix . '(\d+)/', $last->TicketCode, $m);
             $next = isset($m[1]) ? ((int) $m[1] + 1) : 1;
         }
 
-        return $prefix.$next;
+        return $prefix . $next;
     }
 
     public function customerTickets(Request $request)
