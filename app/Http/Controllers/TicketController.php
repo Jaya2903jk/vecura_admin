@@ -24,6 +24,7 @@ use App\Models\IssueTicket;
 use App\Models\MoneyTransaction;
 use App\Models\PatientPersonalDetail;
 use App\Models\UserMaster;
+use App\Models\FacilityTicket;
 use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -36,7 +37,7 @@ class TicketController extends Controller
         $currentUserId = session('user_id');
         // Logged in user
         $loginUser = UserMaster::where('UserID', $currentUserId)->first();
-        $totalTickets = IssueTicket::whereIn('type', ['vsupport', 'hr', 'biomedical', 'accounts', 'Settlement', 'petty cash','petty bill'])->count();
+        $totalTickets = IssueTicket::whereIn('type', ['vsupport', 'hr', 'biomedical', 'accounts', 'Settlement', 'petty cash', 'petty bill'])->count();
 
         $perPage = $request->get('per_page', 10);
         $status = $request->status;
@@ -60,7 +61,7 @@ class TicketController extends Controller
                 },
             ])
             ->orderBy('CreatedDate', 'desc')
-            ->whereIn('type', ['vsupport', 'hr', 'biomedical', 'accounts', 'Settlement', 'petty cash','petty bill']);
+            ->whereIn('type', ['vsupport', 'hr', 'biomedical', 'accounts', 'Settlement', 'petty cash', 'petty bill']);
 
         if ($request->has('type') && $type != '') {
             $q->where('type', $type);
@@ -148,6 +149,8 @@ class TicketController extends Controller
             $REPLACEMENT_REQUEST = 22;
             $SERVICE_REQUEST = 23;
             $ACCOUNTS_DEPARTMENT = 32;
+            $FACILITY_DEPARTMENT = 29;
+
             /*
         ======================================================
         HR FLOW
@@ -909,7 +912,7 @@ class TicketController extends Controller
                         'updated_at'              => now(),
                     ]);
                 } elseif ($issueId == $PC_SETTLEMENT) {
-                     $validator = Validator::make($request->all(), [
+                    $validator = Validator::make($request->all(), [
                         'Department'          => 'required',
                         'Complaint'           => 'required',
                         'TypeofEscalation'    => 'required',
@@ -957,7 +960,7 @@ class TicketController extends Controller
                             'AcceptedBy'           => $userCode,
                             'RequiredTime'         => 1,
                             'RequiredTimeType'     => 'Day',
-                             'FromProduct' => $request->from_product ?? '',
+                            'FromProduct' => $request->from_product ?? '',
                             'ToProduct' => $request->ToProduct ?? '',
                             'BankName' => $request->bank_name ?? '',
                             'CardNo' => $request->card_no ?? '',
@@ -1046,6 +1049,101 @@ class TicketController extends Controller
                     'ticket',
                     $ticketId
                 );
+            } elseif ($request->Department == $FACILITY_DEPARTMENT) {
+
+                $FL_NEW         = config('ticket.FL_NEW');
+                $FL_REPLACEMENT = config('ticket.FL_REPLACEMENT');
+                $FL_SERVICE     = config('ticket.FL_SERVICE');
+
+                $validator = Validator::make($request->all(), [
+                    'Department'           => 'required',
+                    'Complaint'            => 'required',
+                    'TypeofEscalation'     => 'required',
+                    'feedback'             => 'required',
+                    'facility_category_id' => 'required|exists:facility_issue_category,id',
+                ]);
+
+                if ($validator->fails()) {
+                    return response()->json(['errors' => $validator->errors()], 422);
+                }
+
+                $requestType = match ((int) $request->TypeofEscalation) {
+                    (int) $FL_NEW         => 'new',
+                    (int) $FL_REPLACEMENT => 'replacement',
+                    (int) $FL_SERVICE     => 'service',
+                    default               => 'new',
+                };
+
+                $category = IssueCategory::find($request->Complaint);
+                $prefix   = $locCode . $month . 'T';
+                $ticketNo = $this->generateTicketNo($prefix);
+
+                $ticketId = DB::connection('sqlsrv')
+                    ->table('issueTicket')
+                    ->insertGetId([
+                        'Department'           => $request->Department,
+                        'Subject'              => 'Facility',
+                        'Issuelevel2'          => $category->category_name ?? null,
+                        'Issuelevel3'          => $category->category_name ?? null,
+                        'Issuelevel5'          => $category->category_name ?? null,
+                        'CustomerCode'         => 'FACILITY',
+                        'CustomerName'         => 'Facility Ticket',
+                        'LocId'                => $locCode,
+                        'Branch'               => $locCode,
+                        'Status'               => 0,
+                        'type'                 => 'facility',
+                        'CreatedBy'            => $userCode,
+                        'CreatedDate'          => now(),
+                        'AcceptedBy'           => $userCode,
+                        'RequiredTime'         => 1,
+                        'RequiredTimeType'     => 'Day',
+                        'FromProduct'          => '',
+                        'ToProduct'            => '',
+                        'BankName'             => '',
+                        'CardNo'               => '',
+                        'CashAmt'              => 0,
+                        'CardAmt'              => 0,
+                        'ScheduledDate'        => null,
+                        'BillRaisedType'       => null,
+                        'NewBillType'          => null,
+                        'ProductCode'          => null,
+                        'ServiceCode'          => null,
+                        'ServiceName'          => null,
+                        'DiscountAmt'          => 0,
+                        'BillNoFrom'           => '',
+                        'BillNoTo'             => '',
+                        'NewRequestedBillDate' => null,
+                        'BillType'             => '',
+                        'OriyanaId'            => '',
+                        'MobileNo'             => $request->alternateMobile ?? '',
+                        'EmpName'              => $loginUser->UserName ?? '',
+                        'ApprovedStatus'       => 'Pending',
+                        'ApprovedBy'           => '',
+                        'Email'                => $loginUser->Email ?? '',
+                        'UserId'               => $loginUserId,
+                    ]);
+
+                FacilityTicket::create([
+                    'ticket_id'            => $ticketId,
+                    'branch_id'            => $loginUser->branch_id ?? null,
+                    'department_id'        => $request->Department,
+                    'category_id'          => $request->Complaint,
+                    'issue_id'             => $request->TypeofEscalation,
+                    'facility_category_id' => $request->facility_category_id,
+                    'request_type'         => $requestType,
+                    'description'          => $request->feedback,
+                    'status'               => 'Pending',
+                    'meta_data'            => json_encode([
+                        'history' => [[
+                            'action'       => 'CREATED',
+                            'remarks'      => $request->feedback,
+                            'changed_by'   => $loginUserId,
+                            'changed_name' => $loginUser->UserName ?? '',
+                            'date'         => now()->toDateTimeString(),
+                        ]],
+                    ]),
+                    'created_by' => $loginUserId,
+                ]);
             }
             /*
              ======================================================

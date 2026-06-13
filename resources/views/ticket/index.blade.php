@@ -262,6 +262,8 @@
                                             // $isPCBill = $subject === 'pc_bill';
                                             $isPCRequest = $ticketType === 'petty cash';
                                             $isPCBill = $ticketType === 'petty bill';
+                                            $isFacility = $ticketType === 'facility'; // ← add
+
                                         @endphp
                                         <div class="d-flex gap-1">
 
@@ -275,6 +277,7 @@
                                                       {{ route('pc.view', $t->ticketId) }}
                                                         @elseif($isPCBill)
                                                       {{ route('pc.bill.view', $t->ticketId) }}
+                                                        @elseif($isFacility)  {{ route('t.view', $t->ticketId) }}
                                                        @else
                                                       {{ route('ticket.view', $t->ticketId) }} @endif
                                                          ">
@@ -1164,9 +1167,9 @@
                 $('#pc_bill_total').val('₹ 0.00');
                 $('#pc_bill_exceed_warning').hide();
 
-$("#fl_facility_block").hide();
-$("#facility_category_id").html('<option value="">Select Facility Category</option>');
-$("select[name='facility_category_id']").prop('required', false);
+                $("#fl_facility_block").hide();
+                $("#facility_category_id").html('<option value="">Select Facility Category</option>');
+                $("select[name='facility_category_id']").prop('required', false);
 
                 $("input[name='from_date'], input[name='to_date'], input[name='attendance_date']")
                     .val('')
