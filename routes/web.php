@@ -135,6 +135,10 @@ Route::middleware(['auth.custom', 'nocache'])->group(function () {
     Route::get('/pc-bill/{ticketId}',              [PcBillController::class, 'view'])->name('pc.bill.view');
     Route::post('/pc-bill/{submissionId}/status',  [PcBillController::class, 'updateStatus'])->name('pc.bill.status');
     Route::get('/expense-master',                  [PcBillController::class, 'getExpenseMaster']);
+// web.php
+Route::get('/facility-ticket/{ticketId}',       [FacilityController::class, 'view'])         ->name('facility.view');
+Route::post('/facility-ticket/{id}/status',     [FacilityController::class, 'updateStatus']) ->name('facility.status');
+Route::get('/facility-categories',              [FacilityController::class, 'getCategories']);
 
     Route::get('/search-customer', [MasterController::class, 'searchCustomer']);
     Route::get('/departments', [MasterController::class, 'departments']);
@@ -144,7 +148,7 @@ Route::middleware(['auth.custom', 'nocache'])->group(function () {
         return IssueCategory::where('department_id', $department_id)->get();
     });
     Route::get('/expense-master', [PcBillController::class, 'getExpenseMaster']);
-Route::get('/facility-categories', [MasterController::class, 'getFacilityCategories']);
+    Route::get('/facility-categories', [MasterController::class, 'getFacilityCategories']);
 
 
     Route::get('/employees', [MasterController::class, 'employees']);
