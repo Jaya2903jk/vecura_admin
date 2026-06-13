@@ -79,9 +79,7 @@
                                 @forelse($IssueDepartment as $dept)
                                     <tr>
                                         <td>{{ $dept->DepartmentName }}</td>
-
-                                        <td>-</td> {{-- No description column in DB --}}
-
+                                        <td>-</td>
                                         <td>
                                             @if ($dept->Status == 1)
                                                 <span class="badge badge-soft-success border border-success">Active</span>
@@ -89,7 +87,6 @@
                                                 <span class="badge badge-soft-danger border border-danger">Inactive</span>
                                             @endif
                                         </td>
-
                                         <td>
                                             <div class="action-item">
                                                 <a href="javascript:void(0);" data-bs-toggle="dropdown">
@@ -141,9 +138,8 @@
                     </div>
 
                 </div>
-                <div class="pagination-box">
-                    {{ $IssueDepartment->appends(['per_page' => $perPage])->links('pagination::bootstrap-5') }}
-                </div>
+                <x-pagination :paginator="$IssueDepartment" :append="['per_page' => $perPage]" />
+
 
             </div>
             <script>

@@ -119,9 +119,9 @@
                         entries</div>
                 </div>
             </div>
-            <div class="pagination-box">
-                {{ $branches->appends(['per_page' => $perPage])->links('pagination::bootstrap-5') }}
-            </div>
+
+            <x-pagination :paginator="$branches" :append="['per_page' => $perPage]" />
+
         </div>
     </div>
 

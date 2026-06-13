@@ -1,6 +1,7 @@
 <?php
 
 return [
+    
     'LEAVE_REQUEST' => '11',
     'ATTENDANCE_ISSUE' => '13',
     'NEW_JOINEE' => '19',
@@ -10,6 +11,10 @@ return [
     'SETTLEMENT' => '26',
     'PC_REQUEST' => '27',
     'PC_SETTLEMENT' => '28',
+    'FL_NEW' => '29',
+    'FL_REPLACEMENT' => '30',
+    'FL_SERVICE' => '31',
+
 
 
 ];

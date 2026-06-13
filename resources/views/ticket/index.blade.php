@@ -260,8 +260,8 @@
                                             $isIOURequest = $subject === 'iou request';
                                             // $isPettyCash = $subject === 'petty cash';
                                             // $isPCBill = $subject === 'pc_bill';
-                                             $isPCRequest = $ticketType === 'petty cash';
-                                           $isPCBill    = $ticketType === 'petty bill';
+                                            $isPCRequest = $ticketType === 'petty cash';
+                                            $isPCBill = $ticketType === 'petty bill';
                                         @endphp
                                         <div class="d-flex gap-1">
 
@@ -539,9 +539,9 @@
                     </div>
 
                 </div>
-                <div class="pagination-box">
-                    {{ $tickets->appends(['per_page' => $perPage])->links('pagination::bootstrap-5') }}
-                </div>
+
+                <x-pagination :paginator="$tickets" :append="['per_page' => $perPage]" />
+
 
             </div>
             <script>
@@ -565,13 +565,16 @@
             const LEAVE_REQUEST_ID = "{{ $leaveRequestId }}";
             const ATTENDANCE_ISSUE_ID = "{{ config('ticket.ATTENDANCE_ISSUE') }}";
             const NEW_JOINEE = "{{ config('ticket.NEW_JOINEE') }}";
-            // const HR_ID = 51;
             const HR_ID = "{{ config('ticket.HR') }}";
             const IOU_REQUEST_ID = "{{ config('ticket.IOU') }}";
             const CLAIM_REQUEST_ID = "{{ config('ticket.CLAIM_REQUEST') }}";
             const SETTELMENT_ID = "{{ config('ticket.SETTLEMENT') }}";
             const PC_REQUEST_ID = "{{ config('ticket.PC_REQUEST') }}";
             const PC_SETTLEMENT_ID = "{{ config('ticket.PC_SETTLEMENT') }}";
+
+            const FL_NEW = "{{ config('ticket.FL_NEW') }}";
+            const FL_REPLACEMENT = "{{ config('ticket.FL_REPLACEMENT') }}";
+            const FL_SERVICE = "{{ config('ticket.FL_SERVICE') }}";
 
             // const CLAIM_REQUEST_ID = 25;
             $.ajax({
@@ -608,12 +611,10 @@
             //  Show only if V Support (ID = 33)
             $("#department").on("change", function() {
                 let deptId = $(this).val();
-
                 if (deptId == 33) {
                     $("#vsupport_block").show();
                 } else {
                     $("#vsupport_block").hide();
-
                     // reset values
                     $("#assign_to").val("");
                     $("#source").val("");
@@ -623,7 +624,6 @@
 
             $("#department").change(function() {
                 $("#leave_request_block").hide();
-
                 let deptId = $(this).val();
                 $("#employee_common_block").hide();
                 $("#leave_request_block").hide();
@@ -631,8 +631,6 @@
                 $("input[name='from_date'], input[name='to_date'], input[name='attendance_date']")
                     .val('')
                     .prop('required', false);
-
-                // HR → show employee
                 if (deptId == HR_ID) {
                     $("#employee_common_block").show();
                     $("#employee_common").prop('required', true);
@@ -664,7 +662,6 @@
                 let categoryId = $(this).val();
                 $("#leave_request_block").hide();
                 $("#attendance_block").hide();
-
                 $("#issue").html('<option value="">Loading...</option>');
 
                 if (categoryId != "") {
@@ -928,19 +925,14 @@
                     readonly>
 
             </td>
-
             <td>
-
                 <input type="text"
                     name="employee_extra_amount[]"
                     class="form-control employee-extra bg-danger text-white"
                     value="0.00"
                     readonly>
-
             </td>
-
             <td>
-
                 <input type="file"
                     name="settlement_files[]"
                     class="form-control">
@@ -1140,6 +1132,7 @@
                 $('#remaining_balance')
                     .val(remainingBalance.toFixed(2));
             }
+
             $("#issue").on("change", function() {
                 let issueId = $(this).val();
                 let deptId = $("#department").val();
@@ -1170,6 +1163,10 @@
                 $('#pc_bill_items_body').html('');
                 $('#pc_bill_total').val('₹ 0.00');
                 $('#pc_bill_exceed_warning').hide();
+
+$("#fl_facility_block").hide();
+$("#facility_category_id").html('<option value="">Select Facility Category</option>');
+$("select[name='facility_category_id']").prop('required', false);
 
                 $("input[name='from_date'], input[name='to_date'], input[name='attendance_date']")
                     .val('')
@@ -1260,11 +1257,11 @@
                 } else if (issueId == PC_SETTLEMENT_ID) {
                     $("#pc_bill_block").slideDown();
                     fetchPcBillWalletBalance();
+                } else if (issueId == FL_NEW || issueId == FL_REPLACEMENT || issueId == FL_SERVICE) {
+                    $("#fl_facility_block").slideDown();
+                    loadFacilityCategories();
                 }
 
-                // 21 = New Request
-                // 22 = Replacement
-                // 23 = Service Request
                 if (issueId == 21 || issueId == 22 || issueId == 23) {
                     $("#machine_block").slideDown();
                     if (issueId == 23) {
@@ -1298,13 +1295,9 @@
             $("#machine_issue_type, #machine_id").on("change", function() {
 
                 let issueId = $("#issue").val();
-
                 let machineId = $("#machine_id").val();
-
                 let type = $("#machine_issue_type").val();
-
                 $("#machine_issues_checkbox").html('');
-
                 $("#machine_issues_checkbox_block").hide();
                 if (issueId != 23) {
                     return;
@@ -1313,7 +1306,6 @@
                     machineId != '' &&
                     type != ''
                 ) {
-
                     $.ajax({
                         url: "/machine-issues-list",
                         type: "GET",
@@ -1404,8 +1396,6 @@
                     }
                 });
             }
-
-            // 2. warning check
             $(document).on('keyup change', '#pc_request_amount', function() {
                 let requested = parseFloat($(this).val()) || 0;
                 let balance = parseFloat($('#pc_wallet_balance').data('balance')) || 0;
@@ -1468,34 +1458,34 @@
                 let idx = billRowIndex++;
 
                 let row = `
-    <tr class="bill-item-row" data-index="${idx}">
-        <td style="padding:8px;">
-            <select name="pc_expense_id[]"
+             <tr class="bill-item-row" data-index="${idx}">
+             <td style="padding:8px;">
+             <select name="pc_expense_id[]"
                     class="form-control form-control-sm">
                 ${expenseOptions}
-            </select>
-        </td>
-        <td style="padding:8px;">
-            <input type="text"
+             </select>
+             </td>
+             <td style="padding:8px;">
+             <input type="text"
                    name="pc_bill_number[]"
                    class="form-control form-control-sm"
                    placeholder="Bill No">
-        </td>
-        <td style="padding:8px;">
-            <input type="number"
+              </td>
+             <td style="padding:8px;">
+                  <input type="number"
                    name="pc_bill_amount[]"
                    class="form-control form-control-sm pc-bill-amount"
                    placeholder="0.00"
                    step="0.01"
                    min="0.01">
-        </td>
-        <td style="padding:8px;">
-            <input type="file"
+              </td>
+              <td style="padding:8px;">
+                  <input type="file"
                    name="bill_files[${idx}]"
                    class="form-control form-control-sm bill-file-input"
                    accept=".jpg,.jpeg,.png,.pdf"
                    data-index="${idx}">
-            <div id="preview_${idx}" style="display:none; margin-top:4px;">
+                  <div id="preview_${idx}" style="display:none; margin-top:4px;">
                 <small class="text-success">
                     <i class="ti ti-paperclip me-1"></i>
                     <span class="file-name"></span>
@@ -1590,7 +1580,6 @@
                 }
             }
 
-            // ── Reset pc_bill_block ────────────────────────────────────────────────────
             $("#pc_bill_block").hide();
             $('#pc_bill_wallet_balance').val('').removeData('balance');
             $('#pc_bill_items_body').html('');
@@ -1598,6 +1587,20 @@
             $('#pc_bill_total').val('0');
             $('#pc_bill_exceed_warning').hide();
             billRowIndex = 0;
+
+            function loadFacilityCategories() {
+                $.ajax({
+                    url: "/facility-categories",
+                    type: "GET",
+                    success: function(res) {
+                        let options = '<option value="">Select Facility Category</option>';
+                        res.data.forEach(function(f) {
+                            options += `<option value="${f.id}">${f.name}</option>`;
+                        });
+                        $("#facility_category_id").html(options);
+                    }
+                });
+            }
         });
     </script>
     <script>

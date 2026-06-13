@@ -14973,154 +14973,157 @@
                                 </div>
                             </div>
                             {{-- ── Petty Cash Request Block ──────────────────────────────────────── --}}
-<div id="pc_request_block" style="display:none;">
+                            <div id="pc_request_block" style="display:none;">
 
-    {{-- Heading --}}
-<div class="col-lg-12 mb-1">
-    <small class="bg-primary text-white fw-semibold text-uppercase px-2 py-1 rounded" style="font-size:11px; letter-spacing:.5px;">
-        <i class="ti ti-wallet me-1"></i> Petty Cash Request
-    </small>
-    <hr class="mt-1 mb-2">
-</div>
+                                {{-- Heading --}}
+                                <div class="col-lg-12 mb-1">
+                                    <small class="bg-primary text-white fw-semibold text-uppercase px-2 py-1 rounded"
+                                        style="font-size:11px; letter-spacing:.5px;">
+                                        <i class="ti ti-wallet me-1"></i> Petty Cash Request
+                                    </small>
+                                    <hr class="mt-1 mb-2">
+                                </div>
 
-    {{-- Balance --}}
-    <div class="col-lg-12">
-        <div class="mb-2">
-            <label class="form-label">Branch Wallet Balance</label>
-            <div class="input-group">
-                <span class="input-group-text">
-                    <i class="ti ti-wallet"></i>
-                </span>
-                <input type="text"
-                       id="pc_wallet_balance"
-                       class="form-control fw-bold text-success"
-                       placeholder="Loading..."
-                       readonly>
-            </div>
-        </div>
+                                {{-- Balance --}}
+                                <div class="col-lg-12">
+                                    <div class="mb-2">
+                                        <label class="form-label">Branch Wallet Balance</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text">
+                                                <i class="ti ti-wallet"></i>
+                                            </span>
+                                            <input type="text" id="pc_wallet_balance"
+                                                class="form-control fw-bold text-success" placeholder="Loading..."
+                                                readonly>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {{-- Request Amount --}}
+                                <div class="col-lg-12">
+                                    <div class="mb-2">
+                                        <label class="form-label">
+                                            Request Amount <span class="text-danger">*</span>
+                                        </label>
+                                        <input type="number" name="pc_request_amount" id="pc_request_amount"
+                                            class="form-control" placeholder="Enter Amount" step="0.01"
+                                            min="1">
+                                        <small id="pc_balance_warning" class="text-danger"
+                                            style="display:none;">
+                                            <i class="ti ti-alert-triangle"></i>
+                                            Amount exceeds available balance!
+                                        </small>
+                                    </div>
+                                </div>
+
+                            </div>
+
+                            {{-- ── PC Bill Submission Block ───────────────────────────────────── --}}
+                            <div id="pc_bill_block" style="display:none;">
+
+                                {{-- Heading --}}
+                                <div class="col-lg-12 mb-1">
+                                    <small class="bg-primary text-white fw-semibold text-uppercase px-2 py-1 rounded"
+                                        style="font-size:11px; letter-spacing:.5px;">
+                                        <i class="ti ti-wallet me-1"></i> Bill Submission
+                                    </small>
+                                    <hr class="mt-1 mb-2">
+                                </div>
+
+                                {{-- Wallet Balance --}}
+                                <div class="col-lg-12 mb-2">
+                                    <label class="form-label">Branch Wallet Balance</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="ti ti-wallet"></i></span>
+                                        <input type="text" id="pc_bill_wallet_balance"
+                                            class="form-control fw-bold text-success" placeholder="Loading..."
+                                            readonly>
+                                    </div>
+                                </div>
+
+                                {{-- Bill Items --}}
+                                <div class="col-lg-12">
+                                    <label class="form-label fw-semibold mb-1">
+                                        Bill Items <span class="text-danger">*</span>
+                                    </label>
+                                    <div class="table-responsive">
+                                        <table class="table table-bordered mb-0" id="pc_bill_table"
+                                            style="font-size:13px;">
+                                            <thead>
+                                                <tr style="background:#3741b0;">
+                                                    <th class="fw-semibold"
+                                                        style="min-width:150px; padding:9px 12px;">
+                                                        Expense <span class="text-danger">*</span>
+                                                    </th>
+                                                    <th class=" fw-semibold"
+                                                        style="min-width:110px; padding:9px 12px;">
+                                                        Bill No
+                                                    </th>
+                                                    <th class=" fw-semibold"
+                                                        style="min-width:110px; padding:9px 12px;">
+                                                        Amount (₹) <span class="text-danger">*</span>
+                                                    </th>
+                                                    <th class="fw-semibold"
+                                                        style="min-width:160px; padding:9px 12px;">
+                                                        Attachment
+                                                        <small class="d-block fw-normal"
+                                                            style="font-size:10px; opacity:.8;">
+                                                            jpg, png, pdf (max 2MB)
+                                                        </small>
+                                                    </th>
+                                                    <th style="width:50px; padding:9px 12px; text-align:center;">
+                                                        <button type="button" id="add_bill_item"
+                                                            class="btn btn-sm btn-primary"
+                                                            style="background:#fff; color:#3741b0; border:none; border-radius:6px; padding:3px 8px;">
+                                                            <i class="ti ti-plus" style="font-size:15px;"></i>
+                                                        </button>
+                                                    </th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="pc_bill_items_body">
+                                                {{-- rows by JS --}}
+                                            </tbody>
+                                            <tfoot>
+                                                <tr style="background:#f8f9fb;">
+                                                    <td colspan="2" class="text-end align-middle pe-3"
+                                                        style="border-top:2px solid #3741b0; padding:10px 12px;">
+                                                        <span class="fw-bold text-dark" style="font-size:13px;">
+                                                            Total Amount:
+                                                        </span>
+                                                    </td>
+                                                    <td class="align-middle"
+                                                        style="border-top:2px solid #3741b0; padding:10px 12px;">
+                                                        <span id="pc_bill_total_display"
+                                                            class="fw-bold text-primary" style="font-size:15px;">
+                                                            ₹ 0.00
+                                                        </span>
+                                                        <input type="hidden" id="pc_bill_total"
+                                                            value="0">
+                                                    </td>
+                                                    <td colspan="2" style="border-top:2px solid #3741b0;">
+                                                    </td>
+                                                </tr>
+                                                <tr id="pc_bill_exceed_warning" style="display:none;">
+                                                    <td colspan="5" class="py-1 px-3">
+                                                        <small class="text-danger fw-semibold">
+                                                            <i class="ti ti-alert-triangle me-1"></i>
+                                                            Total bill amount exceeds wallet balance!
+                                                        </small>
+                                                    </td>
+                                                </tr>
+                                            </tfoot>
+                                        </table>
+                                    </div>
+                                </div>
+
+                            </div>
+                            <div id="fl_facility_block" style="display:none;">
+    <div class="col-md-12 mb-3">
+        <label>Facility Category <span class="text-danger">*</span></label>
+        <select name="facility_category_id" id="facility_category_id" class="form-control">
+            <option value="">Select Facility Category</option>
+        </select>
     </div>
-
-    {{-- Request Amount --}}
-    <div class="col-lg-12">
-        <div class="mb-2">
-            <label class="form-label">
-                Request Amount <span class="text-danger">*</span>
-            </label>
-            <input type="number"
-                   name="pc_request_amount"
-                   id="pc_request_amount"
-                   class="form-control"
-                   placeholder="Enter Amount"
-                   step="0.01"
-                   min="1">
-            <small id="pc_balance_warning"
-                   class="text-danger"
-                   style="display:none;">
-                <i class="ti ti-alert-triangle"></i>
-                Amount exceeds available balance!
-            </small>
-        </div>
-    </div>
-
-</div>
-
-{{-- ── PC Bill Submission Block ───────────────────────────────────── --}}
-<div id="pc_bill_block" style="display:none;">
-
-    {{-- Heading --}}
-    <div class="col-lg-12 mb-1">
-        <small class="bg-primary text-white fw-semibold text-uppercase px-2 py-1 rounded" style="font-size:11px; letter-spacing:.5px;">
-        <i class="ti ti-wallet me-1"></i> Bill Submission
-    </small>
-        <hr class="mt-1 mb-2">
-    </div>
-
-    {{-- Wallet Balance --}}
-    <div class="col-lg-12 mb-2">
-        <label class="form-label">Branch Wallet Balance</label>
-        <div class="input-group">
-            <span class="input-group-text"><i class="ti ti-wallet"></i></span>
-            <input type="text"
-                   id="pc_bill_wallet_balance"
-                   class="form-control fw-bold text-success"
-                   placeholder="Loading..."
-                   readonly>
-        </div>
-    </div>
-
-    {{-- Bill Items --}}
-    <div class="col-lg-12">
-        <label class="form-label fw-semibold mb-1">
-            Bill Items <span class="text-danger">*</span>
-        </label>
-        <div class="table-responsive">
-            <table class="table table-bordered mb-0" id="pc_bill_table"
-                   style="font-size:13px;">
-                <thead>
-                    <tr style="background:#3741b0;">
-                        <th class="fw-semibold" style="min-width:150px; padding:9px 12px;">
-                            Expense <span class="text-danger">*</span>
-                        </th>
-                        <th class=" fw-semibold" style="min-width:110px; padding:9px 12px;">
-                            Bill No
-                        </th>
-                        <th class=" fw-semibold" style="min-width:110px; padding:9px 12px;">
-                            Amount (₹) <span class="text-danger">*</span>
-                        </th>
-                        <th class="fw-semibold" style="min-width:160px; padding:9px 12px;">
-                            Attachment
-                            <small class="d-block fw-normal" style="font-size:10px; opacity:.8;">
-                                jpg, png, pdf (max 2MB)
-                            </small>
-                        </th>
-                        <th style="width:50px; padding:9px 12px; text-align:center;">
-                            <button type="button"
-                                    id="add_bill_item"
-                                    class="btn btn-sm btn-primary"
-                                    style="background:#fff; color:#3741b0; border:none; border-radius:6px; padding:3px 8px;">
-                                <i class="ti ti-plus" style="font-size:15px;"></i>
-                            </button>
-                        </th>
-                    </tr>
-                </thead>
-                <tbody id="pc_bill_items_body">
-                    {{-- rows by JS --}}
-                </tbody>
-                <tfoot>
-                    <tr style="background:#f8f9fb;">
-                        <td colspan="2"
-                            class="text-end align-middle pe-3"
-                            style="border-top:2px solid #3741b0; padding:10px 12px;">
-                            <span class="fw-bold text-dark" style="font-size:13px;">
-                                Total Amount:
-                            </span>
-                        </td>
-                        <td class="align-middle"
-                            style="border-top:2px solid #3741b0; padding:10px 12px;">
-                            <span id="pc_bill_total_display"
-                                  class="fw-bold text-primary"
-                                  style="font-size:15px;">
-                                ₹ 0.00
-                            </span>
-                            <input type="hidden" id="pc_bill_total" value="0">
-                        </td>
-                        <td colspan="2"
-                            style="border-top:2px solid #3741b0;">
-                        </td>
-                    </tr>
-                    <tr id="pc_bill_exceed_warning" style="display:none;">
-                        <td colspan="5" class="py-1 px-3">
-                            <small class="text-danger fw-semibold">
-                                <i class="ti ti-alert-triangle me-1"></i>
-                                Total bill amount exceeds wallet balance!
-                            </small>
-                        </td>
-                    </tr>
-                </tfoot>
-            </table>
-        </div>
-    </div>
-
 </div>
                             <div class="col-lg-12">
                                 <div class="mb-2">

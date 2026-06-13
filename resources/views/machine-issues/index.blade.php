@@ -72,9 +72,9 @@
                     </div>
 
                 </div>
-                <div class="pagination-box">
-                    {{ $MachineIssues->appends(['per_page' => $perPage])->links('pagination::bootstrap-5') }}
-                </div>
+
+                <x-pagination :paginator="$MachineIssues" :append="['per_page' => $perPage]" />
+
 
             </div>
             <script>

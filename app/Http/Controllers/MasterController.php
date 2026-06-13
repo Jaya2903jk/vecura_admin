@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\ComplaintActionLog;
 use App\Models\LocationMaster;
 use App\Models\UserMaster;
+use App\Models\FacilityIssueCategory;
+
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -207,8 +209,13 @@ class MasterController extends Controller
             'total_credited' => $wallet->total_credited ?? 0,
             'total_debited' => $wallet->total_debited ?? 0,
             'last_updated' => $wallet
-                                ? date('d M Y h:i A', strtotime($wallet->last_updated))
-                                : null,
+                ? date('d M Y h:i A', strtotime($wallet->last_updated))
+                : null,
         ]);
+    }
+    public function getFacilityCategories()
+    {
+        $data = FacilityIssueCategory::where('status', 1)->orderBy('name')->get();
+        return response()->json(['data' => $data]);
     }
 }

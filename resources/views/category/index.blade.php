@@ -68,10 +68,7 @@
                     </div>
 
                 </div>
-                <div class="pagination-box">
-                    {{ $categories->appends(['per_page' => $perPage])->links('pagination::bootstrap-5') }}
-                </div>
-
+                <x-pagination :paginator="$categories" :append="['per_page' => $perPage]" />
             </div>
             <script>
                 document.getElementById('perPageDept').addEventListener('change', function() {

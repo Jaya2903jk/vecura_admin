@@ -27,6 +27,7 @@ use App\Http\Controllers\StaffController;
 use App\Http\Controllers\TicketController;
 use App\Http\Controllers\PcRequestController;
 use App\Http\Controllers\PcBillController;
+use App\Http\Controllers\FacilityIssueCategoryController;
 use App\Models\IssueCategory;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
@@ -71,6 +72,11 @@ Route::middleware(['auth.custom', 'nocache'])->group(function () {
 
     Route::get('/machines', [MachineController::class, 'getMachines']);
     Route::get('/machine-issues-list', [MachineIssuesController::class, 'getMachineIssues']);
+
+    Route::get('/facility-issue-category',          [FacilityIssueCategoryController::class, 'index'])->name('facility.issue.category.index');
+    Route::post('/facility-issue-category',          [FacilityIssueCategoryController::class, 'store'])->name('facility.issue.category.store');
+    Route::put('/facility-issue-category/{id}',      [FacilityIssueCategoryController::class, 'update'])->name('facility.issue.category.update');
+    Route::delete('/facility-issue-category/{id}',   [FacilityIssueCategoryController::class, 'destroy'])->name('facility.issue.category.destroy');
 
     Route::get('/tickets', [TicketController::class, 'index'])->name('tickets');
     Route::get('/ticket-summary', [TicketSummaryController::class, 'index'])->name('ticket.summary');
@@ -122,13 +128,13 @@ Route::middleware(['auth.custom', 'nocache'])->group(function () {
 
 
     // web.php
-Route::get('/pc-request/{ticketId}', [PcRequestController::class, 'view'])->name('pc.view');
-Route::post('/pc-request/{requestId}/status', [PcRequestController::class, 'updateStatus'])->name('pc.request.status');
+    Route::get('/pc-request/{ticketId}', [PcRequestController::class, 'view'])->name('pc.view');
+    Route::post('/pc-request/{requestId}/status', [PcRequestController::class, 'updateStatus'])->name('pc.request.status');
 
-// PC Bill
-Route::get('/pc-bill/{ticketId}',              [PcBillController::class, 'view'])         ->name('pc.bill.view');
-Route::post('/pc-bill/{submissionId}/status',  [PcBillController::class, 'updateStatus']) ->name('pc.bill.status');
-Route::get('/expense-master',                  [PcBillController::class, 'getExpenseMaster']);
+    // PC Bill
+    Route::get('/pc-bill/{ticketId}',              [PcBillController::class, 'view'])->name('pc.bill.view');
+    Route::post('/pc-bill/{submissionId}/status',  [PcBillController::class, 'updateStatus'])->name('pc.bill.status');
+    Route::get('/expense-master',                  [PcBillController::class, 'getExpenseMaster']);
 
     Route::get('/search-customer', [MasterController::class, 'searchCustomer']);
     Route::get('/departments', [MasterController::class, 'departments']);
@@ -138,6 +144,7 @@ Route::get('/expense-master',                  [PcBillController::class, 'getExp
         return IssueCategory::where('department_id', $department_id)->get();
     });
     Route::get('/expense-master', [PcBillController::class, 'getExpenseMaster']);
+Route::get('/facility-categories', [MasterController::class, 'getFacilityCategories']);
 
 
     Route::get('/employees', [MasterController::class, 'employees']);
