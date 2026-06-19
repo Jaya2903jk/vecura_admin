@@ -991,13 +991,10 @@
                 <div style="height:8px;"></div>
             </div>{{-- /td-card --}}
 
-            <div class="td-footer">Powered by Vecura &nbsp;·&nbsp; All rights reserved</div>
+            {{-- <div class="td-footer">Powered by Vecura &nbsp;·&nbsp; All rights reserved</div> --}}
         </div>
     </div>
 
-    {{-- ════════════════════════════════════════
-     MODAL 1: Approval / Rejection
-     ════════════════════════════════════════ --}}
     <div class="modal fade" id="approvalModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered" style="max-width:480px;">
             <div class="modal-content"
@@ -1053,9 +1050,7 @@
         </div>
     </div>
 
-    {{-- ════════════════════════════════════════
-     MODAL 2: Mark as paid
-     ════════════════════════════════════════ --}}
+
     <div class="modal fade" id="paymentModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered" style="max-width:460px;">
             <div class="modal-content"
@@ -1100,9 +1095,7 @@
         </div>
     </div>
 
-    {{-- ════════════════════════════════════════
-     MODAL 3: Settlement
-     ════════════════════════════════════════ --}}
+
     <div class="modal fade" id="settlementModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered" style="max-width:480px;">
             <div class="modal-content"
@@ -1159,9 +1152,7 @@
         </div>
     </div>
 
-    {{-- ════════════════════════════════════════
-     MODAL 4: Close Ticket
-     ════════════════════════════════════════ --}}
+
     <div class="modal fade" id="closeModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered" style="max-width:440px;">
             <div class="modal-content"

@@ -768,7 +768,7 @@
 
                 </div> --}}
                 <div class="td-section-row">
-                    <div class="td-section-title">Ticket History</div>
+                    <div class="td-section-title">Ticket Details</div>
                 </div>
                 <div class="table-responsive">
                     <table class="td-table">
@@ -827,14 +827,20 @@
 
                                     <td>
                                         @if ($biomedical->status !== 'Closed')
-                                            <button type="button" class="btn bg-primary-gradient btn-primary btn-effect"
+                                            {{-- <button type="button" class="btn bg-primary-gradient btn-primary btn-effect"
                                                 onclick="openBiomedicalModal(
                                                 {{ $biomedical->id }},
                                             )">
                                                 <i class="ti ti-circle-check"></i>
                                                 Update
 
-                                            </button>
+                                            </button> --}}
+                                            <button type="button"
+                                                onclick="openBiomedicalModal(
+                                                {{ $biomedical->id }},
+                                            )" class="btn btn-icon btn-outline-primary">
+                                            <i class="ti ti-edit"></i>
+                                        </button>
                                         @endif
 
                                     </td>

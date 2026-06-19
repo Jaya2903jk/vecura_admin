@@ -655,7 +655,7 @@
 
                 {{-- Section: Ticket History --}}
                 <div class="td-section-row">
-                    <div class="td-section-title">Ticket History</div>
+                    <div class="td-section-title">Ticket Details</div>
                 </div>
 
                 <div class="table-responsive">
@@ -733,7 +733,7 @@
                                                 '{{ addslashes($item->escalation->EscalationName ?? '') }}'
                                             )">
 
-                                                    <i class="ti ti-circle-check"></i>
+                                                     <i class="ti ti-edit"></i>
                                                     Update
 
                                                 </button>

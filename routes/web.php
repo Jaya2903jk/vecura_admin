@@ -27,6 +27,7 @@ use App\Http\Controllers\StaffController;
 use App\Http\Controllers\TicketController;
 use App\Http\Controllers\PcRequestController;
 use App\Http\Controllers\PcBillController;
+use App\Http\Controllers\FacilityController;
 use App\Http\Controllers\FacilityIssueCategoryController;
 use App\Models\IssueCategory;
 use Illuminate\Support\Facades\DB;
@@ -77,9 +78,12 @@ Route::middleware(['auth.custom', 'nocache'])->group(function () {
     Route::post('/facility-issue-category',          [FacilityIssueCategoryController::class, 'store'])->name('facility.issue.category.store');
     Route::put('/facility-issue-category/{id}',      [FacilityIssueCategoryController::class, 'update'])->name('facility.issue.category.update');
     Route::delete('/facility-issue-category/{id}',   [FacilityIssueCategoryController::class, 'destroy'])->name('facility.issue.category.destroy');
-
+Route::get('/test', function () {
+    return view('ticket.test');
+})->name('test');
     Route::get('/tickets', [TicketController::class, 'index'])->name('tickets');
     Route::get('/ticket-summary', [TicketSummaryController::class, 'index'])->name('ticket.summary');
+    Route::get('/ticket-summary/listing', [TicketSummaryController::class, 'listing'])->name('ticket.summary.listing');
     Route::post('/tickets', [TicketController::class, 'store'])->name('tickets.store');
     Route::get('/ticket/{id}', [TicketController::class, 'viewTicket'])->name('ticket.view');
     Route::get('/check-customer-ticket', [TicketController::class, 'checkCustomerTicket']);
@@ -135,10 +139,9 @@ Route::middleware(['auth.custom', 'nocache'])->group(function () {
     Route::get('/pc-bill/{ticketId}',              [PcBillController::class, 'view'])->name('pc.bill.view');
     Route::post('/pc-bill/{submissionId}/status',  [PcBillController::class, 'updateStatus'])->name('pc.bill.status');
     Route::get('/expense-master',                  [PcBillController::class, 'getExpenseMaster']);
-// web.php
-Route::get('/facility-ticket/{ticketId}',       [FacilityController::class, 'view'])         ->name('facility.view');
-Route::post('/facility-ticket/{id}/status',     [FacilityController::class, 'updateStatus']) ->name('facility.status');
-Route::get('/facility-categories',              [FacilityController::class, 'getCategories']);
+    // web.php
+    Route::get('/facility-ticket/{ticketId}',       [FacilityController::class, 'view'])->name('facility.view');
+    Route::post('/facility-ticket/{id}/status',     [FacilityController::class, 'updateStatus'])->name('facility.status');
 
     Route::get('/search-customer', [MasterController::class, 'searchCustomer']);
     Route::get('/departments', [MasterController::class, 'departments']);

@@ -30,10 +30,17 @@ class FacilityTicket extends Model
         'meta_data'   => 'array',
         'reviewed_at' => 'datetime',
     ];
-
+    public function ticket()
+    {
+        return $this->belongsTo(IssueTicket::class, 'ticket_id', 'ticketId');
+    }
     public function facilityCategory()
     {
         return $this->belongsTo(FacilityIssueCategory::class, 'facility_category_id', 'id');
+    }
+    public function department()
+    {
+        return $this->belongsTo(IssueDepartment::class, 'departmentId', 'Departmentid');
     }
 
     public function category()
