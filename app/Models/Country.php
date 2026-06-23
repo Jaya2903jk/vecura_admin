@@ -30,4 +30,5 @@ class Country extends Model
     {
         return $this->hasMany(Zone::class, 'country_id', 'country_id');
     }
+    
 }
