@@ -51,6 +51,7 @@ Route::middleware(['auth.custom', 'nocache'])->group(function () {
     })->name('staff.dashboard');
     Route::get('/staff', [StaffController::class, 'index'])->name('staff.index');
     Route::get('/designation', [DesginationController::class, 'index'])->name('designation.index');
+    Route::get('/designation/export/excel', [DesginationController::class, 'exportExcel'])->name('designation.export.excel');
 
     Route::get('/branch', [BranchController::class, 'index'])->name('branch.index');
     Route::get('/role', [RoleController::class, 'index'])->name('role-permission.index');
@@ -125,10 +126,18 @@ Route::get('/test', function () {
     Route::post('iou/{iouId}/pay', [AccountsController::class, 'pay'])->name('iou.pay');
     // Route::post('iou/{iouId}/settle', [AccountsController::class, 'settle'])->name('iou.settle');
     // Route::post('iou/{iouId}/close', [AccountsController::class, 'close'])->name('iou.close');
-    Route::post('/settlement/{settlementId}/review', [SettlementController::class, 'review'])->name('settlement.review');
-    Route::post('/settlement/{settlementId}/transfer-claim', [SettlementController::class, 'transferClaim'])->name('settlement.transfer');
-    Route::post('/settlement/{settlementId}/record-return', [SettlementController::class, 'recordReturn'])->name('settlement.return');
-    Route::post('/settlement/{settlementId}/close', [SettlementController::class, 'close'])->name('settlement.close');
+    // Route::post('/settlement/{settlementId}/review', [SettlementController::class, 'review'])->name('settlement.review');
+    // Route::post('/settlement/{settlementId}/transfer-claim', [SettlementController::class, 'transferClaim'])->name('settlement.transfer');
+    // Route::post('/settlement/{settlementId}/record-return', [SettlementController::class, 'recordReturn'])->name('settlement.return');
+    // Route::post('/settlement/{settlementId}/close', [SettlementController::class, 'close'])->name('settlement.close');
+Route::post('/settlement/{settlementId}/review', [SettlementController::class, 'review'])
+    ->name('settlement.review');
+
+Route::post('/settlement/{settlementId}/process-payment', [SettlementController::class, 'processPayment'])
+    ->name('settlement.process-payment');
+
+Route::post('/settlement/{settlementId}/close', [SettlementController::class, 'close'])
+    ->name('settlement.close');
 
 
     // web.php

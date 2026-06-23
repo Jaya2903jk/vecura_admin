@@ -19,6 +19,7 @@ class Designation extends Model {
         'ModifiedBy',
         'ModifiedDate',
         'status'
+        
     ];
 
 }
