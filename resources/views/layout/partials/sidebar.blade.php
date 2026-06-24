@@ -178,7 +178,7 @@
                 </div>
 
                 <ul>
-                    @if (session('role_name') == 'Admin')
+                    {{-- @isAdmin
                         <li class="menu-title"><span>Staff</span></li>
                         <li>
                             <ul>
@@ -190,119 +190,116 @@
                                 </li>
                             </ul>
                         </li>
-                        <li class="menu-title"><span>Masters</span></li>
-                        <li>
-                            <ul>
-                                <li class="submenu">
-                                    <a href="javascript:void(0);"
-                                        class="{{ Request::is('category', 'branch', 'department', 'designation', 'issues-master', 'location', 'country', 'zone', 'state', 'city', 'new-branch', 'language-settings2', 'language-settings3', 'maintenance-mode-settings', 'login-and-register-settings', 'preferences-settings') ? 'active subdrop' : '' }}">
-                                        <i class="ti ti-world-cog"></i><span>Organization Masters</span>
-                                        <span class="menu-arrow"></span>
-                                    </a>
-                                    <ul>
-                                        {{-- <li><a href="{{ route('branch.index') }}"
-                                                class="{{ Request::is('branch') ? 'active' : '' }}">Branch</a>
-                                        </li> --}}
-                                        <li><a href="{{ route('department.index') }}"
-                                                class="{{ Request::is('department') ? 'active' : '' }}">Department</a>
-                                        </li>
-                                        <li><a href="{{ route('designation.index') }}"
-                                                class="{{ Request::is('designation') ? 'active' : '' }}">Designation</a>
-                                        </li>
-                                        <li><a href="{{ route('role-permission.index') }}"
-                                                class="{{ Request::is('maintenance-mode-settings') ? 'active' : '' }}">Roles
-                                            </a></li>
-                                        <li><a href="{{ route('permission.index') }}"
-                                                class="{{ Request::is('login-and-register-settings') ? 'active' : '' }}">Permission
-                                            </a></li>
-                                        <li><a href="{{ route('new-branch.index') }}"
-                                                class="{{ Request::is('new-branch') ? 'active' : '' }}">Branch Master
-                                            </a></li>
+                    @endisAdmin --}}
 
 
-                                    </ul>
-                                </li>
+                    @php
+                        $moduleGroups = \App\Models\Module::whereNotNull('parent')
+                            ->where('is_active', 1)
+                            ->orderBy('parent')
+                            ->orderBy('sort_order')
+                            ->get()
+                            ->groupBy('parent');
+                    @endphp
+                    @foreach ($moduleGroups as $parentName => $modules)
+                        @php
+                            $moduleNames = $modules->pluck('name')->toArray();
+
+                            $hasPermission =
+                                session('is_admin') ||
+                                \App\Helpers\RbacHelper::hasPermissionForAny('read', $moduleNames);
+                            $hasAnyMasterPermission =
+                                session('is_admin') ||
+                                \App\Helpers\RbacHelper::hasPermissionForAny('read', $moduleNames);
+                        @endphp
+                        @if ($hasAnyMasterPermission)
+                            {{-- @if ($hasPermission) --}}
+                            <li class="menu-title">
+                                <span>{{ $parentName }}</span>
+                            </li>
+                            <li>
+                                <ul>
+                                    <li class="submenu">
+                                        <a href="javascript:void(0);">
+                                            <i class="ti ti-folder"></i>
+                                            <span>{{ $parentName }}</span>
+                                            <span class="menu-arrow"></span>
+                                        </a>
+
+                                        <ul>
+                                            @foreach ($modules as $module)
+                                                @if (session('is_admin') || \App\Helpers\RbacHelper::hasPermission('read', $module->name))
+                                                    @php
+                                                        $href = '#';
+                                                        if ($module->route_prefix) {
+                                                            try {
+                                                                // Try route with .index first
+                                                                $href = route($module->route_prefix . '.index');
+                                                            } catch (\Exception $e1) {
+                                                                try {
+                                                                    // If that fails, try just the route name
+                                                                    $href = route($module->route_prefix);
+                                                                } catch (\Exception $e2) {
+                                                                    $href = '#';
+                                                                }
+                                                            }
+                                                        }
+                                                    @endphp
+
+                                                    <li>
+                                                        <a href="{{ $href }}">
+                                                            <i class="{{ $module->icon ?? 'ti ti-app' }}"></i>
+                                                            <span>{{ $module->description ?? ucfirst($module->name) }}</span>
+                                                        </a>
+                                                    </li>
+                                                @endif
+                                            @endforeach
+                                        </ul>
+                                    </li>
+                                </ul>
+                            </li>
+                        @endif
+                    @endforeach
 
 
-
-                            </ul>
-                        </li>
-                        <li>
-                            <ul>
-                                <li class="submenu">
-                                    <a href="javascript:void(0);"
-                                        class="{{ Request::is('location', 'country', 'zone', 'state', 'city', 'new-branch', 'language-settings2', 'language-settings3', 'maintenance-mode-settings', 'login-and-register-settings', 'preferences-settings') ? 'active subdrop' : '' }}">
-                                        <i class="ti ti-world-cog"></i><span>Location Masters</span>
-                                        <span class="menu-arrow"></span>
-                                    </a>
-                                    <ul>
-
-                                        <li><a href="{{ route('location.index') }}"
-                                                class="{{ Request::is('location') ? 'active' : '' }}">Location
-                                            </a></li>
-                                        <li><a href="{{ route('country.index') }}"
-                                                class="{{ Request::is('country') ? 'active' : '' }}">Country
-                                            </a></li>
-                                        <li><a href="{{ route('zone.index') }}"
-                                                class="{{ Request::is('zone') ? 'active' : '' }}">Zone
-                                            </a></li>
-                                        <li><a href="{{ route('state.index') }}"
-                                                class="{{ Request::is('state') ? 'active' : '' }}">State
-                                            </a></li>
-                                        <li><a href="{{ route('city.index') }}"
-                                                class="{{ Request::is('city') ? 'active' : '' }}">City
-                                            </a></li>
-                                        {{-- <li><a href="{{ route('new-branch.index') }}"
-                                                class="{{ Request::is('new-branch') ? 'active' : '' }}">Branch Master
-                                            </a></li> --}}
+                    <li class="menu-title"><span>Ticket Masters</span></li>
+                    <li>
+                        <ul>
+                            <li class="submenu">
+                                <a href="javascript:void(0);"
+                                    class="{{ Request::is('category', 'branch', 'department', 'designation', 'issues-master', 'location', 'country', 'zone', 'state', 'city', 'new-branch', 'language-settings2', 'language-settings3', 'maintenance-mode-settings', 'login-and-register-settings', 'preferences-settings') ? 'active subdrop' : '' }}">
+                                    <i class="ti ti-world-cog"></i><span>Issue Configuration</span>
+                                    <span class="menu-arrow"></span>
+                                </a>
+                                <ul>
+                                    <li><a href="{{ route('category.index') }}"
+                                            class="{{ Request::is('category') ? 'active' : '' }}">Issue
+                                            Categories</a></li>
+                                    <li><a href="{{ route('issues-master.index') }}"
+                                            class="{{ Request::is('issues-master') ? 'active' : '' }}">Issue Types
+                                        </a></li>
+                                    <li><a href="{{ route('machine.index') }}"
+                                            class="{{ Request::is('machine') ? 'active' : '' }}">Machine
+                                            Machine
+                                        </a></li>
+                                    <li><a href="{{ route('machine-issues.index') }}"
+                                            class="{{ Request::is('machine-issues') ? 'active' : '' }}">
+                                            Machine Issues</a></li>
 
 
-                                    </ul>
-                                </li>
-                            </ul>
-                        </li>
-                        <li class="menu-title"><span>Ticket Masters</span></li>
-                        <li>
-                            <ul>
-                                <li class="submenu">
-                                    <a href="javascript:void(0);"
-                                        class="{{ Request::is('category', 'branch', 'department', 'designation', 'issues-master', 'location', 'country', 'zone', 'state', 'city', 'new-branch', 'language-settings2', 'language-settings3', 'maintenance-mode-settings', 'login-and-register-settings', 'preferences-settings') ? 'active subdrop' : '' }}">
-                                        <i class="ti ti-world-cog"></i><span>Issue Configuration</span>
-                                        <span class="menu-arrow"></span>
-                                    </a>
-                                    <ul>
-                                        <li><a href="{{ route('category.index') }}"
-                                                class="{{ Request::is('category') ? 'active' : '' }}">Issue
-                                                Categories</a></li>
-                                        <li><a href="{{ route('issues-master.index') }}"
-                                                class="{{ Request::is('issues-master') ? 'active' : '' }}">Issue Types
-                                            </a></li>
-                                        <li><a href="{{ route('machine.index') }}"
-                                                class="{{ Request::is('machine') ? 'active' : '' }}">Machine
-                                                Machine
-                                            </a></li>
-                                        <li><a href="{{ route('machine-issues.index') }}"
-                                                class="{{ Request::is('machine-issues') ? 'active' : '' }}">
-                                                Machine Issues</a></li>
+                                    <li><a href="{{ route('expanse.index') }}"
+                                            class="{{ Request::is('expanse') ? 'active' : '' }}">Expense
+                                        </a></li>
 
+                                    <li><a href="{{ route('facility.issue.category.index') }}"
+                                            class="{{ Request::is('facility-issue-category') ? 'active' : '' }}">Facility
+                                            Issues
+                                        </a></li>
 
-                                        <li><a href="{{ route('expanse.index') }}"
-                                                class="{{ Request::is('expanse') ? 'active' : '' }}">Expense
-                                            </a></li>
-
-                                        <li><a href="{{ route('facility.issue.category.index') }}"
-                                                class="{{ Request::is('facility-issue-category') ? 'active' : '' }}">Facility
-                                                Issues
-                                            </a></li>
-
-                                    </ul>
-                                </li>
-
-
-
-                            </ul>
-                        </li>
-                    @endif
+                                </ul>
+                            </li>
+                        </ul>
+                    </li>
 
 
                     <li class="menu-title"><span>Support</span></li>
@@ -324,6 +321,47 @@
                         </ul>
 
                     <li class="menu-title"><span>Authentication</span></li>
+                    @isAdmin
+                        <li>
+                            <ul>
+                                <li class="submenu">
+                                    <a href="javascript:void(0);"
+                                        class="{{ Request::is('rbac*') ? 'active subdrop' : '' }}">
+                                        <i class="ti ti-shield-lock"></i><span>Access Control</span>
+                                        <span class="menu-arrow"></span>
+                                    </a>
+                                    <ul>
+                                        <li><a href="{{ route('rbac.assign-role.form') }}"
+                                                class="{{ Request::is('rbac/assign-role') ? 'active' : '' }}">Assign Role
+                                            </a></li>
+                                        <li><a href="{{ route('rbac.assign-dept.form') }}"
+                                                class="{{ Request::is('rbac/assign-department') ? 'active' : '' }}">Assign
+                                                Department
+                                            </a></li>
+                                        <li><a href="{{ route('rbac.assign-hier.form') }}"
+                                                class="{{ Request::is('rbac/assign-hierarchy') ? 'active' : '' }}">Assign
+                                                Hierarchy
+                                            </a></li>
+                                        <li><a href="{{ route('rbac.manage-roles') }}"
+                                                class="{{ Request::is('rbac/manage-roles') ? 'active' : '' }}">Manage
+                                                Roles & Permissions
+                                            </a></li>
+                                        {{-- <li><a href="{{ route('rbac.manage-permissions-admin') }}"
+                                                class="{{ Request::is('rbac/manage-permissions-admin') ? 'active' : '' }}">Manage
+                                                Permissions (Admin)
+                                            </a></li> --}}
+                                        <li><a href="{{ route('modules.index') }}"
+                                                class="{{ Request::is('rbac/modules') ? 'active' : '' }}">Manage Modules
+                                            </a></li>
+                                        <li><a href="{{ route('rbac.permission-guide') }}"
+                                                class="{{ Request::is('rbac/permission-guide') ? 'active' : '' }}">Permission
+                                                Guide
+                                            </a></li>
+                                    </ul>
+                                </li>
+                            </ul>
+                        </li>
+                    @endisAdmin
                     <li>
                         <ul>
 
@@ -367,7 +405,9 @@
 
                                 </ul>
                             </li>
-                           
+                        </ul>
+                    </li>
+
                 </ul>
             @endif
 

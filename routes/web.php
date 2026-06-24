@@ -4,6 +4,7 @@ use App\Http\Controllers\AccountsController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BiomedicalController;
 use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\HrManpowerController;
 use App\Http\Controllers\IssuesMasterController;
@@ -34,9 +35,7 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
 // Protected routes
 Route::middleware(['auth.custom', 'nocache'])->group(function () {
-    Route::get('/dashboard', function () {
-        return view('dashboard');
-    });
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/staff-dashboard', function () {
         return view('staff_dashboard');
     })->name('staff.dashboard');

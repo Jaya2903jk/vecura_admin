@@ -15,7 +15,7 @@ class ZoneRequest extends FormRequest
             'zone_name'   => 'required|string|max:100',
             'country_id'  => 'required|integer|exists:sqlsrv.country,country_id',
             'region_type' => 'nullable|string|max:50',
-            'is_active'   => 'required|in:0,1',
+            'is_active'   => 'required',
         ];
     }
 }

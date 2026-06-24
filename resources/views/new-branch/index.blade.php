@@ -18,9 +18,11 @@
                     </h4>
                 </div>
                 <div class="text-end d-flex">
-                    <button class="btn btn-primary" onclick="openAddModal()">
-                        <i class="ti ti-plus me-1"></i> Add Branch
-                    </button>
+                    @if(session('is_admin') || \App\Helpers\RbacHelper::canPerformAction('create', 'branch'))
+                        <button class="btn btn-primary" onclick="openAddModal()">
+                            <i class="ti ti-plus me-1"></i> Add Branch
+                        </button>
+                    @endif
                 </div>
             </div>
 
@@ -75,23 +77,27 @@
                                             @endif
                                         </td>
                                         <td class="text-center">
-                                            <button class="btn btn-sm btn-outline-primary me-1" title="Edit"
-                                                onclick="openEditModal(
-                                            {{ $branch->branch_id }},
-                                            '{{ addslashes($branch->branch_name) }}',
-                                            '{{ addslashes($branch->branch_code) }}',
-                                            {{ $branch->zone_id }},
-                                            {{ $branch->city_id }},
-                                            '{{ addslashes($branch->manager_name ?? '') }}',
-                                            '{{ addslashes($branch->contact_no ?? '') }}',
-                                            {{ $branch->is_active ? 1 : 0 }}
-                                        )">
-                                                <i class="ti ti-edit"></i>
-                                            </button>
-                                            <button class="btn btn-sm btn-outline-danger" title="Delete"
-                                                onclick="deleteBranch({{ $branch->branch_id }}, '{{ addslashes($branch->branch_name) }}')">
-                                                <i class="ti ti-trash"></i>
-                                            </button>
+                                            @if(session('is_admin') || \App\Helpers\RbacHelper::canPerformAction('edit', 'branch'))
+                                                <button class="btn btn-sm btn-outline-primary me-1" title="Edit"
+                                                    onclick="openEditModal(
+                                                {{ $branch->branch_id }},
+                                                '{{ addslashes($branch->branch_name) }}',
+                                                '{{ addslashes($branch->branch_code) }}',
+                                                {{ $branch->zone_id }},
+                                                {{ $branch->city_id }},
+                                                '{{ addslashes($branch->manager_name ?? '') }}',
+                                                '{{ addslashes($branch->contact_no ?? '') }}',
+                                                {{ $branch->is_active ? 1 : 0 }}
+                                            )">
+                                                    <i class="ti ti-edit"></i>
+                                                </button>
+                                            @endif
+                                            @if(session('is_admin') || \App\Helpers\RbacHelper::canPerformAction('delete', 'branch'))
+                                                <button class="btn btn-sm btn-outline-danger" title="Delete"
+                                                    onclick="deleteBranch({{ $branch->branch_id }}, '{{ addslashes($branch->branch_name) }}')">
+                                                    <i class="ti ti-trash"></i>
+                                                </button>
+                                            @endif
                                         </td>
                                     </tr>
                                 @empty
