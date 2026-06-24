@@ -1,1019 +1,563 @@
 <?php $page = 'tickets'; ?>
 @extends('layout.mainlayout')
 @section('content')
-    <style>
-        /* ── Base ── */
-        .td-page {
-            padding: 4px 0 32px;
-        }
 
-        .td-crumb {
+    <style>
+        .crumb-back {
+            color: #22304d;
+            text-decoration: none;
             display: inline-flex;
             align-items: center;
             gap: 6px;
-            font-size: 13px;
-            font-weight: 600;
-            color: #22304d;
-            text-decoration: none;
             margin-bottom: 14px;
+            font-weight: 600;
+            font-size: 13px;
         }
+        .crumb-back:hover { color: #3741b0; text-decoration: none; }
 
-        .td-crumb:hover {
-            color: #3741b0;
-            text-decoration: none;
-        }
-
-        /* ── Card ── */
-        .td-card {
+        .details-card {
             background: #fff;
             border: 1px solid #e7e8eb;
             border-radius: 6px;
             overflow: hidden;
         }
 
-        .td-card-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 12px;
+        .details-card-header {
             padding: 12px 16px;
             border-bottom: 1px solid #e7e8eb;
-        }
-
-        .td-card-header-left {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .td-header-icon {
-            width: 34px;
-            height: 34px;
-            border-radius: 8px;
-            background: #eef0fb;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #3741b0;
-            font-size: 17px;
-            flex-shrink: 0;
-        }
-
-        .td-header-title {
-            font-size: 17px;
+            font-size: 16px;
             font-weight: 700;
             color: #132144;
-            line-height: 1.2;
-        }
-
-        .td-header-sub {
-            font-size: 13px;
-            color: #8890a6;
-            margin-top: 2px;
-        }
-
-        /* ── Workflow Stepper ── */
-        .iou-workflow {
             display: flex;
             align-items: center;
-            padding: 16px 20px;
-            background: #f8f9fc;
-            border-bottom: 1px solid #e7e8eb;
-            overflow-x: auto;
+            gap: 8px;
+            flex-wrap: wrap;
         }
 
-        .iou-step {
+        /* ── Status flow ── */
+        .status-flow {
             display: flex;
-            flex-direction: column;
+            flex-wrap: wrap;
             align-items: center;
-            gap: 5px;
-            min-width: 90px;
-            position: relative;
+            gap: 6px;
+            padding: 12px 16px 0;
         }
-
-        .iou-step:not(:last-child)::after {
-            content: '';
-            position: absolute;
-            top: 16px;
-            left: calc(50% + 18px);
-            width: calc(100% - 36px);
-            height: 2px;
-            background: #d1d5e0;
-            z-index: 0;
-        }
-
-        .iou-step.done:not(:last-child)::after {
-            background: #3741b0;
-        }
-
-        .iou-step.active:not(:last-child)::after {
-            background: #d1d5e0;
-        }
-
-        .iou-step-dot {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 14px;
-            border: 2px solid #d1d5e0;
-            background: #fff;
-            color: #8890a6;
-            z-index: 1;
-            position: relative;
-        }
-
-        .iou-step.done .iou-step-dot {
-            background: #3741b0;
-            border-color: #3741b0;
-            color: #fff;
-        }
-
-        .iou-step.active .iou-step-dot {
-            background: #fff;
-            border-color: #3741b0;
-            color: #3741b0;
-            box-shadow: 0 0 0 4px rgba(55, 65, 176, .12);
-        }
-
-        .iou-step.rejected .iou-step-dot {
-            background: #fdeaea;
-            border-color: #b52020;
-            color: #b52020;
-        }
-
-        .iou-step-label {
-            font-size: 11px;
+        .sf-item {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
             font-weight: 600;
-            color: #8890a6;
-            white-space: nowrap;
+            border: 2px solid transparent;
+            background: #f3f4f8;
+            color: #888;
         }
+        .sf-item.active { border-color: currentColor; }
 
-        .iou-step.done .iou-step-label {
-            color: #3741b0;
-        }
-
-        .iou-step.active .iou-step-label {
-            color: #132144;
-        }
-
-        .iou-step.rejected .iou-step-label {
-            color: #b52020;
-        }
-
-        /* ── Amount Summary Strip ── */
-        .iou-amount-strip {
+        /* ── Client grid ── */
+        .client-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+            grid-template-columns: repeat(3, 1fr);
+            gap: 18px;
+            padding: 16px;
+        }
+        .client-item { display: flex; gap: 14px; align-items: flex-start; }
+        .client-icon {
+            width: 34px; height: 34px; border-radius: 50%;
+            background: #f3f4f8; display: flex; align-items: center;
+            justify-content: center; color: #6b738a; flex-shrink: 0;
+        }
+        .client-label { font-size: 12px; font-weight: 700; color: #18284d; margin-bottom: 2px; }
+        .client-value { font-size: 13px; color: #737b90; }
+
+        /* ── Amount summary row ── */
+        .amount-strip {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            border-top: 1px solid #e7e8eb;
             border-bottom: 1px solid #e7e8eb;
         }
-
-        .iou-amount-cell {
+        .amount-cell {
             padding: 14px 16px;
             border-right: 1px solid #e7e8eb;
             text-align: center;
         }
-
-        .iou-amount-cell:last-child {
-            border-right: none;
+        .amount-cell:last-child { border-right: none; }
+        .amount-label {
+            font-size: 11px; font-weight: 600; color: #8890a6;
+            text-transform: uppercase; letter-spacing: .4px; margin-bottom: 4px;
         }
+        .amount-val { font-size: 18px; font-weight: 700; color: #132144; }
+        .amount-val.green  { color: #1a7a3c; }
+        .amount-val.blue   { color: #125e80; }
+        .amount-val.red    { color: #b52020; }
+        .amount-val.purple { color: #5c35aa; }
 
-        .iou-amount-label {
-            font-size: 11px;
-            font-weight: 600;
-            color: #8890a6;
-            text-transform: uppercase;
-            letter-spacing: .4px;
-            margin-bottom: 4px;
+        /* ── Blue table ── */
+        .blue-table thead th {
+            background: #3741b0; color: #fff; border-bottom: none;
+            padding: 9px 12px; font-size: 13px;
         }
-
-        .iou-amount-val {
-            font-size: 18px;
-            font-weight: 700;
-            color: #132144;
-        }
-
-        .iou-amount-val.positive {
-            color: #1a7a3c;
-        }
-
-        .iou-amount-val.negative {
-            color: #b52020;
-        }
-
-        .iou-amount-val.warning {
-            color: #8f5e00;
-        }
-
-        /* ── Section row ── */
-        .td-section-row {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 10px;
-            flex-wrap: wrap;
-            padding: 14px 16px 8px;
-            border-top: 1px solid #e7e8eb;
-        }
-
-        .td-section-title {
-            font-size: 15px;
-            font-weight: 700;
-            color: #132144;
-            margin: 0;
-        }
-
-        /* ── Detail grid ── */
-        .td-detail-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            border-top: 1px solid #e7e8eb;
-        }
-
-        .td-detail-cell {
-            padding: 12px 16px;
-            border-right: 1px solid #e7e8eb;
-            border-bottom: 1px solid #e7e8eb;
-        }
-
-        .td-detail-cell:last-child {
-            border-right: none;
-        }
-
-        .td-detail-key {
-            font-size: 12px;
-            color: #8890a6;
-            font-weight: 600;
-            margin-bottom: 4px;
-        }
-
-        .td-detail-val {
-            font-size: 13px;
-            color: #18284d;
-            font-weight: 600;
-        }
-
-        /* ── Table ── */
-        .td-table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        .td-table thead th {
-            background: #3741b0;
-            color: #fff;
-            font-size: 13px;
-            font-weight: 600;
-            padding: 9px 12px;
-            text-align: left;
-            white-space: nowrap;
-            border: none;
-        }
-
-        .td-table tbody tr {
-            border-bottom: 1px solid #e7e8eb;
-            transition: background .12s;
-        }
-
-        .td-table tbody tr:last-child {
-            border-bottom: none;
-        }
-
-        .td-table tbody tr:hover {
-            background: #f7f8fc;
-        }
-
-        .td-table tbody td {
-            padding: 10px 12px;
-            font-size: 13px;
-            color: #4f5d7c;
-            vertical-align: middle;
+        .blue-table tbody td {
+            padding: 10px 12px; font-size: 13px;
+            color: #4f5d7c; border-color: #e7e8eb;
         }
 
         /* ── Pills ── */
         .td-pill {
-            display: inline-block;
-            padding: 4px 10px;
-            border-radius: 5px;
-            font-size: 12px;
-            font-weight: 700;
-            white-space: nowrap;
-            border: 1px solid transparent;
+            display: inline-block; padding: 3px 9px; border-radius: 5px;
+            font-size: 12px; font-weight: 700; white-space: nowrap; border: 1px solid transparent;
         }
+        .pill-pending  { background:#fef6e4; color:#8f5e00; border-color:#f0d48a; }
+        .pill-approved { background:#e8f7ef; color:#1a7a3c; border-color:#a8dfc0; }
+        .pill-rejected { background:#fdeaea; color:#b52020; border-color:#f5c0c0; }
+        .pill-paid     { background:#e4f3fb; color:#125e80; border-color:#9fd5ed; }
+        .pill-settled  { background:#f0ebfb; color:#5c35aa; border-color:#c9b8ef; }
+        .pill-closed   { background:#f1f2f5; color:#4b5673; border-color:#d1d5e0; }
+        .pill-inprogress { background:#fff3cd; color:#856404; border-color:#ffc107; }
 
-        .pill-pending {
-            background: #fef6e4;
-            color: #8f5e00;
-            border-color: #f0d48a;
+        /* ── Action card ── */
+        .action-card-inner { padding: 16px; }
+        .action-btn-row { display: flex; flex-direction: column; gap: 10px; }
+        .ac-btn {
+            display: flex; align-items: center; justify-content: center; gap: 7px;
+            padding: 10px 16px; border-radius: 6px; font-size: 14px; font-weight: 700;
+            border: none; cursor: pointer; width: 100%; transition: opacity .15s;
         }
-
-        .pill-approved {
-            background: #e8f7ef;
-            color: #1a7a3c;
-            border-color: #a8dfc0;
-        }
-
-        .pill-rejected {
-            background: #fdeaea;
-            color: #b52020;
-            border-color: #f5c0c0;
-        }
-
-        .pill-paid {
-            background: #e4f3fb;
-            color: #125e80;
-            border-color: #9fd5ed;
-        }
-
-        .pill-settled {
-            background: #f0ebfb;
-            color: #5c35aa;
-            border-color: #c9b8ef;
-        }
-
-        .pill-closed {
-            background: #f1f2f5;
-            color: #4b5673;
-            border-color: #d1d5e0;
-        }
-
-        .pill-inprogress {
-            background: #fff3cd;
-            color: #856404;
-            border-color: #ffc107;
-        }
-
-        /* ── Action buttons ── */
-        .td-btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-            padding: 5px 14px;
-            border-radius: 5px;
-            font-size: 13px;
-            font-weight: 600;
-            cursor: pointer;
-            border: 1px solid transparent;
-            transition: opacity .15s;
-        }
-
-        .td-btn:hover {
-            opacity: .82;
-        }
-
-        .td-btn-approve {
-            background: #e8f7ef;
-            color: #1a7a3c;
-            border-color: #a8dfc0;
-        }
-
-        .td-btn-reject {
-            background: #fdeaea;
-            color: #b52020;
-            border-color: #f5c0c0;
-        }
-
-        .td-btn-pay {
-            background: #e4f3fb;
-            color: #125e80;
-            border-color: #9fd5ed;
-        }
-
-        .td-btn-settle {
-            background: #f0ebfb;
-            color: #5c35aa;
-            border-color: #c9b8ef;
-        }
-
-        .td-btn-close {
-            background: #f1f2f5;
-            color: #4b5673;
-            border-color: #d1d5e0;
-        }
-
-        .td-btn-primary {
-            background: #3741b0;
-            color: #fff;
-            border-color: #3741b0;
-        }
-
-        /* ── Settlements sub-table ── */
-        .settle-row td {
-            background: #fafbff;
-        }
+        .ac-btn:hover { opacity: .87; }
+        .ac-btn-primary { background: #3741b0; color: #fff; }
+        .ac-btn-pay     { background: #125e80; color: #fff; }
+        .ac-btn-settle  { background: #5c35aa; color: #fff; }
+        .ac-btn-close   { background: #4b5673; color: #fff; }
 
         /* ── Modal shared ── */
         .ap-modal-header {
-            background: #3741b0;
-            padding: 14px 20px;
-            border-bottom: none;
-            border-radius: 6px 6px 0 0;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
+            background: #3741b0; padding: 14px 20px; border-bottom: none;
+            border-radius: 6px 6px 0 0; display: flex; align-items: center; justify-content: space-between;
         }
-
-        .ap-modal-title {
-            font-size: 15px;
-            font-weight: 700;
-            color: #fff;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin: 0;
-        }
-
-        .ap-modal-header .btn-close {
-            filter: invert(1) brightness(2);
-            opacity: .8;
-        }
-
-        .ap-modal-header.danger {
-            background: #b52020;
-        }
-
-        .ap-modal-header.success {
-            background: #1a7a3c;
-        }
-
-        .ap-modal-header.info {
-            background: #125e80;
-        }
-
-        .ap-modal-header.purple {
-            background: #5c35aa;
-        }
-
-        .ap-modal-body {
-            padding: 20px 20px 10px;
-        }
-
+        .ap-modal-title { font-size: 15px; font-weight: 700; color: #fff; display: flex; align-items: center; gap: 8px; margin: 0; }
+        .ap-modal-header .btn-close { filter: invert(1) brightness(2); opacity: .8; }
+        .ap-modal-header.info   { background: #125e80; }
+        .ap-modal-header.purple { background: #5c35aa; }
+        .ap-modal-header.dark   { background: #4b5673; }
+        .ap-modal-body { padding: 20px 20px 10px; }
         .ap-info-strip {
-            background: #f3f4f8;
-            border-radius: 5px;
-            padding: 10px 14px;
-            margin-bottom: 16px;
-            display: flex;
-            gap: 20px;
-            flex-wrap: wrap;
+            background: #f3f4f8; border-radius: 5px; padding: 10px 14px;
+            margin-bottom: 16px; display: flex; gap: 20px; flex-wrap: wrap;
         }
-
-        .ap-info-item {
-            font-size: 13px;
-            color: #6b748a;
-        }
-
-        .ap-info-item strong {
-            color: #18284d;
-            font-weight: 700;
-        }
-
-        .ap-field-label {
-            font-size: 13px;
-            font-weight: 700;
-            color: #18284d;
-            margin-bottom: 7px;
-            display: block;
-        }
-
-        .ap-field-label .req {
-            color: #e03535;
-            margin-left: 2px;
-        }
-
+        .ap-info-item { font-size: 13px; color: #6b748a; }
+        .ap-info-item strong { color: #18284d; font-weight: 700; }
+        .ap-field-label { font-size: 13px; font-weight: 700; color: #18284d; margin-bottom: 7px; display: block; }
+        .ap-field-label .req { color: #e03535; margin-left: 2px; }
         .ap-textarea {
-            width: 100%;
-            font-size: 13px;
-            color: #18284d;
-            border: 1px solid #d0d3de;
-            border-radius: 5px;
-            padding: 8px 10px;
-            outline: none;
-            resize: vertical;
-            transition: border-color .15s;
-            font-family: inherit;
+            width: 100%; font-size: 13px; color: #18284d; border: 1px solid #d0d3de;
+            border-radius: 5px; padding: 8px 10px; outline: none; resize: vertical;
+            transition: border-color .15s; font-family: inherit;
         }
-
-        .ap-textarea:focus {
-            border-color: #3741b0;
-            box-shadow: 0 0 0 3px rgba(55, 65, 176, .10);
-        }
-
+        .ap-textarea:focus { border-color: #3741b0; box-shadow: 0 0 0 3px rgba(55,65,176,.10); }
         .ap-modal-footer {
-            padding: 12px 20px 16px;
-            display: flex;
-            justify-content: flex-end;
-            gap: 8px;
-            border-top: 1px solid #e7e8eb;
+            padding: 12px 20px 16px; display: flex; justify-content: flex-end;
+            gap: 8px; border-top: 1px solid #e7e8eb;
         }
-
         .ap-btn-cancel {
-            padding: 7px 18px;
-            font-size: 13px;
-            font-weight: 600;
-            border-radius: 5px;
-            border: 1px solid #d0d3de;
-            background: #fff;
-            color: #4b5673;
-            cursor: pointer;
-            transition: background .15s;
+            padding: 7px 18px; font-size: 13px; font-weight: 600; border-radius: 5px;
+            border: 1px solid #d0d3de; background: #fff; color: #4b5673; cursor: pointer;
         }
-
-        .ap-btn-cancel:hover {
-            background: #f3f4f8;
-        }
-
+        .ap-btn-cancel:hover { background: #f3f4f8; }
         .ap-btn-submit {
-            padding: 7px 22px;
-            font-size: 13px;
-            font-weight: 700;
-            border-radius: 5px;
-            border: none;
-            background: #3741b0;
-            color: #fff;
-            cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            transition: opacity .15s;
+            padding: 7px 22px; font-size: 13px; font-weight: 700; border-radius: 5px;
+            border: none; background: #3741b0; color: #fff; cursor: pointer;
+            display: inline-flex; align-items: center; gap: 6px; transition: opacity .15s;
         }
+        .ap-btn-submit:hover { opacity: .88; }
+        .ap-btn-submit:disabled { opacity: .6; cursor: not-allowed; }
+        .ap-btn-submit.info   { background: #125e80; }
+        .ap-btn-submit.purple { background: #5c35aa; }
+        .ap-btn-submit.dark   { background: #4b5673; }
 
-        .ap-btn-submit:hover {
-            opacity: .88;
-        }
-
-        .ap-btn-submit:disabled {
-            opacity: .6;
-            cursor: not-allowed;
-        }
-
-        .ap-btn-submit.danger {
-            background: #b52020;
-        }
-
-        .ap-btn-submit.success {
-            background: #1a7a3c;
-        }
-
-        .ap-btn-submit.info {
-            background: #125e80;
-        }
-
-        .ap-btn-submit.purple {
-            background: #5c35aa;
-        }
-
-        /* ── Confirm cards (approve/reject choice) ── */
-        .ap-choice-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            margin-bottom: 4px;
-        }
-
+        /* ── Choice cards ── */
+        .ap-choice-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 4px; }
         .ap-choice-card {
-            border: 1px solid #d0d3de;
-            border-radius: 6px;
-            padding: 11px 14px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            cursor: pointer;
-            transition: border-color .15s, background .15s;
-            font-size: 13px;
-            font-weight: 600;
-            color: #18284d;
-            position: relative;
-            user-select: none;
+            border: 1px solid #d0d3de; border-radius: 6px; padding: 11px 14px;
+            display: flex; align-items: center; gap: 10px; cursor: pointer;
+            font-size: 13px; font-weight: 600; color: #18284d; position: relative; user-select: none;
         }
-
-        .ap-choice-card input[type="radio"] {
-            position: absolute;
-            opacity: 0;
-            width: 0;
-            height: 0;
-        }
-
+        .ap-choice-card input[type="radio"] { position: absolute; opacity: 0; width: 0; height: 0; }
         .ap-choice-dot {
-            width: 16px;
-            height: 16px;
-            border-radius: 50%;
-            border: 2px solid #c0c6d4;
-            flex-shrink: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: border-color .15s;
+            width: 16px; height: 16px; border-radius: 50%; border: 2px solid #c0c6d4;
+            flex-shrink: 0; display: flex; align-items: center; justify-content: center;
         }
+        .ap-choice-dot::after { content: ''; width: 8px; height: 8px; border-radius: 50%; background: transparent; }
+        .ap-choice-card.sel-approved { border-color: #1a7a3c; background: #f0fbf5; }
+        .ap-choice-card.sel-approved .ap-choice-dot { border-color: #1a7a3c; }
+        .ap-choice-card.sel-approved .ap-choice-dot::after { background: #1a7a3c; }
+        .ap-choice-card.sel-rejected { border-color: #b52020; background: #fff5f5; }
+        .ap-choice-card.sel-rejected .ap-choice-dot { border-color: #b52020; }
+        .ap-choice-card.sel-rejected .ap-choice-dot::after { background: #b52020; }
 
-        .ap-choice-dot::after {
-            content: '';
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: transparent;
-            transition: background .15s;
+        @media(max-width:991.98px) {
+            .client-grid { grid-template-columns: 1fr 1fr; }
+            .amount-strip { grid-template-columns: repeat(2,1fr); }
         }
-
-        .ap-choice-card.sel-approved {
-            border-color: #1a7a3c;
-            background: #f0fbf5;
-        }
-
-        .ap-choice-card.sel-approved .ap-choice-dot {
-            border-color: #1a7a3c;
-        }
-
-        .ap-choice-card.sel-approved .ap-choice-dot::after {
-            background: #1a7a3c;
-        }
-
-        .ap-choice-card.sel-rejected {
-            border-color: #b52020;
-            background: #fff5f5;
-        }
-
-        .ap-choice-card.sel-rejected .ap-choice-dot {
-            border-color: #b52020;
-        }
-
-        .ap-choice-card.sel-rejected .ap-choice-dot::after {
-            background: #b52020;
-        }
-
-        .td-footer {
-            text-align: center;
-            font-size: 12px;
-            color: #6f7790;
-            padding: 20px 0 10px;
-        }
-
-        @media(max-width:767px) {
-            .iou-amount-strip {
-                grid-template-columns: repeat(2, 1fr);
-            }
-
-            .ap-choice-row {
-                grid-template-columns: 1fr;
-            }
-
-            .td-detail-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .td-detail-cell {
-                border-right: none !important;
-            }
+        @media(max-width:575.98px) {
+            .client-grid { grid-template-columns: 1fr; }
+            .ap-choice-row { grid-template-columns: 1fr; }
         }
     </style>
 
     <div class="page-wrapper">
-        <div class="content td-page">
+        <div class="content">
 
-            <a href="{{ route('tickets') }}" class="td-crumb">
+            <a href="{{ route('tickets') }}" class="crumb-back">
                 <i class="ti ti-chevron-left"></i> Back to Tickets
             </a>
 
-            <div class="td-card">
+            <div class="row g-3">
 
-                <div class="td-card-header">
-                    <div class="td-card-header-left">
-                        <div class="td-header-icon"><i class="ti ti-wallet"></i></div>
-                        <div>
-                            <div class="td-header-title">IOU Request Details</div>
-                            <div class="td-header-sub">
-                                #TKT{{ $ticket->ticketId ?? '—' }}
-                                &nbsp;·&nbsp;
-                                Raised {{ $ticket->CreatedDate ? date('d M Y', strtotime($ticket->CreatedDate)) : '—' }}
-                                &nbsp;·&nbsp;
-                                <span
-                                    class="td-pill
-                            @if ($iou->status === 'pending') pill-pending
-                            @elseif($iou->status === 'approved') pill-approved
-                            @elseif($iou->status === 'rejected') pill-rejected
-                            @elseif($iou->status === 'paid')     pill-paid
-                            @elseif($iou->status === 'settled')  pill-settled
-                            @elseif($iou->status === 'Closed')   pill-closed
-                            @else                                pill-pending @endif">
-                                    {{ $iou->status ?? 'pending' }}
+                {{-- ══ LEFT COL ══════════════════════════════════════════════ --}}
+                <div class="col-lg-8">
+
+                    {{-- IOU Request Details card --}}
+                    <div class="details-card mb-3">
+                        <div class="details-card-header">
+                            <i class="ti ti-wallet"></i>
+                            IOU Request — #{{ $ticket->ticketId ?? '—' }}
+                            @php
+                                $statusPill = [
+                                    'pending'  => ['pill-pending',  'Pending'],
+                                    'approved' => ['pill-approved', 'Approved'],
+                                    'rejected' => ['pill-rejected', 'Rejected'],
+                                    'paid'     => ['pill-paid',     'Paid'],
+                                    'settled'  => ['pill-settled',  'Settled'],
+                                    'closed'   => ['pill-closed',   'Closed'],
+                                ];
+                                [$pillClass, $pillLabel] = $statusPill[$iou->status] ?? ['pill-pending','Pending'];
+                            @endphp
+                            <span class="td-pill {{ $pillClass }} ms-auto">{{ $pillLabel }}</span>
+                        </div>
+
+                        {{-- Status flow --}}
+                        <div class="status-flow">
+                            @php
+                                $flowOrder = ['pending','approved','paid','settled','Closed'];
+                                $flowLabels = ['pending'=>'Pending','approved'=>'Approved','paid'=>'Paid','settled'=>'Settled','Closed'=>'Closed'];
+                                $flowColors = ['pending'=>'#8f5e00','approved'=>'#1a7a3c','paid'=>'#125e80','settled'=>'#5c35aa','Closed'=>'#4b5673'];
+                                $curIdx = array_search($iou->status, $flowOrder);
+                            @endphp
+                            @foreach ($flowOrder as $idx => $step)
+                                <span class="sf-item {{ $iou->status === $step ? 'active' : '' }}"
+                                    style="color:{{ $flowColors[$step] }};">
+                                    {{ $flowLabels[$step] }}
                                 </span>
+                                @if (!$loop->last)
+                                    <span class="text-muted" style="font-size:16px;line-height:1.4;">→</span>
+                                @endif
+                            @endforeach
+                            @if ($iou->status === 'rejected')
+                                <span class="sf-item active" style="color:#b52020;border-color:#b52020;">Rejected</span>
+                            @endif
+                        </div>
+
+                        {{-- Amount strip --}}
+                        <div class="amount-strip" style="margin-top:12px;">
+                            <div class="amount-cell">
+                                <div class="amount-label">Requested</div>
+                                <div class="amount-val">₹{{ number_format($iou->requested_amount, 2) }}</div>
+                            </div>
+                            <div class="amount-cell">
+                                <div class="amount-label">Approved</div>
+                                <div class="amount-val green">₹{{ number_format($iou->approved_amount ?? 0, 2) }}</div>
+                            </div>
+                            <div class="amount-cell">
+                                <div class="amount-label">Paid</div>
+                                <div class="amount-val blue">₹{{ number_format($iou->paid_amount ?? 0, 2) }}</div>
+                            </div>
+                            <div class="amount-cell">
+                                <div class="amount-label">Pending Balance</div>
+                                <div class="amount-val {{ ($balance?->pending_balance ?? 0) > 0 ? 'red' : 'green' }}">
+                                    ₹{{ number_format($balance?->pending_balance ?? 0, 2) }}
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- Detail grid --}}
+                        <div class="client-grid">
+                            <div class="client-item">
+                                <div class="client-icon"><i class="ti ti-user"></i></div>
+                                <div>
+                                    <div class="client-label">Employee</div>
+                                    <div class="client-value">{{ $iou->employee->FullName ?? '—' }}</div>
+                                </div>
+                            </div>
+                            <div class="client-item">
+                                <div class="client-icon"><i class="ti ti-building"></i></div>
+                                <div>
+                                    <div class="client-label">Department</div>
+                                    <div class="client-value">{{ $iou->department->DepartmentName ?? '—' }}</div>
+                                </div>
+                            </div>
+                            <div class="client-item">
+                                <div class="client-icon"><i class="ti ti-tag"></i></div>
+                                <div>
+                                    <div class="client-label">Category</div>
+                                    <div class="client-value">{{ $iou->category->category_name ?? '—' }}</div>
+                                </div>
+                            </div>
+                            <div class="client-item">
+                                <div class="client-icon"><i class="ti ti-list"></i></div>
+                                <div>
+                                    <div class="client-label">Type of Escalation</div>
+                                    <div class="client-value">{{ $iou->issue->IssueName ?? '—' }}</div>
+                                </div>
+                            </div>
+                            <div class="client-item">
+                                <div class="client-icon"><i class="ti ti-calendar"></i></div>
+                                <div>
+                                    <div class="client-label">Request Date</div>
+                                    <div class="client-value">
+                                        {{ $iou->request_date ? date('d M Y', strtotime($iou->request_date)) : '—' }}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="client-item">
+                                <div class="client-icon"><i class="ti ti-calendar-check"></i></div>
+                                <div>
+                                    <div class="client-label">Raised On</div>
+                                    <div class="client-value">
+                                        {{ $ticket->CreatedDate ? date('d M Y', strtotime($ticket->CreatedDate)) : '—' }}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="client-item" style="grid-column:1/-1;">
+                                <div class="client-icon"><i class="ti ti-message"></i></div>
+                                <div>
+                                    <div class="client-label">Purpose</div>
+                                    <div class="client-value">{{ $iou->purpose ?? '—' }}</div>
+                                </div>
                             </div>
                         </div>
                     </div>
-                    @if ($iou->status === 'pending')
-                        <button class="td-btn td-btn-primary" onclick="openApprovalModal()">
-                            <i class="ti ti-clipboard-check"></i> Review Request
-                        </button>
-                    @elseif($iou->status === 'approved')
-                        <button class="td-btn td-btn-pay" onclick="openPaymentModal()">
-                            <i class="ti ti-cash"></i> Mark as paid
-                        </button>
-                    @elseif($iou->status === 'paid')
-                        <button class="td-btn td-btn-settle" onclick="openSettlementModal()">
-                            <i class="ti ti-file-invoice"></i> Add Settlement
-                        </button>
-                    @elseif($iou->status === 'settled')
-                        <button class="td-btn td-btn-close" onclick="openCloseModal()">
-                            <i class="ti ti-lock"></i> Close Ticket
-                        </button>
+
+                    {{-- Transactions --}}
+                    @if ($iou->transactions && $iou->transactions->count())
+                        <div class="details-card mb-3">
+                            <div class="details-card-header">
+                                <i class="ti ti-transfer"></i> Transactions
+                            </div>
+                            <div class="table-responsive">
+                                <table class="table blue-table mb-0">
+                                    <thead>
+                                        <tr>
+                                            <th class="text-light">#</th>
+                                            <th class="text-light">Type</th>
+                                            <th class="text-light">Amount</th>
+                                            <th class="text-light">Remarks</th>
+                                            <th class="text-light">Date</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach ($iou->transactions as $k => $txn)
+                                            <tr>
+                                                <td>{{ $k + 1 }}</td>
+                                                <td><span class="td-pill pill-inprogress">{{ ucfirst(str_replace('_', ' ', $txn->type)) }}</span></td>
+                                                <td style="font-weight:700;color:#18284d;">₹{{ number_format($txn->amount, 2) }}</td>
+                                                <td>{{ $txn->remarks ?? '—' }}</td>
+                                                <td>{{ $txn->created_at ? date('d M Y h:i A', strtotime($txn->created_at)) : '—' }}</td>
+                                            </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
                     @endif
-                </div>
-                <div class="iou-amount-strip">
-                    <div class="iou-amount-cell">
-                        <div class="iou-amount-label">Requested</div>
-                        <div class="iou-amount-val">₹{{ number_format($iou->requested_amount, 2) }}</div>
-                    </div>
-                    <div class="iou-amount-cell">
-                        <div class="iou-amount-label">approved</div>
-                        <div class="iou-amount-val positive">₹{{ number_format($iou->approved_amount ?? 0, 2) }}</div>
-                    </div>
-                    <div class="iou-amount-cell">
-                        <div class="iou-amount-label">paid</div>
-                        <div class="iou-amount-val info" style="color:#125e80;">
-                            ₹{{ number_format($iou->paid_amount ?? 0, 2) }}</div>
-                    </div>
 
-                    <div class="iou-amount-cell">
-
-                        <div class="iou-amount-label">Net pending Balance</div>
-                        <div class="iou-amount-val {{ ($balance?->pending_balance ?? 0) > 0 ? 'negative' : 'positive' }}">
-                            ₹{{ number_format($balance?->pending_balance ?? 0, 2) }}
-                        </div>
-
-                    </div>
-                </div>
-
-                {{-- ── IOU Details ── --}}
-                <div class="td-section-row">
-                    <div class="td-section-title"><i class="ti ti-info-circle"
-                            style="margin-right:6px;color:#3741b0;"></i>IOU Details</div>
-                </div>
-                <div class="td-detail-grid">
-                    <div class="td-detail-cell">
-                        <div class="td-detail-key">Employee</div>
-                        <div class="td-detail-val">{{ $iou->employee->FullName ?? '—' }}</div>
-                    </div>
-                    <div class="td-detail-cell">
-                        <div class="td-detail-key">Department</div>
-                        <div class="td-detail-val">{{ $iou->department->DepartmentName ?? '—' }}</div>
-                    </div>
-                    <div class="td-detail-cell">
-                        <div class="td-detail-key">Category</div>
-                        <div class="td-detail-val">{{ $iou->category->category_name ?? '—' }}</div>
-                    </div>
-                    <div class="td-detail-cell">
-                        <div class="td-detail-key">Type of Escalation</div>
-                        <div class="td-detail-val">{{ $iou->issue->IssueName ?? '—' }}</div>
-                    </div>
-                    <div class="td-detail-cell">
-                        <div class="td-detail-key">Request Date</div>
-                        <div class="td-detail-val">
-                            {{ $iou->request_date ? date('d M Y', strtotime($iou->request_date)) : '—' }}</div>
-                    </div>
-                    <div class="td-detail-cell">
-                        <div class="td-detail-key">Purpose</div>
-                        <div class="td-detail-val">{{ $iou->purpose ?? '—' }}</div>
-                    </div>
-
-                </div>
-                @if ($balance)
-                    <div class="td-section-row">
-                        <div class="td-section-title"><i class="ti ti-user-dollar"
-                                style="margin-right:6px;color:#3741b0;"></i>Employee Balance</div>
-                    </div>
-                    <div class="td-detail-grid">
-                        <div class="td-detail-cell">
-                            <div class="td-detail-key">Total IOU Amount</div>
-                            <div class="td-detail-val">₹{{ number_format($balance->total_iou_amount, 2) }}</div>
-                        </div>
-                        <div class="td-detail-cell">
-                            <div class="td-detail-key">Total settled</div>
-                            <div class="td-detail-val positive">₹{{ number_format($balance->total_settlement_amount, 2) }}
+                    {{-- Settlements --}}
+                    @if ($iou->settlements && $iou->settlements->count())
+                        <div class="details-card mb-3">
+                            <div class="details-card-header">
+                                <i class="ti ti-file-invoice" style="color:#5c35aa;"></i> Settlements
+                            </div>
+                            <div class="table-responsive">
+                                <table class="table blue-table mb-0">
+                                    <thead>
+                                        <tr>
+                                            <th class="text-light">#</th>
+                                            <th class="text-light">Type</th>
+                                            <th class="text-light">Settlement Amt</th>
+                                            <th class="text-light">Employee Extra</th>
+                                            <th class="text-light">Remaining Bal</th>
+                                            <th class="text-light">Remarks</th>
+                                            <th class="text-light">Date</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach ($iou->settlements as $k => $s)
+                                            <tr>
+                                                <td>{{ $k + 1 }}</td>
+                                                <td><span class="td-pill pill-settled">{{ $s->settlement_type ?? '—' }}</span></td>
+                                                <td style="color:#1a7a3c;font-weight:600;">₹{{ number_format($s->company_settlement_amount ?? $s->actual_expense ?? 0, 2) }}</td>
+                                                <td style="color:#b52020;font-weight:600;">₹{{ number_format($s->employee_claim_amount ?? $s->extra_claim_amount ?? 0, 2) }}</td>
+                                                <td style="color:#125e80;font-weight:600;">₹{{ number_format($s->remaining_balance ?? $s->returned_amount ?? 0, 2) }}</td>
+                                                <td>{{ $s->remarks ?? '—' }}</td>
+                                                <td>{{ $s->created_at ? date('d M Y', strtotime($s->created_at)) : '—' }}</td>
+                                            </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
                             </div>
                         </div>
-                        <div class="td-detail-cell">
-                            <div class="td-detail-key">Total Claims</div>
-                            <div class="td-detail-val warning">₹{{ number_format($balance->total_claim_amount, 2) }}</div>
+                    @endif
+
+                    {{-- Action History --}}
+                    <div class="details-card">
+                        <div class="details-card-header">
+                            <i class="ti ti-history"></i> Action History
                         </div>
-                        <div class="td-detail-cell">
-                            <div class="td-detail-key">Net pending Balance</div>
-                            <div class="td-detail-val {{ $balance->pending_balance > 0 ? 'negative' : 'positive' }}">
-                                ₹{{ number_format($balance->pending_balance, 2) }}
+                        <div class="table-responsive">
+                            <table class="table blue-table mb-0">
+                                <thead>
+                                    <tr>
+                                        <th class="text-light">#</th>
+                                        <th class="text-light">Date</th>
+                                        <th class="text-light">Status</th>
+                                        <th class="text-light">Remarks</th>
+                                        <th class="text-light">Changed By</th>
+                                        <th class="text-light">Designation</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @forelse ($actionHistory as $k => $history)
+                                        <tr>
+                                            <td>{{ $k + 1 }}</td>
+                                            <td>{{ $history->changedAt ? date('d M Y h:i A', strtotime($history->changedAt)) : '—' }}</td>
+                                            <td>
+                                                @php
+                                                    $hPill = [
+                                                        'pending'  => 'pill-pending',
+                                                        'approved' => 'pill-approved',
+                                                        'rejected' => 'pill-rejected',
+                                                        'paid'     => 'pill-paid',
+                                                        'settled'  => 'pill-settled',
+                                                        'Closed'   => 'pill-closed',
+                                                    ];
+                                                    $hp = $hPill[strtolower($history->status)] ?? $hPill[$history->status] ?? 'pill-inprogress';
+                                                @endphp
+                                                <span class="td-pill {{ $hp }}">{{ ucfirst($history->status) }}</span>
+                                            </td>
+                                            <td><small>{{ $history->remarks ?? '—' }}</small></td>
+                                            <td>{{ $history->changedBy }}</td>
+                                            <td>{{ $history->designation }}</td>
+                                        </tr>
+                                    @empty
+                                        <tr>
+                                            <td colspan="6" class="text-center text-muted py-3">No history found</td>
+                                        </tr>
+                                    @endforelse
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                </div>
+
+                {{-- ══ RIGHT COL ══════════════════════════════════════════════ --}}
+                <div class="col-lg-4">
+
+                    {{-- Employee Balance Card --}}
+                    @if ($balance)
+                        <div class="details-card mb-3">
+                            <div class="details-card-header">
+                                <i class="ti ti-user-dollar"></i> Employee Balance
+                            </div>
+                            <div class="p-3">
+                                <div style="background:linear-gradient(135deg,#3741b0,#5761d0);border-radius:10px;color:#fff;padding:18px;text-align:center;margin-bottom:14px;">
+                                    <div style="font-size:12px;opacity:.85;margin-bottom:4px;">Net Pending Balance</div>
+                                    <div style="font-size:28px;font-weight:800;">₹{{ number_format($balance->pending_balance, 2) }}</div>
+                                </div>
+                                <div class="row g-2 text-center">
+                                    <div class="col-6">
+                                        <div class="border rounded p-2">
+                                            <div class="text-muted" style="font-size:11px;">Total IOU</div>
+                                            <div class="fw-semibold" style="font-size:13px;color:#3741b0;">₹{{ number_format($balance->total_iou_amount, 2) }}</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="border rounded p-2">
+                                            <div class="text-muted" style="font-size:11px;">Total Settled</div>
+                                            <div class="fw-semibold text-success" style="font-size:13px;">₹{{ number_format($balance->total_settlement_amount, 2) }}</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="border rounded p-2">
+                                            <div class="text-muted" style="font-size:11px;">Total Claims</div>
+                                            <div class="fw-semibold text-warning" style="font-size:13px;">₹{{ number_format($balance->total_claim_amount, 2) }}</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="border rounded p-2">
+                                            <div class="text-muted" style="font-size:11px;">Paid Amount</div>
+                                            <div class="fw-semibold text-info" style="font-size:13px;">₹{{ number_format($iou->paid_amount ?? 0, 2) }}</div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                @endif
+                    @endif
+                    {{-- Action Card --}}
+                    @if ($iou->status !== 'Closed' && $iou->status !== 'rejected')
+                        <div class="details-card">
+                            <div class="details-card-header">
+                                <i class="ti ti-settings"></i> Actions
+                            </div>
+                            <div class="action-card-inner">
+                                <div class="action-btn-row">
+                                    @if ($iou->status === 'pending')
+                                        <button class="ac-btn ac-btn-primary" onclick="openApprovalModal()">
+                                            <i class="ti ti-clipboard-check"></i> Review IOU Request
+                                        </button>
+                                    @elseif ($iou->status === 'approved')
+                                        <button class="ac-btn ac-btn-pay" onclick="openPaymentModal()">
+                                            <i class="ti ti-cash"></i> Mark as Paid
+                                        </button>
+                                    @elseif ($iou->status === 'paid')
+                                        <button class="ac-btn ac-btn-settle" onclick="openSettlementModal()">
+                                            <i class="ti ti-file-invoice"></i> Add Settlement
+                                        </button>
+                                    @elseif ($iou->status === 'settled')
+                                        <button class="ac-btn ac-btn-close" onclick="openCloseModal()">
+                                            <i class="ti ti-lock"></i> Close Ticket
+                                        </button>
+                                    @endif
+                                </div>
+                            </div>
+                        </div>
+                    @else
+                        <div class="alert alert-{{ $iou->status === 'Closed' ? 'success' : 'danger' }} text-center mb-0">
+                            <i class="ti ti-{{ $iou->status === 'Closed' ? 'circle-check' : 'circle-x' }} fs-4 d-block mb-1"></i>
+                            This IOU is <strong>{{ $iou->status === 'Closed' ? 'Closed' : 'Rejected' }}</strong>
+                        </div>
+                    @endif
 
-                {{-- ── Transactions ── --}}
-                @if ($iou->transactions && $iou->transactions->count())
-                    <div class="td-section-row">
-                        <div class="td-section-title"><i class="ti ti-transfer"
-                                style="margin-right:6px;color:#3741b0;"></i>Transactions</div>
-                    </div>
-                    <div class="table-responsive">
-                        <table class="td-table">
-                            <thead>
-                                <tr>
-                                    <th>#</th>
-                                    <th>Type</th>
-                                    <th>Amount</th>
-                                    <th>Remarks</th>
-                                    <th>Date</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach ($iou->transactions as $k => $txn)
-                                    <tr>
-                                        <td>{{ $k + 1 }}</td>
-                                        <td><span
-                                                class="td-pill pill-inprogress">{{ ucfirst(str_replace('_', ' ', $txn->type)) }}</span>
-                                        </td>
-                                        <td style="font-weight:700;color:#18284d;">₹{{ number_format($txn->amount, 2) }}
-                                        </td>
-                                        <td>{{ $txn->remarks ?? '—' }}</td>
-                                        <td>{{ $txn->created_at ? date('d M Y h:i A', strtotime($txn->created_at)) : '—' }}
-                                        </td>
-                                    </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
-                    </div>
-                @endif
-                <div class="td-section-row">
-                    <div class="td-section-title">
-                        <i class="ti ti-history" style="margin-right:6px;color:#3741b0;"></i>
-                        Action History
-                    </div>
                 </div>
 
-                <div class="table-responsive">
-                    <table class="td-table">
-                        <thead>
-                            <tr>
-                                <th>#</th>
-                                <th>Status</th>
-                                <th>Remarks</th>
-                                <th>Changed By</th>
-                                <th>Designation</th>
-                                <th>Date</th>
-                            </tr>
-                        </thead>
-
-                        <tbody>
-
-                            @forelse ($actionHistory as $k => $history)
-                                <tr>
-
-                                    <td>{{ $k + 1 }}</td>
-
-                                    <td>
-                                        <span
-                                            class="td-pill
-                            {{ $history->status == 'approved' ? 'pill-success' : '' }}
-                            {{ $history->status == 'rejected' ? 'pill-danger' : '' }}
-                            {{ $history->status == 'pending' ? 'pill-inprogress' : '' }}">
-
-                                            {{ ucfirst($history->status) }}
-                                        </span>
-                                    </td>
-
-                                    <td>
-                                        {{ $history->remarks ?? '—' }}
-                                    </td>
-
-                                    <td>
-                                        {{ $history->changedBy }}
-                                    </td>
-
-                                    <td>
-                                        {{ $history->designation }}
-                                    </td>
-
-                                    <td>
-                                        {{ $history->changedAt ? date('d M Y h:i A', strtotime($history->changedAt)) : '—' }}
-                                    </td>
-
-                                </tr>
-                            @empty
-                                <tr>
-                                    <td colspan="6" class="text-center">
-                                        No history found
-                                    </td>
-                                </tr>
-                            @endforelse
-
-                        </tbody>
-                    </table>
-                </div>
-
-                {{-- ── Settlements ── --}}
-                @if ($iou->settlements && $iou->settlements->count())
-                    <div class="td-section-row">
-                        <div class="td-section-title"><i class="ti ti-file-invoice"
-                                style="margin-right:6px;color:#5c35aa;"></i>Settlements</div>
-                    </div>
-                    <div class="table-responsive">
-                        <table class="td-table">
-                            <thead>
-                                <tr>
-                                    <th>#</th>
-                                    <th>Settlement Date</th>
-                                    <th>Actual Expense</th>
-                                    <th>Returned Amount</th>
-                                    <th>Extra Claim</th>
-                                    <th>Remarks</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach ($iou->settlements as $k => $s)
-                                    <tr class="settle-row">
-                                        <td>{{ $k + 1 }}</td>
-                                        <td>{{ $s->settlement_date ? date('d M Y', strtotime($s->settlement_date)) : '—' }}
-                                        </td>
-                                        <td style="font-weight:700;color:#18284d;">
-                                            ₹{{ number_format($s->actual_expense, 2) }}</td>
-                                        <td style="color:#1a7a3c;font-weight:600;">
-                                            ₹{{ number_format($s->returned_amount, 2) }}</td>
-                                        <td style="color:#b52020;font-weight:600;">
-                                            ₹{{ number_format($s->extra_claim_amount, 2) }}</td>
-                                        <td>{{ $s->remarks ?? '—' }}</td>
-                                    </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
-                    </div>
-                @endif
-
-                {{-- ── Claims ── --}}
-                @if ($iou->claims && $iou->claims->count())
-                    <div class="td-section-row">
-                        <div class="td-section-title"><i class="ti ti-receipt"
-                                style="margin-right:6px;color:#125e80;"></i>Claims</div>
-                    </div>
-                    <div class="table-responsive">
-                        <table class="td-table">
-                            <thead>
-                                <tr>
-                                    <th>#</th>
-                                    <th>Expense Date</th>
-                                    <th>Type</th>
-                                    <th>Amount</th>
-                                    <th>Remarks</th>
-                                    <th>Status</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach ($iou->claims as $k => $c)
-                                    <tr>
-                                        <td>{{ $k + 1 }}</td>
-                                        <td>{{ $c->expense_date ? date('d M Y', strtotime($c->expense_date)) : '—' }}</td>
-                                        <td>{{ $c->expense_type ?? '—' }}</td>
-                                        <td style="font-weight:700;color:#18284d;">
-                                            ₹{{ number_format($c->expense_amount, 2) }}</td>
-                                        <td>{{ $c->remarks ?? '—' }}</td>
-                                        <td>
-                                            <span
-                                                class="td-pill
-                                @if ($c->status === 'pending') pill-pending
-                                @elseif($c->status === 'approved') pill-approved
-                                @elseif($c->status === 'rejected') pill-rejected
-                                @else pill-pending @endif">{{ $c->status }}</span>
-                                        </td>
-                                    </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
-                    </div>
-                @endif
-
-                <div style="height:8px;"></div>
-            </div>{{-- /td-card --}}
-
-            <div class="td-footer">Powered by Vecura &nbsp;·&nbsp; All rights reserved</div>
+            </div>
         </div>
     </div>
 
-    {{-- ════════════════════════════════════════
-     MODAL 1: Approval / Rejection
-     ════════════════════════════════════════ --}}
+    {{-- ══ MODALS ══════════════════════════════════════════════════════ --}}
+
+    {{-- Approval Modal --}}
     <div class="modal fade" id="approvalModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered" style="max-width:480px;">
-            <div class="modal-content"
-                style="border-radius:6px;border:none;overflow:hidden;box-shadow:0 8px 32px rgba(55,65,176,.18);">
+            <div class="modal-content" style="border-radius:6px;border:none;overflow:hidden;box-shadow:0 8px 32px rgba(55,65,176,.18);">
                 <div class="ap-modal-header">
-                    <h5 class="ap-modal-title"><i class="ti ti-clipboard-check" style="font-size:17px;"></i> Review IOU
-                        Request</h5>
+                    <h5 class="ap-modal-title"><i class="ti ti-clipboard-check" style="font-size:17px;"></i> Review IOU Request</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="ap-modal-body">
                     <div class="ap-info-strip">
                         <div class="ap-info-item"><strong>Employee:</strong> {{ $iou->employee->FullName ?? '—' }}</div>
-                        <div class="ap-info-item"><strong>Requested:</strong>
-                            ₹{{ number_format($iou->requested_amount, 2) }}</div>
+                        <div class="ap-info-item"><strong>Requested:</strong> ₹{{ number_format($iou->requested_amount, 2) }}</div>
                     </div>
-
                     <div class="mb-3">
                         <label class="ap-field-label">Decision <span class="req">*</span></label>
                         <div class="ap-choice-row">
@@ -1031,13 +575,11 @@
                             </label>
                         </div>
                     </div>
-
                     <div class="mb-3" id="approvedAmountRow" style="display:none;">
-                        <label class="ap-field-label">approved Amount <span class="req">*</span></label>
+                        <label class="ap-field-label">Approved Amount <span class="req">*</span></label>
                         <input type="number" id="approved_amount" class="form-control" min="1"
                             placeholder="Enter approved amount" value="{{ $iou->requested_amount }}">
                     </div>
-
                     <div class="mb-1">
                         <label class="ap-field-label">Remarks <span class="req">*</span></label>
                         <textarea id="approval_remarks" class="ap-textarea" rows="3" placeholder="Enter remarks…"></textarea>
@@ -1053,25 +595,21 @@
         </div>
     </div>
 
-    {{-- ════════════════════════════════════════
-     MODAL 2: Mark as paid
-     ════════════════════════════════════════ --}}
+    {{-- Payment Modal --}}
     <div class="modal fade" id="paymentModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered" style="max-width:460px;">
-            <div class="modal-content"
-                style="border-radius:6px;border:none;overflow:hidden;box-shadow:0 8px 32px rgba(18,94,128,.18);">
+            <div class="modal-content" style="border-radius:6px;border:none;overflow:hidden;box-shadow:0 8px 32px rgba(18,94,128,.18);">
                 <div class="ap-modal-header info">
                     <h5 class="ap-modal-title"><i class="ti ti-cash" style="font-size:17px;"></i> Record Payment</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="ap-modal-body">
                     <div class="ap-info-strip">
-                        <div class="ap-info-item"><strong>approved Amount:</strong>
-                            ₹{{ number_format($iou->approved_amount ?? 0, 2) }}</div>
+                        <div class="ap-info-item"><strong>Approved Amount:</strong> ₹{{ number_format($iou->approved_amount ?? 0, 2) }}</div>
                         <div class="ap-info-item"><strong>Employee:</strong> {{ $iou->employee->FullName ?? '—' }}</div>
                     </div>
                     <div class="mb-3">
-                        <label class="ap-field-label">paid Amount <span class="req">*</span></label>
+                        <label class="ap-field-label">Paid Amount <span class="req">*</span></label>
                         <input type="number" id="paid_amount" class="form-control" min="1"
                             placeholder="Enter paid amount" value="{{ $iou->approved_amount ?? '' }}">
                     </div>
@@ -1100,58 +638,125 @@
         </div>
     </div>
 
-    {{-- ════════════════════════════════════════
-     MODAL 3: Settlement
-     ════════════════════════════════════════ --}}
+    {{-- Settlement Modal (Petty Cash UI) --}}
     <div class="modal fade" id="settlementModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered" style="max-width:480px;">
-            <div class="modal-content"
-                style="border-radius:6px;border:none;overflow:hidden;box-shadow:0 8px 32px rgba(92,53,170,.18);">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content" style="border-radius:6px;border:none;overflow:hidden;box-shadow:0 8px 32px rgba(92,53,170,.18);">
                 <div class="ap-modal-header purple">
-                    <h5 class="ap-modal-title"><i class="ti ti-file-invoice" style="font-size:17px;"></i> Add Settlement
-                    </h5>
+                    <h5 class="ap-modal-title"><i class="ti ti-file-invoice" style="font-size:17px;"></i> Add Settlement</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="ap-modal-body">
                     <div class="ap-info-strip">
-                        <div class="ap-info-item"><strong>paid:</strong> ₹{{ number_format($iou->paid_amount ?? 0, 2) }}
-                        </div>
                         <div class="ap-info-item"><strong>Employee:</strong> {{ $iou->employee->FullName ?? '—' }}</div>
+                        <div class="ap-info-item"><strong>Paid Amount:</strong> ₹{{ number_format($iou->paid_amount ?? 0, 2) }}</div>
                     </div>
-                    <div class="mb-3">
-                        <label class="ap-field-label">Settlement Date <span class="req">*</span></label>
-                        <input type="date" id="settlement_date" class="form-control" value="{{ date('Y-m-d') }}">
-                    </div>
-                    <div class="mb-3">
-                        <label class="ap-field-label">Actual Expense <span class="req">*</span></label>
-                        <input type="number" id="actual_expense" class="form-control" min="0" step="0.01"
-                            placeholder="Total actual expense incurred">
-                    </div>
-                    <div id="settlementCalcRow"
-                        style="display:none;background:#f3f4f8;border-radius:5px;padding:10px 14px;margin-bottom:12px;font-size:13px;">
-                        <div id="settlementCalcMsg" style="color:#18284d;font-weight:600;"></div>
-                    </div>
-                    <div class="mb-3">
-                        <label class="ap-field-label">Returned Amount</label>
-                        <input type="number" id="returned_amount" class="form-control" min="0" step="0.01"
-                            value="0" placeholder="Amount returned by employee (if any)">
-                        <small class="text-muted">Fill if actual expense &lt; paid amount</small>
-                    </div>
-                    <div class="mb-3">
-                        <label class="ap-field-label">Extra Claim Amount</label>
-                        <input type="number" id="extra_claim_amount" class="form-control" min="0"
-                            step="0.01" value="0" placeholder="Extra claim by employee (if any)">
-                        <small class="text-muted">Fill if actual expense &gt; paid amount</small>
-                    </div>
-                    <div class="mb-1">
-                        <label class="ap-field-label">Remarks <span class="req">*</span></label>
-                        <textarea id="settlement_remarks" class="ap-textarea" rows="2" placeholder="Enter settlement remarks…"></textarea>
+
+                    <div id="settlement_request_block" class="row mt-2">
+                        <div class="col-lg-4">
+                            <label class="form-label">Current Balance</label>
+                            <input type="text" name="settlement_current_balance" class="form-control"
+                                value="{{ number_format($iou->paid_amount ?? 0, 2) }}" readonly>
+                        </div>
+                        <div class="col-lg-4">
+                            <label class="form-label">Remaining Balance</label>
+                            <input type="text" name="remaining_balance" class="form-control"
+                                value="{{ number_format($iou->paid_amount ?? 0, 2) }}" readonly>
+                        </div>
+                        <div class="col-lg-4">
+                            <label class="form-label">Settlement Type <span class="text-danger">*</span></label>
+                            <select name="settlement_type" id="settlement_type" class="form-control">
+                                <option value="">Select Type</option>
+                                <option value="BILL">BILL SUBMISSION</option>
+                                <option value="RETURN">CASH RETURN</option>
+                            </select>
+                        </div>
+
+                        <div class="col-lg-12" id="bill_section" style="display:none;">
+                            <div class="d-flex justify-content-between mb-3 mt-3">
+                                <h5>Bill Details</h5>
+                                <button type="button" class="btn btn-primary btn-sm" id="add_bill_row">+ Add Row</button>
+                            </div>
+                            <div class="table-responsive">
+                                <table class="table table-bordered">
+                                    <thead class="table-dark">
+                                        <tr>
+                                            <th>Expense Type</th>
+                                            <th>Bill Date</th>
+                                            <th>Bill Amount</th>
+                                            <th>Settlement Amount</th>
+                                            <th>Employee Extra</th>
+                                            <th>File</th>
+                                            <th>Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="bill_table_body">
+                                        <tr class="bill-row">
+                                            <td>
+                                                <select name="expense_type[]" class="form-control">
+                                                    <option value="">Select</option>
+                                                    <option value="Travel">Travel</option>
+                                                    <option value="Food">Food</option>
+                                                    <option value="Hotel">Hotel</option>
+                                                    <option value="Fuel">Fuel</option>
+                                                    <option value="Other">Other</option>
+                                                </select>
+                                            </td>
+                                            <td><input type="date" name="bill_date[]" class="form-control"></td>
+                                            <td><input type="number" step="0.01" name="bill_amount[]" class="form-control bill-amount" placeholder="0.00"></td>
+                                            <td><input type="text" name="settlement_amount[]" class="form-control settlement-amount bg-light" value="0.00" readonly></td>
+                                            <td><input type="text" name="employee_extra_amount[]" class="form-control employee-extra bg-danger text-white" value="0.00" readonly></td>
+                                            <td><input type="file" name="settlement_files[]" class="form-control"></td>
+                                            <td class="text-center">
+                                                <button type="button" class="btn btn-danger remove-row">Remove</button>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div class="col-lg-12 mt-3" id="return_section" style="display:none;">
+                            <div class="mb-3">
+                                <label class="form-label">Return Amount <span class="text-danger">*</span></label>
+                                <input type="number" id="return_amount" name="return_amount" class="form-control"
+                                    min="0.01" step="0.01" placeholder="Amount returned by employee">
+                                <small class="text-muted">Employee returns unused cash to company</small>
+                            </div>
+                            <div id="return_hint" style="display:none;background:#f3f4f8;border-radius:5px;padding:9px 13px;font-size:13px;font-weight:600;"></div>
+                        </div>
+
+                        <div class="col-lg-12 mt-3">
+                            <label class="form-label">Remarks <span class="text-danger">*</span></label>
+                            <textarea id="settlement_remarks" name="remarks" class="form-control" rows="2" placeholder="Enter settlement remarks…"></textarea>
+                        </div>
+
+                        <div class="row mt-4">
+                            <div class="col-lg-3">
+                                <label>Total Bill</label>
+                                <input type="text" id="total_bill_amount" class="form-control" readonly value="0.00">
+                            </div>
+                            <div class="col-lg-3">
+                                <label>Company Settlement</label>
+                                <input type="text" id="total_settlement_amount" name="total_settlement_amount"
+                                    class="form-control bg-success text-white" readonly value="0.00">
+                            </div>
+                            <div class="col-lg-3">
+                                <label>Employee Extra</label>
+                                <input type="text" id="total_employee_extra" name="employee_extra_amount"
+                                    class="form-control bg-danger text-white" readonly value="0.00">
+                            </div>
+                            <div class="col-lg-3">
+                                <label>Remaining Balance</label>
+                                <input type="text" id="remaining_balance" name="remaining_balance"
+                                    class="form-control bg-primary text-white" readonly value="0.00">
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <div class="ap-modal-footer">
                     <button type="button" class="ap-btn-cancel" data-bs-dismiss="modal">Cancel</button>
-                    <button type="button" class="ap-btn-submit purple" id="settlementSubmitBtn"
-                        onclick="submitSettlement()">
+                    <button type="button" class="ap-btn-submit purple" id="settlementSubmitBtn" onclick="submitSettlement()">
                         <i class="ti ti-send" style="font-size:13px;"></i> Submit Settlement
                     </button>
                 </div>
@@ -1159,14 +764,11 @@
         </div>
     </div>
 
-    {{-- ════════════════════════════════════════
-     MODAL 4: Close Ticket
-     ════════════════════════════════════════ --}}
+    {{-- Close Modal --}}
     <div class="modal fade" id="closeModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered" style="max-width:440px;">
-            <div class="modal-content"
-                style="border-radius:6px;border:none;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,.12);">
-                <div class="ap-modal-header" style="background:#4b5673;">
+            <div class="modal-content" style="border-radius:6px;border:none;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,.12);">
+                <div class="ap-modal-header dark">
                     <h5 class="ap-modal-title"><i class="ti ti-lock" style="font-size:17px;"></i> Close Ticket</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
@@ -1184,8 +786,7 @@
                 </div>
                 <div class="ap-modal-footer">
                     <button type="button" class="ap-btn-cancel" data-bs-dismiss="modal">Cancel</button>
-                    <button type="button" class="ap-btn-submit" style="background:#4b5673;" id="closeSubmitBtn"
-                        onclick="submitClose()">
+                    <button type="button" class="ap-btn-submit dark" id="closeSubmitBtn" onclick="submitClose()">
                         <i class="ti ti-lock" style="font-size:13px;"></i> Confirm Close
                     </button>
                 </div>
@@ -1200,229 +801,202 @@
         const IOU_ID = {{ $iou->iou_id }};
         const paid_AMOUNT = {{ $iou->paid_amount ?? 0 }};
 
-        // ── Helpers ──────────────────────────────────────────────────
         function setSubmitting(btnId, state) {
             const btn = document.getElementById(btnId);
             if (btn) btn.disabled = state;
         }
-
-        function showWarn(msg) {
-            Swal.fire('Warning', msg, 'warning');
-        }
-
-        function showError(msg) {
-            Swal.fire('Error', msg, 'error');
-        }
-
+        function showWarn(msg)  { Swal.fire('Warning', msg, 'warning'); }
+        function showError(msg) { Swal.fire('Error', msg, 'error'); }
         function showSuccess(msg, cb) {
-            Swal.fire({
-                icon: 'success',
-                title: 'Success',
-                text: msg,
-                timer: 1600,
-                showConfirmButton: false
-            }).then(cb);
+            Swal.fire({ icon:'success', title:'Success', text:msg, timer:1600, showConfirmButton:false }).then(cb);
         }
+        function openModal(id)  { new bootstrap.Modal(document.getElementById(id)).show(); }
+        function closeModal(id) { bootstrap.Modal.getInstance(document.getElementById(id))?.hide(); }
 
-        function openModal(id) {
-            new bootstrap.Modal(document.getElementById(id)).show();
-        }
-
-        function closeModal(id) {
-            bootstrap.Modal.getInstance(document.getElementById(id))?.hide();
-        }
-
-        // ── MODAL 1: Approval ────────────────────────────────────────
-        function openApprovalModal() {
-            openModal('approvalModal');
-        }
+        // ── Approval ────────────────────────────────────────────────
+        function openApprovalModal() { openModal('approvalModal'); }
 
         function selectDecision(val) {
             document.getElementById('choiceApprove').classList.toggle('sel-approved', val === 'approved');
             document.getElementById('choiceReject').classList.toggle('sel-rejected', val === 'rejected');
             document.getElementById('approvedAmountRow').style.display = val === 'approved' ? 'block' : 'none';
-            // store selection
             document.getElementById('choiceApprove').querySelector('input').checked = val === 'approved';
             document.getElementById('choiceReject').querySelector('input').checked = val === 'rejected';
         }
 
         let submittingApproval = false;
-
         function submitApproval() {
             if (submittingApproval) return;
             const decision = document.querySelector('input[name="decision"]:checked')?.value;
             const remarks = document.getElementById('approval_remarks').value.trim();
             const amount = document.getElementById('approved_amount').value;
-
             if (!decision) return showWarn('Please select Approve or Reject.');
-            if (decision === 'approved' && (!amount || amount <= 0)) return showWarn(
-                'Please enter a valid approved amount.');
+            if (decision === 'approved' && (!amount || amount <= 0)) return showWarn('Please enter a valid approved amount.');
             if (!remarks) return showWarn('Please enter remarks.');
-
             submittingApproval = true;
             setSubmitting('approvalSubmitBtn', true);
-
             $.ajax({
-                url: `/iou/${IOU_ID}/approve`,
-                type: 'POST',
-                data: {
-                    decision,
-                    approved_amount: amount,
-                    remarks,
-                    _token: $('meta[name="csrf-token"]').attr('content')
-                },
+                url: `/iou/${IOU_ID}/approve`, type: 'POST',
+                data: { decision, approved_amount: amount, remarks, _token: $('meta[name="csrf-token"]').attr('content') },
                 success: res => showSuccess(res.message, () => location.reload()),
-                error: xhr => {
-                    submittingApproval = false;
-                    setSubmitting('approvalSubmitBtn', false);
-                    showError(xhr.responseJSON?.message ?? 'Something went wrong.');
-                }
+                error: xhr => { submittingApproval = false; setSubmitting('approvalSubmitBtn', false); showError(xhr.responseJSON?.message ?? 'Something went wrong.'); }
             });
         }
 
-        // ── MODAL 2: Payment ─────────────────────────────────────────
-        function openPaymentModal() {
-            openModal('paymentModal');
-        }
+        // ── Payment ─────────────────────────────────────────────────
+        function openPaymentModal() { openModal('paymentModal'); }
 
         let submittingPayment = false;
-
         function submitPayment() {
             if (submittingPayment) return;
             const amount = document.getElementById('paid_amount').value;
-            const mode = document.getElementById('payment_mode').value;
+            const mode   = document.getElementById('payment_mode').value;
             const remarks = document.getElementById('payment_remarks').value.trim();
-
             if (!amount || amount <= 0) return showWarn('Please enter a valid paid amount.');
             if (!mode) return showWarn('Please select payment mode.');
             if (!remarks) return showWarn('Please enter remarks.');
-
             submittingPayment = true;
             setSubmitting('paymentSubmitBtn', true);
-
             $.ajax({
-                url: `/iou/${IOU_ID}/pay`,
-                type: 'POST',
-                data: {
-                    paid_amount: amount,
-                    payment_mode: mode,
-                    remarks,
-                    _token: $('meta[name="csrf-token"]').attr('content')
-                },
+                url: `/iou/${IOU_ID}/pay`, type: 'POST',
+                data: { paid_amount: amount, payment_mode: mode, remarks, _token: $('meta[name="csrf-token"]').attr('content') },
                 success: res => showSuccess(res.message, () => location.reload()),
-                error: xhr => {
-                    submittingPayment = false;
-                    setSubmitting('paymentSubmitBtn', false);
-                    showError(xhr.responseJSON?.message ?? 'Something went wrong.');
-                }
+                error: xhr => { submittingPayment = false; setSubmitting('paymentSubmitBtn', false); showError(xhr.responseJSON?.message ?? 'Something went wrong.'); }
             });
         }
 
-        // ── MODAL 3: Settlement ──────────────────────────────────────
-        function openSettlementModal() {
-            openModal('settlementModal');
-        }
+        // ── Settlement ──────────────────────────────────────────────
+        function openSettlementModal() { openModal('settlementModal'); }
 
-        // Auto-calculate returned/extra when actual_expense changes
-        document.addEventListener('DOMContentLoaded', function() {
-            const expInput = document.getElementById('actual_expense');
-            if (expInput) {
-                expInput.addEventListener('input', function() {
-                    const actual = parseFloat(this.value) || 0;
-                    const paid = paid_AMOUNT;
-                    const diff = paid - actual;
-                    const calcRow = document.getElementById('settlementCalcRow');
-                    const calcMsg = document.getElementById('settlementCalcMsg');
-                    if (actual > 0) {
-                        calcRow.style.display = 'block';
-                        if (diff > 0) {
-                            calcMsg.innerHTML =
-                                `<span style="color:#1a7a3c;">Employee should return ₹${diff.toFixed(2)}</span>`;
-                            document.getElementById('returned_amount').value = diff.toFixed(2);
-                            document.getElementById('extra_claim_amount').value = '0';
-                        } else if (diff < 0) {
-                            calcMsg.innerHTML =
-                                `<span style="color:#b52020;">Employee should claim ₹${Math.abs(diff).toFixed(2)} extra</span>`;
-                            document.getElementById('extra_claim_amount').value = Math.abs(diff).toFixed(2);
-                            document.getElementById('returned_amount').value = '0';
-                        } else {
-                            calcMsg.innerHTML =
-                                `<span style="color:#18284d;">Amounts match perfectly</span>`;
-                            document.getElementById('returned_amount').value = '0';
-                            document.getElementById('extra_claim_amount').value = '0';
-                        }
-                    } else {
-                        calcRow.style.display = 'none';
-                    }
-                });
+        // Settlement type change
+        $('#settlement_type').on('change', function() {
+            const type = $(this).val();
+            $('#bill_section').toggle(type === 'BILL');
+            $('#return_section').toggle(type === 'RETURN');
+            recalcBills();
+        });
+
+        // Add bill row
+        $('#add_bill_row').on('click', function() {
+            const tbody = document.getElementById('bill_table_body');
+            const row = tbody.querySelector('.bill-row').cloneNode(true);
+            row.querySelectorAll('input:not([type="file"])').forEach(el => {
+                el.value = (el.classList.contains('settlement-amount') || el.classList.contains('employee-extra')) ? '0.00' : '';
+            });
+            row.querySelectorAll('input[type="file"]').forEach(el => el.value = '');
+            row.querySelectorAll('select').forEach(el => el.selectedIndex = 0);
+            tbody.appendChild(row);
+        });
+
+        // Remove bill row (delegated)
+        $(document).on('click', '.remove-row', function() {
+            const tbody = document.getElementById('bill_table_body');
+            if (tbody.querySelectorAll('.bill-row').length > 1) {
+                $(this).closest('.bill-row').remove();
+                recalcBills();
             }
         });
 
-        let submittingSettlement = false;
+        // Recalc on bill amount input (delegated)
+        $(document).on('input', '.bill-amount', function() { recalcBills(); });
+        $(document).on('input', '#return_amount', function() { recalcReturn(); });
 
+        function recalcBills() {
+            const paidAmt = paid_AMOUNT;
+            let running = paidAmt, totalBill = 0, totalSettle = 0, totalExtra = 0;
+            document.querySelectorAll('#bill_table_body .bill-row').forEach(row => {
+                const billAmt   = parseFloat(row.querySelector('.bill-amount')?.value) || 0;
+                const settleAmt = Math.min(billAmt, running);
+                const extra     = Math.max(0, billAmt - running);
+                running = Math.max(0, running - billAmt);
+                totalBill += billAmt; totalSettle += settleAmt; totalExtra += extra;
+                row.querySelector('.settlement-amount').value = settleAmt.toFixed(2);
+                row.querySelector('.employee-extra').value    = extra.toFixed(2);
+            });
+            const balAfter = Math.max(0, paidAmt - totalSettle);
+            document.getElementById('total_bill_amount').value       = totalBill.toFixed(2);
+            document.getElementById('total_settlement_amount').value = totalSettle.toFixed(2);
+            document.getElementById('total_employee_extra').value    = totalExtra.toFixed(2);
+            document.getElementById('remaining_balance').value       = balAfter.toFixed(2);
+        }
+
+        function recalcReturn() {
+            const paidAmt  = paid_AMOUNT;
+            const retAmt   = parseFloat(document.getElementById('return_amount').value) || 0;
+            const balAfter = Math.max(0, paidAmt - retAmt);
+            const hint     = document.getElementById('return_hint');
+            hint.style.display = retAmt > 0 ? 'block' : 'none';
+            hint.innerHTML = retAmt <= paidAmt
+                ? `<span style="color:#1a7a3c;"><i class="ti ti-circle-check"></i> Employee returns ₹${retAmt.toFixed(2)}. Remaining: ₹${balAfter.toFixed(2)}</span>`
+                : `<span style="color:#b52020;"><i class="ti ti-alert-triangle"></i> Return amount exceeds paid amount.</span>`;
+            document.getElementById('remaining_balance').value = balAfter.toFixed(2);
+        }
+
+        let submittingSettlement = false;
         function submitSettlement() {
             if (submittingSettlement) return;
-            const date = document.getElementById('settlement_date').value;
-            const actual = document.getElementById('actual_expense').value;
-            const returned = document.getElementById('returned_amount').value || 0;
-            const extra = document.getElementById('extra_claim_amount').value || 0;
+            const type    = document.getElementById('settlement_type').value;
             const remarks = document.getElementById('settlement_remarks').value.trim();
-
-            if (!date) return showWarn('Please select settlement date.');
-            if (!actual || actual <= 0) return showWarn('Please enter actual expense amount.');
+            if (!type)    return showWarn('Please select a settlement type.');
             if (!remarks) return showWarn('Please enter remarks.');
-
+            if (type === 'BILL') {
+                let valid = true;
+                document.querySelectorAll('#bill_table_body .bill-row').forEach(row => {
+                    if (!row.querySelector('select').value || !(parseFloat(row.querySelector('.bill-amount').value) > 0)) valid = false;
+                });
+                if (!valid) return showWarn('Please fill expense type and bill amount for all rows.');
+            }
+            if (type === 'RETURN') {
+                const retAmt = parseFloat(document.getElementById('return_amount').value) || 0;
+                if (retAmt <= 0)          return showWarn('Please enter a valid return amount.');
+                if (retAmt > paid_AMOUNT) return showWarn('Return amount cannot exceed paid amount.');
+            }
             submittingSettlement = true;
             setSubmitting('settlementSubmitBtn', true);
-
+            const formData = new FormData();
+            formData.append('_token', $('meta[name="csrf-token"]').attr('content'));
+            formData.append('settlement_type', type);
+            formData.append('remarks', remarks);
+            if (type === 'BILL') {
+                document.querySelectorAll('#bill_table_body .bill-row').forEach(row => {
+                    formData.append('expense_type[]',          row.querySelector('select').value);
+                    formData.append('bill_date[]',             row.querySelector('input[name="bill_date[]"]').value);
+                    formData.append('bill_amount[]',           row.querySelector('.bill-amount').value);
+                    formData.append('settlement_amount[]',     row.querySelector('.settlement-amount').value);
+                    formData.append('employee_extra_amount[]', row.querySelector('.employee-extra').value);
+                    const file = row.querySelector('input[type="file"]').files[0];
+                    if (file) formData.append('settlement_files[]', file);
+                });
+                formData.append('total_bill_amount',       document.getElementById('total_bill_amount').value);
+                formData.append('total_settlement_amount', document.getElementById('total_settlement_amount').value);
+                formData.append('employee_extra_amount',   document.getElementById('total_employee_extra').value);
+                formData.append('remaining_balance',       document.getElementById('remaining_balance').value);
+            } else {
+                formData.append('return_amount', document.getElementById('return_amount').value);
+            }
             $.ajax({
-                url: `/iou/${IOU_ID}/settle`,
-                type: 'POST',
-                data: {
-                    settlement_date: date,
-                    actual_expense: actual,
-                    returned_amount: returned,
-                    extra_claim_amount: extra,
-                    remarks,
-                    _token: $('meta[name="csrf-token"]').attr('content')
-                },
+                url: `/iou/${IOU_ID}/settle`, type: 'POST',
+                data: formData, processData: false, contentType: false,
                 success: res => showSuccess(res.message, () => location.reload()),
-                error: xhr => {
-                    submittingSettlement = false;
-                    setSubmitting('settlementSubmitBtn', false);
-                    showError(xhr.responseJSON?.message ?? 'Something went wrong.');
-                }
+                error: xhr => { submittingSettlement = false; setSubmitting('settlementSubmitBtn', false); showError(xhr.responseJSON?.message ?? 'Something went wrong.'); }
             });
         }
 
-        // ── MODAL 4: Close ───────────────────────────────────────────
-        function openCloseModal() {
-            openModal('closeModal');
-        }
+        // ── Close ───────────────────────────────────────────────────
+        function openCloseModal() { openModal('closeModal'); }
 
         let submittingClose = false;
-
         function submitClose() {
             if (submittingClose) return;
             const remarks = document.getElementById('close_remarks').value.trim();
             if (!remarks) return showWarn('Please enter closing remarks.');
-
             submittingClose = true;
             setSubmitting('closeSubmitBtn', true);
-
             $.ajax({
-                url: `/iou/${IOU_ID}/close`,
-                type: 'POST',
-                data: {
-                    remarks,
-                    _token: $('meta[name="csrf-token"]').attr('content')
-                },
+                url: `/iou/${IOU_ID}/close`, type: 'POST',
+                data: { remarks, _token: $('meta[name="csrf-token"]').attr('content') },
                 success: res => showSuccess(res.message, () => location.reload()),
-                error: xhr => {
-                    submittingClose = false;
-                    setSubmitting('closeSubmitBtn', false);
-                    showError(xhr.responseJSON?.message ?? 'Something went wrong.');
-                }
+                error: xhr => { submittingClose = false; setSubmitting('closeSubmitBtn', false); showError(xhr.responseJSON?.message ?? 'Something went wrong.'); }
             });
         }
     </script>

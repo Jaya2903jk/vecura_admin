@@ -186,11 +186,7 @@
         }
     </style>
     <div class="page-wrapper">
-
-        <!-- Start Content -->
         <div class="content">
-
-
             <a href="{{ route('tickets') }}" class="crumb-back">
                 <i class="ti ti-chevron-left">
                 </i>
@@ -299,7 +295,7 @@
 
                 <div class="table-title-row px-3">
                     <div class="table-title">
-                        Ticket History
+                        Ticket Details
                     </div>
 
                 </div>
@@ -308,14 +304,14 @@
                         <thead class="thead-light ">
 
                             <tr>
-                                <th class="">#</th>
-                                <th class="">Date</th>
-                                <th class="">Raised By</th>
-                                <th class="">Assigned To</th>
-                                <th class="">Escalation</th>
-                                <th class="">Type of Escalation</th>
-                                <th class="">Source</th>
-                                <th class="">Action</th>
+                                <th class="text-light">#</th>
+                                <th class="text-light">Date</th>
+                                <th class="text-light">Raised By</th>
+                                <th class="text-light">Assigned To</th>
+                                <th class="text-light">Escalation</th>
+                                <th class="text-light">Type of Escalation</th>
+                                <th class="text-light">Source</th>
+                                <th class="text-light">Action</th>
                             </tr>
                         </thead>
                         <tbody id="followupBody">
@@ -341,9 +337,9 @@
                                                     Closed
                                                 </button>
                                             @else
-                                                <button class="btn btn-primary"
+                                                <button class="btn btn-icon btn-outline-primary"
                                                     onclick="openFollowupModal({{ $firstComplaint->complaintid }})">
-                                                    <i class="ti ti-message-plus"></i> Add Follow up
+                                                     <i class="ti ti-edit"></i>
                                                 </button>
                                             @endif
                                         @elseif($isAuditTeam)
@@ -359,9 +355,9 @@
                                         @elseif($isAssignee && !$isCreator)
                                             <!-- Only current assigned person can act -->
                                             @if ($currentStatus != 'Resolved')
-                                                <button class="btn  bg-primary-gradient btn-primary btn-effect"
+                                                <button class="btn btn-icon btn-outline-primary"
                                                     onclick="openFollowupModal({{ $firstComplaint->complaintid }})">
-                                                    Follow-up
+                                                     <i class="ti ti-edit"></i>
                                                 </button>
                                             @else
                                                 {{-- <button class="btn btn-danger"
@@ -407,7 +403,7 @@
                             @forelse($ticket->complaints as $key => $complaint)
                                 <tr>
                                     <td class="text-dark">{{ $key + 1 }}</td>
-\                                    <td class="text-dark">
+                                    \ <td class="text-dark">
                                         {{ \Carbon\Carbon::parse($complaint->CreatedDate)->format('d M Y') }}</td>
 
                                     <td class="text-dark">{{ $complaint->createdUser->FullName ?? 'N/A' }}</td>
@@ -450,8 +446,6 @@
                         </tbody>
                     </table>
                 </div>
-
-
             </div>
 
 

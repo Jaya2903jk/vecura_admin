@@ -201,7 +201,7 @@
                 <div class="details-card-header">
                     <i class="ti ti-user">
                     </i>
-                    Staff Details
+                    Employee Details
                 </div>
                 <div class="client-grid">
                     <div>
@@ -212,7 +212,7 @@
                             </div>
                             <div>
                                 <div class="client-label">
-                                    Staff Name
+                                    Employee Name
                                 </div>
                                 <div class="client-value">
                                     {{ $hrData->employee->FullName ?? '-' }}
@@ -226,7 +226,7 @@
                             </div>
                             <div>
                                 <div class="client-label">
-                                    Staff Email
+                                    Employee Email
                                 </div>
                                 <div class="client-value">
                                     {{ '-' }}
@@ -296,11 +296,9 @@
                         </div>
                     </div>
                 </div>
-
-
                 <div class="table-title-row px-3">
                     <div class="table-title">
-                        Ticket History
+                        Ticket Details
                     </div>
 
                 </div>
@@ -311,7 +309,6 @@
                             <tr>
                                 <th class="text-light">#</th>
                                 <th class="text-light">Date</th>
-                                {{-- <th class="text-light">Raised By</th> --}}
                                 <th class="text-light">Category</th>
                                 <th class="text-light">Type of Escalation</th>
                                 @php
@@ -326,14 +323,11 @@
                                         return $hr->escalationTypeId == $attendanceId;
                                     });
                                 @endphp
-                                {{-- <th class="text-light">From</th>
-                                <th class="text-light">To</th>
-                                 <th class="text-light">Date</th> --}}
+
                                 @if ($hasLeave)
-                                    <th>From</th>
-                                    <th>To</th>
+                                    <th class="text-light">From</th>
+                                    <th class="text-light">To</th>
                                 @endif
-                                {{--  ATTENDANCE --}}
                                 @if ($hasAttendance)
                                     <th>Date</th>
                                 @endif
@@ -352,14 +346,11 @@
                                         {{ \Carbon\Carbon::parse($hr->CreatedDate)->format('d M Y') }}
                                     </td>
 
-                                    {{-- <td class="text-dark">{{ $hr->createdUser->FullName ?? 'N/A' }} --}}
 
                                     </td>
                                     <td class="text-dark">{{ $hr->category->category_name ?? '-' }}</td>
                                     <td class="text-dark">{{ $hr->escalationType->IssueName ?? '-' }}</td>
-                                    {{-- <td class="text-dark">{{ $hr->fromDate ?? '-' }}</td>
-                                    <td class="text-dark">{{ $hr->toDate ?? '-' }}</td>
-                                    <td class="text-dark">{{ $hr->attendanceDate ?? '-' }}</td> --}}
+
                                     @if ($hr->escalationTypeId == $leaveRequestId)
                                         <td>{{ $hr->fromDate ?? '-' }}</td>
                                         <td>{{ $hr->toDate ?? '-' }}</td>
@@ -368,7 +359,6 @@
                                         <td>-</td>
                                     @endif
 
-                                    {{-- ✅ ATTENDANCE --}}
                                     @if ($hr->escalationTypeId == $attendanceId)
                                         <td>{{ $hr->attendanceDate ?? '-' }}</td>
                                     @elseif($hasAttendance)
@@ -377,13 +367,13 @@
                                     <td>
                                         <span
                                             class="badge
-        @if ($hr->status == 'Pending') bg-warning
-        @elseif($hr->status == 'InProgress') bg-info
-        @elseif($hr->status == 'Resolved') bg-success
-        @elseif($hr->status == 'Approved') bg-success
-        @elseif($hr->status == 'Rejected') bg-danger
-        @elseif($hr->status == 'Closed') bg-danger
-        @else bg-secondary @endif">
+                                            @if ($hr->status == 'Pending') bg-warning
+                                            @elseif($hr->status == 'InProgress') bg-info
+                                            @elseif($hr->status == 'Resolved') bg-success
+                                            @elseif($hr->status == 'Approved') bg-success
+                                            @elseif($hr->status == 'Rejected') bg-danger
+                                            @elseif($hr->status == 'Closed') bg-danger
+                                            @else bg-secondary @endif">
                                             {{ $hr->status }}
                                         </span>
                                     </td>
@@ -405,67 +395,83 @@
                                         @php
                                             $createdDate = \Carbon\Carbon::parse($hr->CreatedDate);
                                             $canAdminClose = $createdDate->diffInDays($today) >= 2;
-
                                             $isLeave = $hr->escalationTypeId == config('ticket.LEAVE_REQUEST');
                                         @endphp
-
-                                        {{-- ========================= --}}
-                                        {{-- ✅ LEAVE REQUEST FLOW --}}
-                                        {{-- ========================= --}}
                                         @if ($isLeave)
                                             {{-- Admin can Approve/Reject only when Pending --}}
                                             {{-- @if (($isAdmin || $isAuditTeam) && $hr->status == 'Pending') --}}
                                             @if (($isAdmin || $isAuditTeam) && in_array($hr->status, ['Pending', 'InProgress']))
-                                                <button class="btn bg-primary-gradient btn-primary btn-effect"
+                                                <button class="btn btn-icon btn-outline-primary"
                                                     onclick="openHrModal(
                                                  '{{ $hr->hrTicketId }}',
                                                  '{{ $hr->status }}',
                                                  '{{ $hr->CreatedDate }}',
                                                  true
-                                             )">
-                                                    Update
+                                                  )">
+                                                    <i class="ti ti-edit"></i>
                                                 </button>
                                             @endif
 
                                             {{-- Employee can Close after Approved/Rejected --}}
                                             @if ($isCreator && in_array($hr->status, ['Approved', 'Rejected']))
-                                                <button class="btn bg-primary-gradient btn-primary btn-effect"
+                                                <button class="btn btn-icon btn-outline-primary"
                                                     onclick="openHrModal(
                                                           '{{ $hr->hrTicketId }}',
                                                    '{{ $hr->status }}',
                                                    '{{ $hr->CreatedDate }}',
                                                    true
                                                )">
-                                                    Close
+                                                    {{-- Close --}} <i class="ti ti-edit"></i>
                                                 </button>
                                             @endif
-
-                                            {{-- ========================= --}}
-                                            {{-- ✅ NORMAL HR FLOW --}}
-                                            {{-- ========================= --}}
                                         @else
                                             {{-- Admin Resolve --}}
-                                            @if (($isAdmin || $isAuditTeam) && $hr->status != 'Closed')
-                                                <button class="btn bg-primary-gradient btn-primary btn-effect"
+                                            {{-- @if (($isAdmin || $isAuditTeam) && $hr->status != 'Closed')
+                                                <button class="btn btn-icon btn-outline-primary"
                                                     onclick="openHrModal(
-                    '{{ $hr->hrTicketId }}',
-                    '{{ $hr->status }}',
-                    '{{ $hr->CreatedDate }}',
-                    false
-                )">
-                                                    Update
+                                                    '{{ $hr->hrTicketId }}',
+                                                    '{{ $hr->status }}',
+                                                    '{{ $hr->CreatedDate }}',
+                                                    false
+                                                )">
+                                                    <i class="ti ti-edit"></i>
                                                 </button>
                                             @endif
 
-                                            {{-- Employee Close --}}
                                             @if ($isCreator && $hr->status == 'Resolved')
-                                                <button class="btn bg-primary-gradient btn-primary btn-effect"
+                                                <button class="btn btn-icon btn-outline-primary"
                                                     onclick="openHrModal(
-                    '{{ $hr->hrTicketId }}',
-                    '{{ $hr->status }}',
-                    '{{ $hr->CreatedDate }}',
-                    false
-                )">
+                                                    '{{ $hr->hrTicketId }}',
+                                                    '{{ $hr->status }}',
+                                                    '{{ $hr->CreatedDate }}',
+                                                    false
+                                                )">
+                                                    <i class="ti ti-edit"></i>
+
+                                                </button>
+                                            @endif --}}
+                                            {{-- Admin / Audit Edit Button --}}
+                                            @if (($isAdmin || $isAuditTeam) && $hr->status != 'Closed')
+                                                <button class="btn btn-icon btn-outline-primary"
+                                                    onclick="openHrModal(
+                                                     '{{ $hr->hrTicketId }}',
+                                                     '{{ $hr->status }}',
+                                                     '{{ $hr->CreatedDate }}',
+                                                     false
+                                                 )">
+                                                    <i class="ti ti-edit"></i>
+                                                </button>
+                                            @endif
+
+                                            {{-- Employee Close Button --}}
+                                            @if (!$isAdmin && !$isAuditTeam && $isCreator && $hr->status == 'Resolved')
+                                                <button class="btn btn-icon btn-outline-success"
+                                                    onclick="openHrModal(
+                                                     '{{ $hr->hrTicketId }}',
+                                                     '{{ $hr->status }}',
+                                                     '{{ $hr->CreatedDate }}',
+                                                     false
+                                                 )">
                                                     Close
                                                 </button>
                                             @endif

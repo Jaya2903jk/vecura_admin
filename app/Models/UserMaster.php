@@ -68,10 +68,31 @@ class UserMaster extends Model
     {
         return $this->belongsTo(Designation::class, 'Designation', 'DesignationCode');
     }
-   public function branch()
-{
-    return $this->belongsTo(NewBranch::class, 'branch_id', 'branch_id');
-}
+    public function branch()
+    {
+        return $this->belongsTo(NewBranch::class, 'branch_id', 'branch_id');
+    }
 
-    // departmetn -name-designationm
+    // RBAC Relationships
+    public function roles()
+    {
+        return $this->belongsToMany(Role::class, 'employee_roles', 'employee_id', 'role_id');
+    }
+
+    public function departments()
+    {
+        return $this->belongsToMany(
+            IssueDepartment::class,
+            'employee_departments',
+            'employee_id',
+            'department_id',
+            'UserID',
+            'Departmentid'
+        );
+    }
+
+    public function hierarchyAccess()
+    {
+        return $this->hasMany(HierarchyAccess::class, 'employee_id', 'UserID');
+    }
 }

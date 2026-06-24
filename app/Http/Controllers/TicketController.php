@@ -37,7 +37,7 @@ class TicketController extends Controller
         $currentUserId = session('user_id');
         // Logged in user
         $loginUser = UserMaster::where('UserID', $currentUserId)->first();
-        $totalTickets = IssueTicket::whereIn('type', ['vsupport', 'hr', 'biomedical', 'accounts', 'Settlement', 'petty cash', 'petty bill'])->count();
+        $totalTickets = IssueTicket::whereIn('type', ['vsupport', 'hr', 'biomedical', 'accounts', 'Settlement', 'petty cash', 'petty bill','facility'])->count();
 
         $perPage = $request->get('per_page', 10);
         $status = $request->status;
@@ -61,7 +61,7 @@ class TicketController extends Controller
                 },
             ])
             ->orderBy('CreatedDate', 'desc')
-            ->whereIn('type', ['vsupport', 'hr', 'biomedical', 'accounts', 'Settlement', 'petty cash', 'petty bill']);
+            ->whereIn('type', ['vsupport', 'hr', 'biomedical', 'accounts', 'Settlement', 'petty cash', 'petty bill','facility']);
 
         if ($request->has('type') && $type != '') {
             $q->where('type', $type);
@@ -733,19 +733,7 @@ class TicketController extends Controller
                             'remarks' => $request->remarks ?? null,
                         ];
                     }
-                    // $settlement = IouSettlement::create([
-                    //     'ticket_id' => $ticketId,
-                    //     'employee_id' => $employeeId,
-                    //     'current_balance' => $currentBalance,
-                    //     'total_bill_amount' => $totalBillAmount,
-                    //     'company_settlement_amount' => $companySettlementAmount,
-                    //     'employee_claim_amount' => $employeeClaimAmount,
-                    //     'remaining_balance' => $remainingBalance,
-                    //     'settlement_type' => $request->settlement_type,
-                    //     'settlement_status' => 'PENDING',
-                    //     'remarks' => $request->feedback,
-                    //     'created_by' => $loginUserId,
-                    // ]);
+
                     $settlement = IouSettlement::create([
                         'ticket_id' => $ticketId,
                         'employee_id' => $employeeId,
@@ -783,36 +771,8 @@ class TicketController extends Controller
                     }
                     IssueTicket::where('ticketId', $settlement->ticket_id)
                         ->where('Status', 0)
-                        ->update(['Status' => 1]);
-                    // $employeeBalance = EmployeeBalance::firstOrCreate(
-                    //     [
-                    //         'employee_id' => $employeeId,
-                    //     ],
-                    //     [
-                    //         'total_iou_amount' => 0,
-                    //         'total_settlement_amount' => 0,
-                    //         'total_claim_amount' => 0,
-                    //         'pending_balance' => 0,
-                    //     ]
-                    // );
-                    // $employeeBalance->total_settlement_amount += $companySettlementAmount;
-                    // $employeeBalance->total_claim_amount += $employeeClaimAmount;
-                    // $employeeBalance->pending_balance =
-                    //     $employeeBalance->pending_balance - $companySettlementAmount;
-                    // if ($employeeBalance->pending_balance < 0) {
-                    //     $employeeBalance->pending_balance = 0;
-                    // }
-                    // $employeeBalance->save();
-
-                    // MoneyTransaction::create([
-                    //     'employee_id' => $employeeId,
-                    //     'ticket_id' => $ticketId,
-                    //     'reference_id' => $settlement->settlement_id,
-                    //     'type' => 'iou_settlement',
-                    //     'amount' => $companySettlementAmount,
-                    //     'remarks' => 'IOU Settlement Created',
-                    //     'created_by' => $loginUserId,
-                    // ]);
+                        ->update(['Status' => 0]);
+                   
                 } elseif ($issueId == $PC_REQUEST) {
 
                     // ── Validator ─────────────────────────────────────────────────────

@@ -38,4 +38,5 @@ class NewBranch extends Model
     {
         return $this->hasOne(BranchWallet::class, 'branch_id', 'branch_id');
     }
+    
 }

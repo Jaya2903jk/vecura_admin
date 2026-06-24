@@ -43,36 +43,33 @@ class AuthController extends Controller
             ], 401);
         }
 
+        // Load user with RBAC roles and hierarchy
+        $userWithRbac = $user->load([
+            'roles' => function ($q) {
+                $q->where('roles.is_active', 1)->orderBy('level');
+            },
+            'departments',
+            'hierarchyAccess'
+        ]);
+
+        // Get primary RBAC role (lowest level number = highest priority)
+        $rbacRole = $userWithRbac->roles->first();
+
         session([
             'user_id' => $user->UserID,
             'user_name' => $user->FullName ?? $user->UserName,
             'role_id' => $user->userGroup->UserGroupID ?? null,
             'role_name' => $user->userGroup->UserGroupName ?? null,
+            // New RBAC session data
+            'rbac_role_id' => $rbacRole->id ?? null,
+            'rbac_role_name' => $rbacRole->name ?? 'Employee',
+            'rbac_roles' => $userWithRbac->roles->pluck('name')->toArray(),
+            'is_admin' => $rbacRole && $rbacRole->name === 'Admin',
         ]);
-        $redirect = '/dashboard';
-        $roleName = strtolower(
-            trim($user->userGroup->UserGroupName ?? '')
-        );
-        // STAFF ROLE
-        $staffRoles = [
-
-            'centre / branch',
-            'warehouse',
-            'consultant / doctor',
-            'branch manager',
-            'call centre',
-            'accounts',
-            'corporate',
-        ];
-
-        if (in_array($roleName, $staffRoles)) {
-
-            $redirect = '/staff-dashboard';
-        }
 
         return response()->json([
             'status' => true,
-            'redirect' => url($redirect),
+            'redirect' => url('/dashboard'),
         ]);
     }
 

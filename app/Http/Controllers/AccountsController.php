@@ -25,6 +25,12 @@ class AccountsController extends Controller
             $settlement = IouSettlement::with(['employee', 'items', 'approver', 'creator'])
                 ->where('ticket_id', $ticketId)
                 ->firstOrFail();
+
+$paymentTransactions = MoneyTransaction::where('reference_id', $settlement->settlement_id)
+    ->whereIn('type', ['claim_transfer', 'cash_returned'])
+    ->with('creator')
+    ->orderByDesc('created_at')
+    ->get();
             $balance = EmployeeBalance::where('employee_id', $settlement->employee_id)->first();
 
             $transactions = MoneyTransaction::with('creator')
@@ -58,7 +64,7 @@ class AccountsController extends Controller
                 });
 
             return view('ticket.view_settlement', compact(
-                'ticket',
+                'ticket','paymentTransactions',
                 'settlement',
                 'balance',
                 'transactions',
@@ -101,7 +107,6 @@ class AccountsController extends Controller
                         'changedAt' => $item['date'] ?? null,
                     ];
                 });
-
             return view('ticket.view_accounts', compact('iou', 'balance', 'ticket', 'actionHistory'));
         }
 

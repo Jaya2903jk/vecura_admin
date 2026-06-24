@@ -20,7 +20,7 @@
                         </a>
                         <ul class="dropdown-menu p-2">
                             <li><a class="dropdown-item" href="#">Download as PDF</a></li>
-                            <li><a class="dropdown-item" href="#">Download as Excel</a></li>
+                            <li><a class="dropdown-item" href="{{ route('designation.export.excel') }}">Download as Excel</a></li>
                         </ul>
                     </div>
                     <a href="javascript:void(0);" class="btn btn-primary ms-2 fs-13 btn-md" data-bs-toggle="modal"

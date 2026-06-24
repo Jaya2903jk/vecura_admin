@@ -47,7 +47,7 @@
                                 <option value="complaint">Complaint</option>
                                 <option value="request">Request</option>
                             </select> --}}
-                            <select id="typeFilter" class="form-select">
+                            {{-- <select id="typeFilter" class="form-select">
                                 <option value="">All Type</option>
                                 <option value="vsupport" {{ request('type') == 'vsupport' ? 'selected' : '' }}>
                                     Vsupport
@@ -57,6 +57,25 @@
                                 </option>
                                 <option value="biomedical" {{ request('type') == 'biomedical' ? 'selected' : '' }}>
                                     Biomedical
+                                </option>
+
+                            </select> --}}
+                            <select id="typeFilter" class="form-select">
+                                <option value="">All Type</option>
+                                <option value="vsupport" {{ request('type') == 'vsupport' ? 'selected' : '' }}>Vsupport
+                                </option>
+                                <option value="hr" {{ request('type') == 'hr' ? 'selected' : '' }}>HR</option>
+                                <option value="biomedical" {{ request('type') == 'biomedical' ? 'selected' : '' }}>
+                                    Biomedical</option>
+                                <option value="accounts" {{ request('type') == 'accounts' ? 'selected' : '' }}>Accounts
+                                </option>
+                                <option value="Settlement" {{ request('type') == 'Settlement' ? 'selected' : '' }}>
+                                    Settlement</option>
+                                <option value="petty cash" {{ request('type') == 'petty cash' ? 'selected' : '' }}>Petty
+                                    Cash</option>
+                                <option value="petty bill" {{ request('type') == 'petty bill' ? 'selected' : '' }}>Petty
+                                    Bill</option>
+                                <option value="facility" {{ request('type') == 'facility' ? 'selected' : '' }}>Facility
                                 </option>
                             </select>
                         </div>
@@ -277,7 +296,7 @@
                                                       {{ route('pc.view', $t->ticketId) }}
                                                         @elseif($isPCBill)
                                                       {{ route('pc.bill.view', $t->ticketId) }}
-                                                        @elseif($isFacility)  {{ route('t.view', $t->ticketId) }}
+                                                        @elseif($isFacility)  {{ route('facility.view', $t->ticketId) }}
                                                        @else
                                                       {{ route('ticket.view', $t->ticketId) }} @endif
                                                          ">
@@ -1155,6 +1174,7 @@
                 $("#machine_issue_type").val('');
                 $("#iou_request_block").hide();
                 $("#claim_request_block").hide();
+                $("#settlement_request_block").hide();
 
                 $("#pc_request_block").hide();
                 $('#pc_wallet_balance').val('').removeData('balance');
@@ -1171,6 +1191,13 @@
                 $("#facility_category_id").html('<option value="">Select Facility Category</option>');
                 $("select[name='facility_category_id']").prop('required', false);
 
+
+                $("#employee_common_block").hide();
+                $("#employee_common")
+                    .prop('required', false)
+                    .val('')
+                    .trigger('change');
+
                 $("input[name='from_date'], input[name='to_date'], input[name='attendance_date']")
                     .val('')
                     .prop('required', false);
@@ -1183,6 +1210,12 @@
                     .prop('required', false);
 
                 $("select[name='expense_type']")
+                    .prop('required', false);
+
+                $("select[name='settlement_type']")
+                    .prop('required', false)
+                    .val('');
+                $("input[name='settlement_amount']")
                     .prop('required', false);
                 // ======================================
                 // HR EMPLOYEE
@@ -1230,6 +1263,7 @@
                 } else if (issueId == IOU_REQUEST_ID) {
                     $("#employee_common_block").show();
                     $("#iou_request_block").slideDown();
+                      $("#employee_common").prop('required', true);
                     $("input[name='employee_common']")
                         .prop('required', true);
                     $("input[name='iou_request_date']")
@@ -1248,6 +1282,7 @@
                 } else if (issueId == SETTELMENT_ID) {
                     $("#employee_common_block").show();
                     $("#settlement_request_block").slideDown();
+                     $("#employee_common").prop('required', true);
                     $("select[name='employee_common']")
                         .prop('required', true);
                     $("input[name='settlement_amount']")
