@@ -81,8 +81,20 @@
                                     <p class="fw-bold">{{ $employee->date_of_birth ? \Carbon\Carbon::parse($employee->date_of_birth)->format('d M Y') : '-' }}</p>
                                 </div>
                                 <div class="mb-3">
+                                    <label class="text-muted small">Gender</label>
+                                    <p class="fw-bold">{{ $employee->profile?->gender ?? '-' }}</p>
+                                </div>
+                                <div class="mb-3">
                                     <label class="text-muted small">Phone</label>
                                     <p class="fw-bold">{{ $employee->profile?->phone_number ?? '-' }}</p>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="text-muted small">Category</label>
+                                    <p class="fw-bold">{{ $employee->profile?->employee_category ?? '-' }}</p>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="text-muted small">Address</label>
+                                    <p class="fw-bold">{{ $employee->profile?->address ?? '-' }}</p>
                                 </div>
                             </div>
                         </div>
@@ -100,6 +112,14 @@
                                 <div class="mb-3">
                                     <label class="text-muted small">Designation</label>
                                     <p class="fw-bold">{{ $employee->designation?->Designation ?? '-' }}</p>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="text-muted small">Date of Joining</label>
+                                    <p class="fw-bold">{{ $employee->profile?->date_of_joining ? \Carbon\Carbon::parse($employee->profile->date_of_joining)->format('d M Y') : '-' }}</p>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="text-muted small">Employee Type</label>
+                                    <p class="fw-bold">{{ $employee->profile?->employee_type ?? '-' }}</p>
                                 </div>
                                 <div class="mb-3">
                                     <label class="text-muted small">Manager</label>
