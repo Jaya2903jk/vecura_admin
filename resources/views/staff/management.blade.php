@@ -724,7 +724,24 @@
                 .then(r => r.json())
                 .then(data => {
                     if (data.status) {
-                        Swal.fire('Success', 'Employee created successfully', 'success').then(() => {
+                        const message = `
+                            <div class="text-start">
+                                <p><strong>Employee Created Successfully!</strong></p>
+                                <p class="mb-2"><strong>Employee Code:</strong> ${data.employee.code}</p>
+                                <p class="mb-2"><strong>Name:</strong> ${data.employee.name}</p>
+                                <p class="mb-3"><strong>Email:</strong> ${data.employee.email}</p>
+                                <hr>
+                                <p class="text-warning"><strong>Temporary Login Credentials:</strong></p>
+                                <p class="mb-1"><strong>Email/Username:</strong> ${data.employee.email}</p>
+                                <p><strong>Password:</strong> <code>${data.default_password}</code></p>
+                                <small class="text-muted">Share these credentials with the employee. They should change the password on first login.</small>
+                            </div>
+                        `;
+                        Swal.fire({
+                            title: 'Success',
+                            html: message,
+                            icon: 'success'
+                        }).then(() => {
                             location.reload();
                         });
                     } else {

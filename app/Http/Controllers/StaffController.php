@@ -222,8 +222,14 @@ class StaffController extends Controller
 
             return response()->json([
                 'status' => true,
-                'message' => 'Employee created successfully with all details',
-                'employee' => $employee
+                'message' => 'Employee created successfully',
+                'employee' => [
+                    'id' => $employee->UserID,
+                    'code' => $employee->employee_code,
+                    'name' => $employee->FullName,
+                    'email' => $employee->EmailId
+                ],
+                'default_password' => 'Vecura@123'
             ]);
         } catch (\Exception $e) {
             DB::rollBack();
