@@ -893,8 +893,22 @@ document.getElementById('initiateRelievingForm')?.addEventListener('submit', fun
 
 // ============ EDIT EMPLOYEE ============
 
+let isEditSubmitting = false;
+
 document.getElementById('editEmployeeForm')?.addEventListener('submit', function(e) {
     e.preventDefault();
+
+    // Prevent double submission
+    if (isEditSubmitting) {
+        return false;
+    }
+    isEditSubmitting = true;
+
+    const submitBtn = this.querySelector('button[type="submit"]');
+    const originalBtnText = submitBtn.innerHTML;
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Saving...';
+
     const formData = new FormData(this);
 
     fetch(`/staff/${employeeId}`, {
@@ -910,11 +924,17 @@ document.getElementById('editEmployeeForm')?.addEventListener('submit', function
             setTimeout(() => window.location.reload(), 1500);
         } else {
             Swal.fire('Error', data.message || 'Failed to update employee', 'error');
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalBtnText;
+            isEditSubmitting = false;
         }
     })
     .catch(error => {
         console.error('Error:', error);
-        Swal.fire('Error', 'An error occurred while updating', 'error');
+        Swal.fire('Error', 'An error occurred while updating: ' + error.message, 'error');
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalBtnText;
+        isEditSubmitting = false;
     });
 });
 
