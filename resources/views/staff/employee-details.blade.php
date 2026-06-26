@@ -50,6 +50,11 @@
                     <i class="ti ti-logout me-2"></i>Relieving
                 </a>
             </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#roles" data-bs-toggle="tab">
+                    <i class="ti ti-shield me-2"></i>Roles & Permissions
+                </a>
+            </li>
         </ul>
 
         <!-- Tab Content -->
@@ -201,6 +206,27 @@
                     <div class="card-body">
                         <div id="relievingContent">
                             <p class="text-muted text-center py-4">No relieving record yet</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ROLES & PERMISSIONS TAB -->
+            <div class="tab-pane fade" id="roles">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h6 class="fw-bold mb-0">Assigned Roles & Permissions</h6>
+                        @if(session('is_admin') || \App\Helpers\RbacHelper::canPerformAction('edit', 'staff'))
+                            <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#assignRoleModal">
+                                <i class="ti ti-plus me-1"></i>Assign Role
+                            </button>
+                        @endif
+                    </div>
+                    <div class="card-body">
+                        <div id="rolesContent">
+                            <div class="text-center py-4">
+                                <div class="spinner-border text-primary" role="status"></div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -390,6 +416,36 @@
     </div>
 </div>
 
+<!-- Assign Role Modal -->
+<div class="modal fade" id="assignRoleModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title">Assign Role</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="assignRoleForm">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Select Role <span class="text-danger">*</span></label>
+                        <select name="role_id" class="form-select" id="roleSelect" required>
+                            <option value="">-- Select a role --</option>
+                        </select>
+                    </div>
+                    <div id="roleDescription" class="alert alert-info" style="display: none;">
+                        <strong>Role Description:</strong>
+                        <p id="roleDescText"></p>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-success">Assign Role</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <!-- Edit Employee Modal -->
 <div class="modal fade" id="editEmployeeModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
@@ -436,6 +492,8 @@ function loadWorkflowData() {
     loadOfficialDocuments();
     loadBonds();
     loadRelieving();
+    loadRoles();
+    loadAvailableRoles();
 }
 
 function loadEducationDocuments() {
@@ -683,6 +741,103 @@ document.getElementById('initiateRelievingForm')?.addEventListener('submit', fun
         }
     });
 });
+
+// ============ ROLE MANAGEMENT ============
+
+function loadRoles() {
+    fetch(`/staff/${employeeId}/roles`)
+        .then(r => r.json())
+        .then(data => {
+            if (data.roles && data.roles.length > 0) {
+                let html = '<table class="table table-sm table-hover"><thead class="table-light"><tr><th>Role</th><th>Status</th><th>Assigned Date</th><th>Action</th></tr></thead><tbody>';
+                data.roles.forEach(role => {
+                    const statusBg = role.pivot.is_active ? 'success' : 'warning';
+                    html += `
+                        <tr>
+                            <td><strong>${role.role_name}</strong></td>
+                            <td><span class="badge bg-${statusBg}">${role.pivot.is_active ? 'Active' : 'Inactive'}</span></td>
+                            <td>${role.pivot.assigned_date ? new Date(role.pivot.assigned_date).toLocaleDateString() : '-'}</td>
+                            <td><button class="btn btn-sm btn-danger" onclick="removeRoleFromEmployee(${role.id})">Remove</button></td>
+                        </tr>
+                    `;
+                });
+                html += '</tbody></table>';
+                document.getElementById('rolesContent').innerHTML = html;
+            } else {
+                document.getElementById('rolesContent').innerHTML = '<p class="text-muted text-center py-4">No roles assigned yet</p>';
+            }
+        }).catch(e => {
+            console.log('Role load error:', e);
+            document.getElementById('rolesContent').innerHTML = '<p class="text-muted text-center py-4">No roles assigned yet</p>';
+        });
+}
+
+function loadAvailableRoles() {
+    fetch('/rbac/api/roles')
+        .then(r => r.json())
+        .then(data => {
+            const select = document.getElementById('roleSelect');
+            if (select && data.roles && data.roles.length > 0) {
+                data.roles.forEach(role => {
+                    const option = document.createElement('option');
+                    option.value = role.id;
+                    option.textContent = role.role_name;
+                    option.dataset.description = role.description || '';
+                    select.appendChild(option);
+                });
+            }
+        }).catch(e => console.log('Error loading roles:', e));
+}
+
+document.getElementById('roleSelect')?.addEventListener('change', function() {
+    const selectedOption = this.options[this.selectedIndex];
+    const desc = selectedOption.dataset.description;
+    if (desc) {
+        document.getElementById('roleDescription').style.display = 'block';
+        document.getElementById('roleDescText').textContent = desc;
+    } else {
+        document.getElementById('roleDescription').style.display = 'none';
+    }
+});
+
+document.getElementById('assignRoleForm')?.addEventListener('submit', function(e) {
+    e.preventDefault();
+    const formData = new FormData(this);
+    fetch(`/staff/${employeeId}/role`, {
+        method: 'POST',
+        body: formData,
+        headers: {'X-CSRF-TOKEN': '{{ csrf_token() }}'}
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.status) {
+            Swal.fire('Success', 'Role assigned successfully', 'success');
+            this.reset();
+            loadRoles();
+            document.getElementById('roleDescription').style.display = 'none';
+            bootstrap.Modal.getInstance(document.getElementById('assignRoleModal')).hide();
+        } else {
+            Swal.fire('Error', data.message, 'error');
+        }
+    });
+});
+
+function removeRoleFromEmployee(roleId) {
+    if (!confirm('Remove this role?')) return;
+    fetch(`/staff/${employeeId}/role/${roleId}`, {
+        method: 'DELETE',
+        headers: {'X-CSRF-TOKEN': '{{ csrf_token() }}'}
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.status) {
+            Swal.fire('Success', 'Role removed', 'success');
+            loadRoles();
+        } else {
+            Swal.fire('Error', data.message, 'error');
+        }
+    });
+}
 
 loadWorkflowData();
 </script>

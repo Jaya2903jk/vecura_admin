@@ -323,7 +323,7 @@ class StaffController extends Controller
 
             $employee->roles()->attach($validated['role_id'], [
                 'is_active' => 1,
-                'assigned_date' => now()
+                // 'assigned_date' => now()
             ]);
 
             return response()->json([
@@ -625,6 +625,24 @@ class StaffController extends Controller
             return response()->json([
                 'status' => true,
                 'data' => $offboarding ?? ['message' => 'No offboarding record found']
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Error: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function getEmployeeRoles($employeeId)
+    {
+        try {
+            $employee = UserMaster::findOrFail($employeeId);
+            $roles = $employee->roles()->get();
+
+            return response()->json([
+                'status' => true,
+                'roles' => $roles
             ]);
         } catch (\Exception $e) {
             return response()->json([

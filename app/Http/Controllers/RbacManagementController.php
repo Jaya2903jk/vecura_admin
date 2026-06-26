@@ -240,4 +240,19 @@ class RbacManagementController extends Controller
             ], 500);
         }
     }
+
+    public function getAllRoles() {
+        try {
+            $roles = Role::select('id', 'role_name', 'description')->get();
+            return response()->json([
+                'status' => true,
+                'roles' => $roles
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Error: ' . $e->getMessage()
+            ], 500);
+        }
+    }
 }

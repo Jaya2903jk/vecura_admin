@@ -35,7 +35,12 @@ Route::middleware(['auth.custom'])->group(function () {
     Route::delete('/modules/{id}', [ModuleManagementController::class, 'destroy'])->name('modules.destroy');
 });
 
-// API endpoints for RBAC (for AJAX requests) - Admin only
+// API endpoints for RBAC (for AJAX requests)
+Route::middleware(['auth.custom'])->prefix('rbac/api')->group(function () {
+    Route::get('/roles', [RbacManagementController::class, 'getAllRoles']);
+});
+
+// API endpoints for RBAC (Admin only)
 Route::middleware(['auth.custom', 'admin.only'])->prefix('api')->group(function () {
     Route::get('/roles/{roleId}/permissions', [RbacManagementController::class, 'getRolePermissions']);
     Route::get('/permissions', [RbacManagementController::class, 'getAllPermissions']);

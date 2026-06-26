@@ -55,6 +55,7 @@ Route::middleware(['auth.custom', 'nocache'])->group(function () {
     Route::put('/staff/{id}', [StaffController::class, 'update'])->middleware('check.permission:edit,staff')->name('staff.update');
 
     // Role Management
+    Route::get('/staff/{employeeId}/roles', [StaffController::class, 'getEmployeeRoles'])->middleware('check.permission:read,staff')->name('staff.get-roles');
     Route::post('/staff/{employeeId}/role', [StaffController::class, 'assignRole'])->middleware('check.permission:edit,staff')->name('staff.assign-role');
     Route::delete('/staff/{employeeId}/role/{roleId}', [StaffController::class, 'removeRole'])->middleware('check.permission:edit,staff')->name('staff.remove-role');
 
