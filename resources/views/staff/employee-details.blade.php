@@ -441,8 +441,11 @@
                                     <label class="form-label">Department <span class="text-danger">*</span></label>
                                     <select name="department_id" class="form-select" required>
                                         <option value="">-- Select --</option>
+                                        @php
+                                            $selectedDept = $employee->departments->first();
+                                        @endphp
                                         @foreach ($departments as $dept)
-                                            <option value="{{ $dept->Departmentid }}" {{ $employee->departments->first()?->Departmentid == $dept->Departmentid ? 'selected' : '' }}>{{ $dept->DepartmentName }}</option>
+                                            <option value="{{ $dept->Departmentid }}" {{ ($selectedDept && $selectedDept->Departmentid == $dept->Departmentid) ? 'selected' : '' }}>{{ $dept->DepartmentName }}</option>
                                         @endforeach
                                     </select>
                                 </div>
@@ -490,6 +493,24 @@
                         <!-- TAB 2: PERSONAL DETAILS -->
                         <div class="tab-pane fade" id="edit-personal">
                             <h6 class="fw-bold mb-3">Personal Information</h6>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Gender</label>
+                                    <select name="gender" class="form-select">
+                                        <option value="">-- Select --</option>
+                                        <option value="Male" {{ $employee->profile?->gender == 'Male' ? 'selected' : '' }}>Male</option>
+                                        <option value="Female" {{ $employee->profile?->gender == 'Female' ? 'selected' : '' }}>Female</option>
+                                        <option value="Other" {{ $employee->profile?->gender == 'Other' ? 'selected' : '' }}>Other</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Category</label>
+                                    <select name="employee_category" class="form-select">
+                                        <option value="White Collar" {{ $employee->profile?->employee_category == 'White Collar' ? 'selected' : '' }}>White Collar</option>
+                                        <option value="Blue Collar" {{ $employee->profile?->employee_category == 'Blue Collar' ? 'selected' : '' }}>Blue Collar</option>
+                                    </select>
+                                </div>
+                            </div>
                             <div class="row">
                                 <div class="col-md-6 mb-3">
                                     <label class="form-label">Phone</label>
