@@ -176,6 +176,7 @@
                 </div>
             </div>
 
+            {{-- Pagination --}}
             <div class="table-footer-bar d-flex justify-content-between align-items-center mt-3">
                 <div class="d-flex align-items-center gap-3">
                     <div>

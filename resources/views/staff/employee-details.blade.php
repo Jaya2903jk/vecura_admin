@@ -57,109 +57,67 @@
         <div class="tab-content">
             <!-- OVERVIEW TAB -->
             <div class="tab-pane fade show active" id="overview">
-                <!-- Employee Summary Card -->
-                <div class="card border-0 bg-gradient mb-4" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
-                    <div class="card-body text-white p-4">
-                        <div class="row align-items-center">
-                            <div class="col-md-8">
-                                <h5 class="mb-1" style="font-size: 1.5rem;">{{ $employee->FullName }}</h5>
-                                <p class="mb-2" style="font-size: 0.95rem; opacity: 0.9;">{{ $employee->designation?->Designation ?? '-' }} • {{ $employee->departments->first()?->DepartmentName ?? '-' }}</p>
-                                <p class="mb-0" style="font-size: 0.85rem; opacity: 0.8;">Employee Code: <strong>{{ $employee->employee_code }}</strong></p>
-                            </div>
-                            <div class="col-md-4 text-md-end">
-                                <div class="mb-2">
-                                    <span class="badge bg-white text-dark px-3 py-2">
-                                        <i class="ti ti-circle-filled me-1" style="color: {{ $employee->employee_status === 'Active' ? '#10b981' : '#ef4444' }};"></i>
-                                        {{ $employee->employee_status ?? 'Active' }}
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
                 <div class="row">
-                    <!-- Personal Information -->
-                    <div class="col-lg-6 mb-4">
-                        <div class="card shadow-sm border-0">
-                            <div class="card-header bg-light border-bottom">
-                                <h6 class="mb-0 fw-bold">
-                                    <i class="ti ti-user me-2"></i>Personal Information
-                                </h6>
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <h6 class="fw-bold mb-0">Personal Information</h6>
                             </div>
                             <div class="card-body">
-                                <div class="row g-3">
-                                    <div class="col-sm-6">
-                                        <label class="form-label text-muted small">Employee Code</label>
-                                        <p class="fw-bold text-dark">{{ $employee->employee_code }}</p>
-                                    </div>
-                                    <div class="col-sm-6">
-                                        <label class="form-label text-muted small">Full Name</label>
-                                        <p class="fw-bold text-dark">{{ $employee->FullName }}</p>
-                                    </div>
-                                    <div class="col-sm-6">
-                                        <label class="form-label text-muted small">Email</label>
-                                        <p class="fw-bold text-dark">
-                                            @if($employee->EmailId)
-                                                <a href="mailto:{{ $employee->EmailId }}" class="text-decoration-none">{{ $employee->EmailId }}</a>
-                                            @else
-                                                <span class="text-muted">-</span>
-                                            @endif
-                                        </p>
-                                    </div>
-                                    <div class="col-sm-6">
-                                        <label class="form-label text-muted small">Phone</label>
-                                        <p class="fw-bold text-dark">{{ $employee->profile?->phone_number ?? '-' }}</p>
-                                    </div>
-                                    <div class="col-sm-6">
-                                        <label class="form-label text-muted small">Date of Birth</label>
-                                        <p class="fw-bold text-dark">{{ $employee->date_of_birth ? \Carbon\Carbon::parse($employee->date_of_birth)->format('d M Y') : '-' }}</p>
-                                    </div>
-                                    <div class="col-sm-6">
-                                        <label class="form-label text-muted small">Blood Group</label>
-                                        <p class="fw-bold text-dark">{{ $employee->profile?->blood_group ?? '-' }}</p>
-                                    </div>
+                                <div class="mb-3">
+                                    <label class="text-muted small">Employee Code</label>
+                                    <p class="fw-bold">{{ $employee->employee_code }}</p>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="text-muted small">Full Name</label>
+                                    <p class="fw-bold">{{ $employee->FullName }}</p>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="text-muted small">Email</label>
+                                    <p class="fw-bold">{{ $employee->EmailId ?? '-' }}</p>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="text-muted small">Date of Birth</label>
+                                    <p class="fw-bold">{{ $employee->date_of_birth ? \Carbon\Carbon::parse($employee->date_of_birth)->format('d M Y') : '-' }}</p>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="text-muted small">Phone</label>
+                                    <p class="fw-bold">{{ $employee->profile?->phone_number ?? '-' }}</p>
                                 </div>
                             </div>
                         </div>
                     </div>
-
-                    <!-- Employment Information -->
-                    <div class="col-lg-6 mb-4">
-                        <div class="card shadow-sm border-0">
-                            <div class="card-header bg-light border-bottom">
-                                <h6 class="mb-0 fw-bold">
-                                    <i class="ti ti-briefcase me-2"></i>Employment Information
-                                </h6>
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <h6 class="fw-bold mb-0">Employment Information</h6>
                             </div>
                             <div class="card-body">
-                                <div class="row g-3">
-                                    <div class="col-sm-6">
-                                        <label class="form-label text-muted small">Department</label>
-                                        <p class="fw-bold text-dark">{{ $employee->departments->first()?->DepartmentName ?? '-' }}</p>
-                                    </div>
-                                    <div class="col-sm-6">
-                                        <label class="form-label text-muted small">Designation</label>
-                                        <p class="fw-bold text-dark">{{ $employee->designation?->Designation ?? '-' }}</p>
-                                    </div>
-                                    <div class="col-sm-6">
-                                        <label class="form-label text-muted small">Date of Joining</label>
-                                        <p class="fw-bold text-dark">{{ $employee->profile?->date_of_joining ? \Carbon\Carbon::parse($employee->profile->date_of_joining)->format('d M Y') : '-' }}</p>
-                                    </div>
-                                    <div class="col-sm-6">
-                                        <label class="form-label text-muted small">Employee Type</label>
-                                        <p class="fw-bold text-dark">{{ $employee->profile?->employee_type ?? '-' }}</p>
-                                    </div>
-                                    <div class="col-sm-6">
-                                        <label class="form-label text-muted small">Manager</label>
-                                        <p class="fw-bold text-dark">{{ $employee->manager?->FullName ?? '-' }}</p>
-                                    </div>
-                                    <div class="col-sm-6">
-                                        <label class="form-label text-muted small">Office Type</label>
-                                        <p class="fw-bold text-dark">
-                                            <span class="badge bg-info text-white">{{ $employee->office_type ?? '-' }}</span>
-                                        </p>
-                                    </div>
+                                <div class="mb-3">
+                                    <label class="text-muted small">Department</label>
+                                    <p class="fw-bold">{{ $employee->department?->DepartmentName ?? '-' }}</p>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="text-muted small">Designation</label>
+                                    <p class="fw-bold">{{ $employee->designation?->Designation ?? '-' }}</p>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="text-muted small">Manager</label>
+                                    <p class="fw-bold">{{ $employee->manager?->FullName ?? 'N/A' }}</p>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="text-muted small">Office Type</label>
+                                    <p class="fw-bold">{{ $employee->office_type ?? '-' }}</p>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="text-muted small">Status</label>
+                                    <p>
+                                        @php
+                                            $statusBg = ($employee->employee_status === 'Active') ? 'success' : (($employee->employee_status === 'Terminated') ? 'danger' : 'warning');
+                                            $status = $employee->employee_status ?? 'Active';
+                                        @endphp
+                                        <span class="badge bg-{{ $statusBg }}">{{ $status }}</span>
+                                    </p>
                                 </div>
                             </div>
                         </div>
@@ -433,35 +391,221 @@
     </div>
 </div>
 
-<!-- Edit Employee Modal -->
+<!-- Edit Employee Modal - Comprehensive -->
 <div class="modal fade" id="editEmployeeModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-dialog modal-dialog-centered modal-xl">
         <div class="modal-content">
-            <div class="modal-header bg-warning text-white">
-                <h5 class="modal-title">Edit Employee</h5>
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title"><i class="ti ti-pencil me-2"></i>Edit Employee</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
+
             <form id="editEmployeeForm">
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label class="form-label">Full Name</label>
-                        <input type="text" name="full_name" class="form-control" value="{{ $employee->FullName }}" required>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Email</label>
-                        <input type="email" name="email" class="form-control" value="{{ $employee->EmailId }}">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Status</label>
-                        <select name="user_status" class="form-select">
-                            <option value="Active" {{ $employee->UserStatus === 'Active' ? 'selected' : '' }}>Active</option>
-                            <option value="InActive" {{ $employee->UserStatus === 'InActive' ? 'selected' : '' }}>Inactive</option>
-                        </select>
+                @csrf
+                <div class="modal-body" style="max-height: 70vh; overflow-y: auto;">
+                    <!-- Tab Navigation -->
+                    <ul class="nav nav-tabs mb-3" role="tablist">
+                        <li class="nav-item"><a class="nav-link active" href="#edit-basic" data-bs-toggle="tab"><i class="ti ti-info-circle me-1"></i>Basic</a></li>
+                        <li class="nav-item"><a class="nav-link" href="#edit-personal" data-bs-toggle="tab"><i class="ti ti-user me-1"></i>Personal</a></li>
+                        <li class="nav-item"><a class="nav-link" href="#edit-employment" data-bs-toggle="tab"><i class="ti ti-briefcase me-1"></i>Employment</a></li>
+                        <li class="nav-item"><a class="nav-link" href="#edit-financial" data-bs-toggle="tab"><i class="ti ti-credit-card me-1"></i>Financial</a></li>
+                        <li class="nav-item"><a class="nav-link" href="#edit-medical" data-bs-toggle="tab"><i class="ti ti-heart me-1"></i>Medical</a></li>
+                    </ul>
+
+                    <div class="tab-content">
+                        <!-- TAB 1: BASIC INFO -->
+                        <div class="tab-pane fade show active" id="edit-basic">
+                            <h6 class="fw-bold mb-3">Basic Information</h6>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">First Name <span class="text-danger">*</span></label>
+                                    <input type="text" name="first_name" class="form-control" value="{{ $employee->first_name }}" required>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Last Name <span class="text-danger">*</span></label>
+                                    <input type="text" name="last_name" class="form-control" value="{{ $employee->last_name }}" required>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Email</label>
+                                    <input type="email" name="email" class="form-control" value="{{ $employee->EmailId }}">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Date of Birth</label>
+                                    <input type="date" name="date_of_birth" class="form-control" value="{{ $employee->date_of_birth }}">
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-4 mb-3">
+                                    <label class="form-label">Department <span class="text-danger">*</span></label>
+                                    <select name="department_id" class="form-select" required>
+                                        <option value="">-- Select --</option>
+                                        @foreach ($departments as $dept)
+                                            <option value="{{ $dept->Departmentid }}" {{ $employee->departments->first()?->Departmentid == $dept->Departmentid ? 'selected' : '' }}>{{ $dept->DepartmentName }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label class="form-label">Designation <span class="text-danger">*</span></label>
+                                    <select name="designation_code" class="form-select" required>
+                                        <option value="">-- Select --</option>
+                                        @foreach ($designations as $des)
+                                            <option value="{{ $des->DesignationCode }}" {{ $employee->Designation == $des->DesignationCode ? 'selected' : '' }}>{{ $des->Designation }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label class="form-label">Office Type <span class="text-danger">*</span></label>
+                                    <select name="office_type" class="form-select" required>
+                                        <option value="Branch Location" {{ $employee->office_type == 'Branch Location' ? 'selected' : '' }}>Branch Location</option>
+                                        <option value="Corporate Office" {{ $employee->office_type == 'Corporate Office' ? 'selected' : '' }}>Corporate Office</option>
+                                        <option value="Head Office" {{ $employee->office_type == 'Head Office' ? 'selected' : '' }}>Head Office</option>
+                                        <option value="Regional Office" {{ $employee->office_type == 'Regional Office' ? 'selected' : '' }}>Regional Office</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Status <span class="text-danger">*</span></label>
+                                    <select name="user_status" class="form-select" required>
+                                        <option value="Active" {{ $employee->UserStatus === 'Active' ? 'selected' : '' }}>Active</option>
+                                        <option value="InActive" {{ $employee->UserStatus === 'InActive' ? 'selected' : '' }}>Inactive</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Manager</label>
+                                    <select name="manager_id" class="form-select">
+                                        <option value="">-- None --</option>
+                                        @foreach ($employees as $emp)
+                                            @if ($emp->UserStatus == 'Active' && $emp->UserID != $employee->UserID)
+                                                <option value="{{ $emp->UserID }}" {{ $employee->manager_id == $emp->UserID ? 'selected' : '' }}>{{ $emp->FullName }}</option>
+                                            @endif
+                                        @endforeach
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- TAB 2: PERSONAL DETAILS -->
+                        <div class="tab-pane fade" id="edit-personal">
+                            <h6 class="fw-bold mb-3">Personal Information</h6>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Phone</label>
+                                    <input type="tel" name="phone" class="form-control" value="{{ $employee->profile?->phone_number }}">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Alternate Phone</label>
+                                    <input type="tel" name="alternate_phone" class="form-control" value="{{ $employee->profile?->alternate_phone ?? '' }}">
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Address</label>
+                                <textarea name="address" class="form-control" rows="2">{{ $employee->profile?->address ?? '' }}</textarea>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">City</label>
+                                    <input type="text" name="city" class="form-control" value="{{ $employee->profile?->city ?? '' }}">
+                                </div>
+                                <div class="col-md-3 mb-3">
+                                    <label class="form-label">State</label>
+                                    <input type="text" name="state" class="form-control" value="{{ $employee->profile?->state ?? '' }}">
+                                </div>
+                                <div class="col-md-3 mb-3">
+                                    <label class="form-label">Postal Code</label>
+                                    <input type="text" name="postal_code" class="form-control" value="{{ $employee->profile?->postal_code ?? '' }}">
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Emergency Contact</label>
+                                    <input type="text" name="emergency_contact_name" class="form-control" value="{{ $employee->profile?->emergency_contact_name ?? '' }}">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Emergency Phone</label>
+                                    <input type="tel" name="emergency_contact_phone" class="form-control" value="{{ $employee->profile?->emergency_contact_phone ?? '' }}">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- TAB 3: EMPLOYMENT DETAILS -->
+                        <div class="tab-pane fade" id="edit-employment">
+                            <h6 class="fw-bold mb-3">Employment Information</h6>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Date of Joining</label>
+                                    <input type="date" name="date_of_joining" class="form-control" value="{{ $employee->profile?->date_of_joining ?? '' }}">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Employee Type</label>
+                                    <select name="employee_type" class="form-select">
+                                        <option value="Permanent" {{ $employee->profile?->employee_type == 'Permanent' ? 'selected' : '' }}>Permanent</option>
+                                        <option value="Temporary" {{ $employee->profile?->employee_type == 'Temporary' ? 'selected' : '' }}>Temporary</option>
+                                        <option value="Contract" {{ $employee->profile?->employee_type == 'Contract' ? 'selected' : '' }}>Contract</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- TAB 4: FINANCIAL & ID INFO -->
+                        <div class="tab-pane fade" id="edit-financial">
+                            <h6 class="fw-bold mb-3">Financial & ID Information</h6>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Aadhar Number</label>
+                                    <input type="text" name="aadhar_number" class="form-control" value="{{ $employee->profile?->aadhar_number ?? '' }}">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">PAN Number</label>
+                                    <input type="text" name="pan_number" class="form-control" value="{{ $employee->profile?->pan_number ?? '' }}">
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Bank Account</label>
+                                    <input type="text" name="bank_account" class="form-control" value="{{ $employee->profile?->bank_account ?? '' }}">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">IFSC Code</label>
+                                    <input type="text" name="ifsc_code" class="form-control" value="{{ $employee->profile?->ifsc_code ?? '' }}">
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Blood Group</label>
+                                <select name="blood_group" class="form-select">
+                                    <option value="">-- Select --</option>
+                                    <option value="A+" {{ $employee->profile?->blood_group == 'A+' ? 'selected' : '' }}>A+</option>
+                                    <option value="A-" {{ $employee->profile?->blood_group == 'A-' ? 'selected' : '' }}>A-</option>
+                                    <option value="B+" {{ $employee->profile?->blood_group == 'B+' ? 'selected' : '' }}>B+</option>
+                                    <option value="B-" {{ $employee->profile?->blood_group == 'B-' ? 'selected' : '' }}>B-</option>
+                                    <option value="AB+" {{ $employee->profile?->blood_group == 'AB+' ? 'selected' : '' }}>AB+</option>
+                                    <option value="AB-" {{ $employee->profile?->blood_group == 'AB-' ? 'selected' : '' }}>AB-</option>
+                                    <option value="O+" {{ $employee->profile?->blood_group == 'O+' ? 'selected' : '' }}>O+</option>
+                                    <option value="O-" {{ $employee->profile?->blood_group == 'O-' ? 'selected' : '' }}>O-</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- TAB 5: MEDICAL INFO -->
+                        <div class="tab-pane fade" id="edit-medical">
+                            <h6 class="fw-bold mb-3">Medical Information</h6>
+                            <div class="mb-3">
+                                <label class="form-label">Medical Conditions</label>
+                                <textarea name="medical_conditions" class="form-control" rows="3">{{ $employee->profile?->medical_conditions ?? '' }}</textarea>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Allergies</label>
+                                <textarea name="allergies" class="form-control" rows="3">{{ $employee->profile?->allergies ?? '' }}</textarea>
+                            </div>
+                        </div>
                     </div>
                 </div>
+
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-warning">Update</button>
+                    <button type="submit" class="btn btn-primary"><i class="ti ti-check me-1"></i>Save Changes</button>
                 </div>
             </form>
         </div>
@@ -726,6 +870,33 @@ document.getElementById('initiateRelievingForm')?.addEventListener('submit', fun
         } else {
             Swal.fire('Error', data.message, 'error');
         }
+    });
+});
+
+// ============ EDIT EMPLOYEE ============
+
+document.getElementById('editEmployeeForm')?.addEventListener('submit', function(e) {
+    e.preventDefault();
+    const formData = new FormData(this);
+
+    fetch(`/staff/${employeeId}`, {
+        method: 'PUT',
+        body: formData,
+        headers: {'X-CSRF-TOKEN': '{{ csrf_token() }}'}
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.status) {
+            Swal.fire('Success', 'Employee updated successfully', 'success');
+            // Reload page to reflect changes
+            setTimeout(() => window.location.reload(), 1500);
+        } else {
+            Swal.fire('Error', data.message || 'Failed to update employee', 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        Swal.fire('Error', 'An error occurred while updating', 'error');
     });
 });
 

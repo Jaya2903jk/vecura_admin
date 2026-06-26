@@ -266,38 +266,112 @@ class StaffController extends Controller
             'educationalDocuments'
         ])->findOrFail($id);
 
+        $departments = IssueDepartment::all();
+        $designations = Designation::all();
+        $employees = UserMaster::where('UserStatus', 'Active')->get();
+        $branches = NewBranch::where('is_active', 1)->get();
+
         return view('staff.employee-details', [
-            'employee' => $employee
+            'employee' => $employee,
+            'departments' => $departments,
+            'designations' => $designations,
+            'employees' => $employees,
+            'branches' => $branches,
         ]);
     }
 
     public function update(Request $request, $id)
     {
         $validated = $request->validate([
-            'full_name' => 'required|string|max:255',
+            // Basic Info
+            'first_name' => 'required|string|max:100',
+            'last_name' => 'required|string|max:100',
             'email' => 'nullable|email|max:255',
-            'designation' => 'required|string',
-            'branch_id' => 'required|integer',
+            'date_of_birth' => 'nullable|date',
+            'department_id' => 'required|exists:issueDepartmentMaster,Departmentid',
+            'designation_code' => 'required|exists:DesignationMaster,DesignationCode',
+            'office_type' => 'required|in:Branch Location,Corporate Office,Head Office,Regional Office',
             'user_status' => 'required|in:Active,InActive',
+            'manager_id' => 'nullable|exists:User_Master,UserID',
+
+            // Personal Details
+            'phone' => 'nullable|string|max:20',
+            'alternate_phone' => 'nullable|string|max:20',
+            'address' => 'nullable|string',
+            'city' => 'nullable|string|max:100',
+            'state' => 'nullable|string|max:100',
+            'postal_code' => 'nullable|string|max:10',
+            'emergency_contact_name' => 'nullable|string|max:100',
+            'emergency_contact_phone' => 'nullable|string|max:20',
+
+            // Employment Details
+            'date_of_joining' => 'nullable|date',
+            'employee_type' => 'nullable|in:Permanent,Temporary,Contract',
+
+            // Financial/ID Info
+            'aadhar_number' => 'nullable|string|max:20',
+            'pan_number' => 'nullable|string|max:20',
+            'bank_account' => 'nullable|string|max:20',
+            'ifsc_code' => 'nullable|string|max:20',
+            'blood_group' => 'nullable|string|max:5',
+
+            // Medical
+            'medical_conditions' => 'nullable|string',
+            'allergies' => 'nullable|string',
         ]);
 
         try {
+            DB::beginTransaction();
+
             $employee = UserMaster::findOrFail($id);
+
+            // Update User_Master
             $employee->update([
-                'FullName' => $validated['full_name'],
+                'first_name' => $validated['first_name'],
+                'last_name' => $validated['last_name'],
+                'FullName' => $validated['first_name'] . ' ' . $validated['last_name'],
                 'EmailId' => $validated['email'],
-                'Designation' => $validated['designation'],
-                'branch_id' => $validated['branch_id'],
+                'date_of_birth' => $validated['date_of_birth'],
+                'department_id' => $validated['department_id'],
+                'designation_code' => $validated['designation_code'],
+                'office_type' => $validated['office_type'],
+                'manager_id' => $validated['manager_id'] ?? null,
                 'UserStatus' => $validated['user_status'],
                 'ModifiedBy' => session('user_id'),
                 'ModifiedDate' => now(),
             ]);
+
+            // Update employee_profiles
+            if ($employee->profile) {
+                $employee->profile->update([
+                    'phone_number' => $validated['phone'],
+                    'alternate_phone' => $validated['alternate_phone'],
+                    'address' => $validated['address'],
+                    'city' => $validated['city'],
+                    'state' => $validated['state'],
+                    'postal_code' => $validated['postal_code'],
+                    'emergency_contact_name' => $validated['emergency_contact_name'],
+                    'emergency_contact_phone' => $validated['emergency_contact_phone'],
+                    'date_of_joining' => $validated['date_of_joining'],
+                    'employee_type' => $validated['employee_type'],
+                    'aadhar_number' => $validated['aadhar_number'],
+                    'pan_number' => $validated['pan_number'],
+                    'bank_account' => $validated['bank_account'],
+                    'ifsc_code' => $validated['ifsc_code'],
+                    'blood_group' => $validated['blood_group'],
+                    'medical_conditions' => $validated['medical_conditions'],
+                    'allergies' => $validated['allergies'],
+                ]);
+            }
+
+            DB::commit();
 
             return response()->json([
                 'status' => true,
                 'message' => 'Employee updated successfully'
             ]);
         } catch (\Exception $e) {
+            DB::rollBack();
             return response()->json([
                 'status' => false,
                 'message' => 'Error: ' . $e->getMessage()
