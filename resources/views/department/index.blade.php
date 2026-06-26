@@ -98,16 +98,16 @@
                                                     <ul class="dropdown-menu p-2">
                                                         @if(session('is_admin') || \App\Helpers\RbacHelper::canPerformAction('edit', 'department'))
                                                             <li>
-                                                                <a href="#" class="dropdown-item" data-bs-toggle="modal"
-                                                                    data-bs-target="#edit_modal">
+                                                                <a href="#" class="dropdown-item edit-btn" data-bs-toggle="modal"
+                                                                    data-bs-target="#edit_modal" data-id="{{ $dept->Departmentid }}">
                                                                     Edit
                                                                 </a>
                                                             </li>
                                                         @endif
                                                         @if(session('is_admin') || \App\Helpers\RbacHelper::canPerformAction('delete', 'department'))
                                                             <li>
-                                                                <a href="#" class="dropdown-item" data-bs-toggle="modal"
-                                                                    data-bs-target="#delete_modal">
+                                                                <a href="#" class="dropdown-item delete-btn" data-bs-toggle="modal"
+                                                                    data-bs-target="#delete_modal" data-id="{{ $dept->Departmentid }}">
                                                                     Delete
                                                                 </a>
                                                             </li>
@@ -205,30 +205,28 @@
                             <button type="button" class="btn-close btn-close-modal custom-btn-close"
                                 data-bs-dismiss="modal" aria-label="Close"><i class="ti ti-x"></i></button>
                         </div>
-                        <form action="department.html">
+                        <form id="editDepartmentForm">
+                            @csrf
+                            @method('PUT')
+                            <input type="hidden" id="edit_id" name="id">
                             <div class="modal-body">
-
                                 <div class="mb-3">
                                     <label class="form-label">Department Name<span
                                             class="text-danger ms-1">*</span></label>
-                                    <input type="text" class="form-control" placeholder="Enter department name">
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label">Description<span class="text-danger ms-1">*</span></label>
-                                    <textarea class="form-control" rows="3" placeholder="Enter description"></textarea>
+                                    <input type="text" id="edit_department_name" name="department_name" class="form-control" placeholder="Enter department name">
                                 </div>
                                 <div class="mb-3">
                                     <label class="form-label">Status<span class="text-danger ms-1">*</span></label>
-                                    <select class="select">
-                                        <option>Active</option>
-                                        <option>Inactive</option>
+                                    <select id="edit_status" name="status" class="form-control">
+                                        <option value="1">Active</option>
+                                        <option value="0">Inactive</option>
                                     </select>
                                 </div>
                             </div>
                             <div class="modal-footer d-flex align-items-center gap-1">
                                 <button type="button" class="btn btn-white border"
                                     data-bs-dismiss="modal">Cancel</button>
-                                <button type="submit" class="btn btn-primary">Save Changes</button>
+                                <button type="submit" id="editSubmitBtn" class="btn btn-primary">Save Changes</button>
                             </div>
                         </form>
                     </div>
@@ -246,9 +244,10 @@
                             </div>
                             <h5 class="mb-2">Delete Department</h5>
                             <p class="mb-3">Are you sure you want to delete this department record?</p>
+                            <input type="hidden" id="delete_id" value="">
                             <div class="d-flex justify-content-center gap-2">
                                 <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
-                                <button type="button" class="btn btn-danger">Delete</button>
+                                <button type="button" id="confirmDeleteBtn" class="btn btn-danger">Delete</button>
                             </div>
                         </div>
                     </div>
@@ -335,6 +334,96 @@
 
                             console.log(xhr.responseText);
                         }
+                    }
+                });
+            });
+
+            // Edit Department
+            $(document).on('click', '.edit-btn', function() {
+                let deptId = $(this).data('id');
+                let row = $(this).closest('tr');
+                let deptName = row.find('td:first').text();
+                let status = row.find('.badge').hasClass('badge-soft-success') ? '1' : '0';
+
+                $('#edit_id').val(deptId);
+                $('#edit_department_name').val(deptName);
+                $('#edit_status').val(status);
+            });
+
+            // Submit Edit Form
+            $('#editDepartmentForm').on('submit', function(e) {
+                e.preventDefault();
+                let deptId = $('#edit_id').val();
+                let formData = new FormData(this);
+
+                $.ajax({
+                    url: "{{ url('department') }}/" + deptId,
+                    type: "POST",
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    headers: {
+                        'X-CSRF-TOKEN': $('input[name="_token"]').val()
+                    },
+                    success: function(response) {
+                        if (response.status) {
+                            $('#edit_modal').modal('hide');
+                            Swal.fire({
+                                icon: "success",
+                                title: "Department Updated Successfully",
+                                showConfirmButton: false,
+                                timer: 1500
+                            });
+                            setTimeout(function() {
+                                location.reload();
+                            }, 1500);
+                        }
+                    },
+                    error: function(xhr) {
+                        Swal.fire({
+                            icon: "error",
+                            title: "Error",
+                            text: xhr.responseJSON?.message || "Something went wrong!"
+                        });
+                    }
+                });
+            });
+
+            // Delete Department
+            $(document).on('click', '.delete-btn', function() {
+                let deptId = $(this).data('id');
+                $('#delete_id').val(deptId);
+            });
+
+            $('#confirmDeleteBtn').on('click', function() {
+                let deptId = $('#delete_id').val();
+
+                $.ajax({
+                    url: "{{ url('department') }}/" + deptId,
+                    type: "DELETE",
+                    headers: {
+                        'X-CSRF-TOKEN': $('input[name="_token"]').val()
+                    },
+                    success: function(response) {
+                        if (response.status) {
+                            $('#delete_modal').modal('hide');
+                            Swal.fire({
+                                icon: "success",
+                                title: "Department Deleted Successfully",
+                                showConfirmButton: false,
+                                timer: 1500
+                            });
+                            setTimeout(function() {
+                                location.reload();
+                            }, 1500);
+                        }
+                    },
+                    error: function(xhr) {
+                        Swal.fire({
+                            icon: "error",
+                            title: "Error",
+                            text: xhr.responseJSON?.message || "Cannot delete department!"
+                        });
                     }
                 });
             });
