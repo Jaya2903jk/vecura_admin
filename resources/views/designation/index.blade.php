@@ -332,7 +332,21 @@
         document.getElementById('addForm').addEventListener('submit', function(e) {
             e.preventDefault();
 
+            // Validate form fields
+            const designationName = document.querySelector('input[name="designation_name"]').value.trim();
+            const status = document.querySelector('select[name="status"]').value;
             const checkedDepts = document.querySelectorAll('input[name="department_ids[]"]:checked').length;
+
+            if (!designationName) {
+                Swal.fire('Required', 'Designation name is required', 'warning');
+                return;
+            }
+
+            if (!status || status === '') {
+                Swal.fire('Required', 'Status is required', 'warning');
+                return;
+            }
+
             if (checkedDepts === 0) {
                 Swal.fire('Required', 'Please select at least one department', 'warning');
                 return;
@@ -359,7 +373,11 @@
                 // Handle validation errors (422)
                 if (r.status === 422) {
                     return r.json().then(data => {
-                        throw new Error(Object.values(data.errors)[0][0] || 'Validation error');
+                        const errors = data.errors;
+                        const errorMessages = Object.entries(errors)
+                            .map(([field, messages]) => `${field}: ${messages[0]}`)
+                            .join('\n');
+                        throw new Error(errorMessages);
                     });
                 }
                 if (!r.ok) {
@@ -415,7 +433,21 @@
         document.getElementById('editForm').addEventListener('submit', function(e) {
             e.preventDefault();
 
+            // Validate form fields
+            const designationName = document.getElementById('edit_name').value.trim();
+            const status = document.getElementById('edit_status').value;
             const checkedDepts = document.querySelectorAll('.edit-dept-checkbox:checked').length;
+
+            if (!designationName) {
+                Swal.fire('Required', 'Designation name is required', 'warning');
+                return;
+            }
+
+            if (!status || status === '') {
+                Swal.fire('Required', 'Status is required', 'warning');
+                return;
+            }
+
             if (checkedDepts === 0) {
                 Swal.fire('Required', 'Please select at least one department', 'warning');
                 return;
@@ -441,7 +473,11 @@
                 }
                 if (r.status === 422) {
                     return r.json().then(data => {
-                        throw new Error(Object.values(data.errors)[0][0] || 'Validation error');
+                        const errors = data.errors;
+                        const errorMessages = Object.entries(errors)
+                            .map(([field, messages]) => `${field}: ${messages[0]}`)
+                            .join('\n');
+                        throw new Error(errorMessages);
                     });
                 }
                 if (!r.ok) {
