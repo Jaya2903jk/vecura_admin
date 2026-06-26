@@ -297,6 +297,9 @@
             }
 
             const formData = new FormData(this);
+            const submitBtn = this.querySelector('button[type="submit"]');
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Adding...';
 
             fetch('{{ route("designation.store") }}', {
                 method: 'POST',
@@ -305,7 +308,22 @@
                     'X-CSRF-TOKEN': '{{ csrf_token() }}'
                 }
             })
-            .then(r => r.json())
+            .then(r => {
+                // Handle 302 redirect (permission denied)
+                if (r.status === 302) {
+                    throw new Error('Access denied. You do not have permission to create designations.');
+                }
+                // Handle validation errors (422)
+                if (r.status === 422) {
+                    return r.json().then(data => {
+                        throw new Error(Object.values(data.errors)[0][0] || 'Validation error');
+                    });
+                }
+                if (!r.ok) {
+                    throw new Error('HTTP Error: ' + r.status);
+                }
+                return r.json();
+            })
             .then(data => {
                 if (data.status) {
                     Swal.fire('Success', data.message, 'success').then(() => {
@@ -313,9 +331,15 @@
                     });
                 } else {
                     Swal.fire('Error', data.message, 'error');
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Add New Designation';
                 }
             })
-            .catch(e => Swal.fire('Error', e.message, 'error'));
+            .catch(e => {
+                Swal.fire('Error', e.message, 'error');
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Add New Designation';
+            });
         });
 
         // Load Designation for Edit
@@ -356,6 +380,9 @@
 
             const id = document.getElementById('edit_id').value;
             const formData = new FormData(this);
+            const submitBtn = this.querySelector('button[type="submit"]');
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Updating...';
 
             fetch(`/designation/${id}`, {
                 method: 'PUT',
@@ -364,7 +391,20 @@
                     'X-CSRF-TOKEN': '{{ csrf_token() }}'
                 }
             })
-            .then(r => r.json())
+            .then(r => {
+                if (r.status === 302) {
+                    throw new Error('Access denied. You do not have permission to edit designations.');
+                }
+                if (r.status === 422) {
+                    return r.json().then(data => {
+                        throw new Error(Object.values(data.errors)[0][0] || 'Validation error');
+                    });
+                }
+                if (!r.ok) {
+                    throw new Error('HTTP Error: ' + r.status);
+                }
+                return r.json();
+            })
             .then(data => {
                 if (data.status) {
                     Swal.fire('Success', data.message, 'success').then(() => {
@@ -372,9 +412,15 @@
                     });
                 } else {
                     Swal.fire('Error', data.message, 'error');
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Save Changes';
                 }
             })
-            .catch(e => Swal.fire('Error', e.message, 'error'));
+            .catch(e => {
+                Swal.fire('Error', e.message, 'error');
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Save Changes';
+            });
         });
 
         // Delete Designation
