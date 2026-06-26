@@ -693,14 +693,31 @@
         });
 
         // Add Employee
+        let isAddEmployeeSubmitting = false;
+
         document.getElementById('addEmployeeForm').addEventListener('submit', function(e) {
             e.preventDefault();
+
+            // Prevent double submission
+            if (isAddEmployeeSubmitting) {
+                Swal.fire('Wait', 'Employee creation is in progress...', 'info');
+                return false;
+            }
+            isAddEmployeeSubmitting = true;
+
+            const submitBtn = this.querySelector('button[type="submit"]');
+            const originalBtnText = submitBtn.innerHTML;
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Creating Employee...';
+
             const formData = new FormData(this);
+            const jsonData = Object.fromEntries(formData);
 
             fetch('{{ route('staff.store') }}', {
                     method: 'POST',
-                    body: formData,
+                    body: JSON.stringify(jsonData),
                     headers: {
+                        'Content-Type': 'application/json',
                         'X-CSRF-TOKEN': '{{ csrf_token() }}'
                     }
                 })
@@ -711,10 +728,19 @@
                             location.reload();
                         });
                     } else {
-                        Swal.fire('Error', data.message, 'error');
+                        Swal.fire('Error', data.message || 'Failed to create employee', 'error');
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = originalBtnText;
+                        isAddEmployeeSubmitting = false;
                     }
                 })
-                .catch(e => Swal.fire('Error', 'Something went wrong', 'error'));
+                .catch(error => {
+                    console.error('Error:', error);
+                    Swal.fire('Error', 'An error occurred: ' + error.message, 'error');
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalBtnText;
+                    isAddEmployeeSubmitting = false;
+                });
         });
 
         // Edit Employee
