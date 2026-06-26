@@ -19,7 +19,6 @@ namespace App\Helpers;
             $roles = EmployeeRole::where('employee_id', $userId)
                 ->where('is_active', 1)
                 ->pluck('role_id');
-
             if ($roles->isEmpty()) return false;
 
             $query = Permission::whereIn('id', function($q) use ($roles) {
@@ -27,7 +26,6 @@ namespace App\Helpers;
                     ->from('role_permissions')
                     ->whereIn('role_id', $roles);
             })->where('name', $permissionName)->where('is_active', 1);
-
             if ($module) {
                 $query->where('module', $module);
             }

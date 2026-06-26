@@ -18,7 +18,13 @@
                     @endif
                 </div>
             </div>
-
+            <div class="alert alert-info alert-dismissible fade show mb-3" role="alert">
+                <i class="ti ti-info-circle me-2"></i>
+                <strong>Default Login Password for New Employees:</strong>
+                <span class="badge bg-warning text-dark px-3 py-2 ms-2">Vecura@123</span>
+                <small class="d-block mt-2 text-muted">Share this password when creating new employees. They must change it on first login.</small>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
             <div class="card mb-3">
                 <div class="card-body">
                     <form method="GET" action="{{ route('staff.index') }}" id="filterForm">

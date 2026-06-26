@@ -25,6 +25,12 @@ class StaffController extends Controller
 
         $query = UserMaster::query();
 
+        // Manager sees only their subordinates, Admin sees all
+        if (!session('is_admin')) {
+            $userId = session('user_id');
+            $query->where('manager_id', $userId);
+        }
+
         if ($search) {
             $query->where('FullName', 'like', "%$search%")
                 ->orWhere('UserCode', 'like', "%$search%")
