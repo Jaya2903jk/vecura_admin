@@ -67,4 +67,58 @@ class DesignationController extends Controller
         $html .= '</tbody></table>';
         return response($html, 200, $headers);
     }
+
+    public function search(Request $request)
+    {
+        try {
+            $search = $request->get('search', '');
+            $status = $request->get('status', null);
+            $departmentId = $request->get('department_id', null);
+
+            $query = \App\Models\Designation::with('departmentMappings.department');
+
+            if ($search) {
+                $query->where('DesignationCode', 'like', "%$search%")
+                      ->orWhere('Designation', 'like', "%$search%");
+            }
+
+            if ($status !== null && $status !== '') {
+                $query->where('status', $status);
+            }
+
+            if ($departmentId) {
+                $query->whereHas('departmentMappings', function($q) use ($departmentId) {
+                    $q->where('department_id', $departmentId);
+                });
+            }
+
+            $designations = $query->orderBy('DesignationCode')->get();
+
+            $formatted = $designations->map(function($des) {
+                return [
+                    'id' => $des->id,
+                    'DesignationCode' => $des->DesignationCode,
+                    'Designation' => $des->Designation,
+                    'status' => $des->status,
+                    'department_mappings' => $des->departmentMappings->map(function($mapping) {
+                        return [
+                            'id' => $mapping->id,
+                            'department_id' => $mapping->department_id,
+                            'department_name' => $mapping->department->DepartmentName
+                        ];
+                    })->toArray()
+                ];
+            })->toArray();
+
+            return response()->json([
+                'status' => true,
+                'designations' => $formatted
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => false,
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
 }

@@ -28,75 +28,117 @@
                 </div>
             </div>
 
+            <!-- Search & Filter -->
+            <div class="card mb-3 border-0">
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Search</label>
+                            <input type="text" id="searchInput" class="form-control" placeholder="Search by code or name...">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Status</label>
+                            <select id="statusFilter" class="form-select">
+                                <option value="">-- All --</option>
+                                <option value="0">Active</option>
+                                <option value="1">Inactive</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Department</label>
+                            <select id="departmentFilter" class="form-select">
+                                <option value="">-- All --</option>
+                                @foreach($departments as $dept)
+                                    <option value="{{ $dept->Departmentid }}">{{ $dept->DepartmentName }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
+                    <div class="mt-3 d-flex gap-2">
+                        <button id="searchBtn" class="btn btn-primary">
+                            <i class="ti ti-search me-1"></i>Search
+                        </button>
+                        <button id="resetBtn" class="btn btn-secondary">
+                            <i class="ti ti-refresh me-1"></i>Reset
+                        </button>
+                    </div>
+                </div>
+            </div>
+
             <div class="card border-0">
                 <div class="card-body p-0">
 
                     <div class="table-responsive">
-                        <table class="table datatable mb-0">
-                            <thead>
-                                <tr>
-                                    <th>Designation Code</th>
-                                    <th>Designation</th>
-                                    <th>Mapped Departments</th>
-                                    <th>Status</th>
-                                    <th>Action</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @forelse($designations as $des)
+                        <div id="loadingSpinner" class="text-center py-4" style="display: none;">
+                            <div class="spinner-border text-primary" role="status"></div>
+                            <p class="mt-2 text-muted">Loading...</p>
+                        </div>
+                        <div id="tableContainer">
+                            <table class="table datatable mb-0">
+                                <thead>
                                     <tr>
-                                        <td>
-                                            <span class="badge badge-soft-info">{{ $des->DesignationCode }}</span>
-                                        </td>
-                                        <td>{{ $des->Designation }}</td>
-                                        <td>
-                                            <div class="d-flex flex-wrap gap-1">
-                                                @if($des->departmentMappings->count() > 0)
-                                                    @foreach($des->departmentMappings as $mapping)
-                                                        <span class="badge bg-primary">{{ $mapping->department->DepartmentName }}</span>
-                                                    @endforeach
+                                        <th>Designation Code</th>
+                                        <th>Designation</th>
+                                        <th>Mapped Departments</th>
+                                        <th>Status</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="designationTableBody">
+                                    @forelse($designations as $des)
+                                        <tr>
+                                            <td>
+                                                <span class="badge badge-soft-info">{{ $des->DesignationCode }}</span>
+                                            </td>
+                                            <td>{{ $des->Designation }}</td>
+                                            <td>
+                                                <div class="d-flex flex-wrap gap-1">
+                                                    @if($des->departmentMappings->count() > 0)
+                                                        @foreach($des->departmentMappings as $mapping)
+                                                            <span class="badge bg-primary">{{ $mapping->department->DepartmentName }}</span>
+                                                        @endforeach
+                                                    @else
+                                                        <span class="text-muted">No departments mapped</span>
+                                                    @endif
+                                                </div>
+                                            </td>
+                                            <td>
+                                                @if ($des->status == 0)
+                                                    <span class="badge badge-soft-success border border-success">Active</span>
                                                 @else
-                                                    <span class="text-muted">No departments mapped</span>
+                                                    <span class="badge badge-soft-danger border border-danger">Inactive</span>
                                                 @endif
-                                            </div>
-                                        </td>
-                                        <td>
-                                            @if ($des->status == 0)
-                                                <span class="badge badge-soft-success border border-success">Active</span>
-                                            @else
-                                                <span class="badge badge-soft-danger border border-danger">Inactive</span>
-                                            @endif
-                                        </td>
+                                            </td>
 
-                                        <td>
-                                            <div class="action-item">
-                                                <a href="javascript:void(0);" data-bs-toggle="dropdown">
-                                                    <i class="ti ti-dots-vertical"></i>
-                                                </a>
-                                                <ul class="dropdown-menu p-2">
-                                                    <li>
-                                                        <a href="javascript:void(0);" class="dropdown-item" data-bs-toggle="modal"
-                                                            data-bs-target="#edit_modal" onclick="loadDesignation({{ $des->id }})">
-                                                            <i class="ti ti-pencil me-1"></i>Edit
-                                                        </a>
-                                                    </li>
-                                                    <li>
-                                                        <a href="javascript:void(0);" class="dropdown-item text-danger" onclick="deleteDesignation({{ $des->id }})">
-                                                            <i class="ti ti-trash me-1"></i>Delete
-                                                        </a>
-                                                    </li>
-                                                </ul>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                @empty
-                                    <tr>
-                                        <td colspan="5" class="text-center">No data found</td>
-                                    </tr>
-                                @endforelse
-                            </tbody>
-
-                        </table>
+                                            <td>
+                                                <div class="action-item">
+                                                    <a href="javascript:void(0);" data-bs-toggle="dropdown">
+                                                        <i class="ti ti-dots-vertical"></i>
+                                                    </a>
+                                                    <ul class="dropdown-menu p-2">
+                                                        <li>
+                                                            <a href="javascript:void(0);" class="dropdown-item" data-bs-toggle="modal"
+                                                                data-bs-target="#edit_modal" onclick="loadDesignation({{ $des->id }})">
+                                                                <i class="ti ti-pencil me-1"></i>Edit
+                                                            </a>
+                                                        </li>
+                                                        <li>
+                                                            <a href="javascript:void(0);" class="dropdown-item text-danger" onclick="deleteDesignation({{ $des->id }})">
+                                                                <i class="ti ti-trash me-1"></i>Delete
+                                                            </a>
+                                                        </li>
+                                                    </ul>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    @empty
+                                        <tr>
+                                            <td colspan="5" class="text-center">No data found</td>
+                                        </tr>
+                                    @endforelse
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
 
                 </div>
@@ -455,5 +497,128 @@
             document.getElementById('addForm').reset();
             document.querySelectorAll('input[name="department_ids[]"]').forEach(cb => cb.checked = false);
         }
+
+        // Search & Filter with AJAX
+        function loadDesignations(search = '', status = '', department = '') {
+            const spinner = document.getElementById('loadingSpinner');
+            const tableBody = document.getElementById('designationTableBody');
+
+            spinner.style.display = 'block';
+
+            const params = new URLSearchParams();
+            if (search) params.append('search', search);
+            if (status !== '') params.append('status', status);
+            if (department !== '') params.append('department_id', department);
+
+            fetch(`/designation/search?${params.toString()}`, {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json'
+                }
+            })
+            .then(r => r.json())
+            .then(data => {
+                spinner.style.display = 'none';
+
+                if (data.designations && data.designations.length > 0) {
+                    let html = '';
+                    data.designations.forEach(des => {
+                        const deptBadges = des.department_mappings && des.department_mappings.length > 0
+                            ? des.department_mappings.map(m => `<span class="badge bg-primary">${m.department_name}</span>`).join('')
+                            : '<span class="text-muted">No departments mapped</span>';
+
+                        const statusBadge = des.status == 0
+                            ? '<span class="badge badge-soft-success border border-success">Active</span>'
+                            : '<span class="badge badge-soft-danger border border-danger">Inactive</span>';
+
+                        html += `
+                            <tr>
+                                <td>
+                                    <span class="badge badge-soft-info">${des.DesignationCode}</span>
+                                </td>
+                                <td>${des.Designation}</td>
+                                <td>
+                                    <div class="d-flex flex-wrap gap-1">
+                                        ${deptBadges}
+                                    </div>
+                                </td>
+                                <td>
+                                    ${statusBadge}
+                                </td>
+                                <td>
+                                    <div class="action-item">
+                                        <a href="javascript:void(0);" data-bs-toggle="dropdown">
+                                            <i class="ti ti-dots-vertical"></i>
+                                        </a>
+                                        <ul class="dropdown-menu p-2">
+                                            <li>
+                                                <a href="javascript:void(0);" class="dropdown-item" data-bs-toggle="modal"
+                                                    data-bs-target="#edit_modal" onclick="loadDesignation(${des.id})">
+                                                    <i class="ti ti-pencil me-1"></i>Edit
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <a href="javascript:void(0);" class="dropdown-item text-danger" onclick="deleteDesignation(${des.id})">
+                                                    <i class="ti ti-trash me-1"></i>Delete
+                                                </a>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </td>
+                            </tr>
+                        `;
+                    });
+                    tableBody.innerHTML = html;
+                } else {
+                    tableBody.innerHTML = '<tr><td colspan="5" class="text-center">No data found</td></tr>';
+                }
+            })
+            .catch(e => {
+                spinner.style.display = 'none';
+                Swal.fire('Error', 'Failed to load designations', 'error');
+                console.error('Error:', e);
+            });
+        }
+
+        // Event Listeners
+        document.getElementById('searchBtn').addEventListener('click', function() {
+            const search = document.getElementById('searchInput').value;
+            const status = document.getElementById('statusFilter').value;
+            const department = document.getElementById('departmentFilter').value;
+
+            loadDesignations(search, status, department);
+        });
+
+        document.getElementById('resetBtn').addEventListener('click', function() {
+            document.getElementById('searchInput').value = '';
+            document.getElementById('statusFilter').value = '';
+            document.getElementById('departmentFilter').value = '';
+
+            loadDesignations();
+        });
+
+        // Live search on Enter key
+        document.getElementById('searchInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                document.getElementById('searchBtn').click();
+            }
+        });
+
+        // Live filter on select change
+        document.getElementById('statusFilter').addEventListener('change', function() {
+            const search = document.getElementById('searchInput').value;
+            const status = this.value;
+            const department = document.getElementById('departmentFilter').value;
+
+            loadDesignations(search, status, department);
+        });
+
+        document.getElementById('departmentFilter').addEventListener('change', function() {
+            const search = document.getElementById('searchInput').value;
+            const status = document.getElementById('statusFilter').value;
+            const department = this.value;
+
+            loadDesignations(search, status, department);
+        });
     </script>
 @endsection
