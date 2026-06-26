@@ -17,7 +17,7 @@ class DepartmentService
     public function create(array $data): JsonResponse
     {
         try {
-            $data['status'] = strtolower($data['status']) === 'active' ? 1 : 0;
+            $data['status'] = strtolower($data['status']) === 'Active' ? 1 : 0;
             $this->repo->create($data);
             return response()->json(['status' => true, 'message' => 'Department Created Successfully']);
         } catch (\Exception $e) {
@@ -28,7 +28,7 @@ class DepartmentService
     public function update(int $id, array $data): JsonResponse
     {
         try {
-            $data['status'] = strtolower($data['status']) === 'active' ? 1 : 0;
+            // $data['status'] = strtolower($data['status']) === 'Active' ? 1 : 0;
             $model = \App\Models\IssueDepartment::findOrFail($id);
             $this->repo->update($model, $data);
             return response()->json(['status' => true, 'message' => 'Department Updated Successfully']);

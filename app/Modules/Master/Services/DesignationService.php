@@ -26,7 +26,7 @@ class DesignationService
 
             return response()->json(['status' => true, 'message' => 'Designation Created Successfully']);
         } catch (\Exception $e) {
-            return response()->json(['status' => false, 'message' => 'Something went wrong!'], 500);
+            return response()->json(['status' => false, 'message' => $e->getMessage()], 500);
         }
     }
 
@@ -43,7 +43,7 @@ class DesignationService
 
             return response()->json(['status' => true, 'message' => 'Designation Updated Successfully']);
         } catch (\Exception $e) {
-            return response()->json(['status' => false, 'message' => 'Something went wrong!'], 500);
+            return response()->json(['status' => false, 'message' => $e->getMessage()], 500);
         }
     }
 
@@ -51,13 +51,11 @@ class DesignationService
     {
         // Delete existing mappings
         $designation->departmentMappings()->delete();
-
         // Create new mappings
         foreach ($departmentIds as $deptId) {
             \App\Models\DesignationDepartment::create([
-                'designation_id' => $designation->id,
                 'designation_code' => $designation->DesignationCode,
-                'department_id' => $deptId,
+                'department_id' => (int)$deptId,
                 'is_active' => true,
             ]);
         }
@@ -70,7 +68,7 @@ class DesignationService
             $this->repo->delete($model);
             return response()->json(['status' => true, 'message' => 'Designation Deleted Successfully']);
         } catch (\Exception $e) {
-            return response()->json(['status' => false, 'message' => 'Something went wrong!'], 500);
+            return response()->json(['status' => false, 'message' => $e->getMessage()], 500);
         }
     }
 
