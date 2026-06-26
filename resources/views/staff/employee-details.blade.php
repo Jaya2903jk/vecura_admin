@@ -442,10 +442,10 @@
                                     <select name="department_id" class="form-select" required>
                                         <option value="">-- Select --</option>
                                         @php
-                                            $selectedDept = $employee->departments->first();
+                                            $selectedDeptId = $employee->departments->first()?->Departmentid ?? $employee->departments->first()?->id;
                                         @endphp
                                         @foreach ($departments as $dept)
-                                            <option value="{{ $dept->Departmentid }}" {{ ($selectedDept && $selectedDept->Departmentid == $dept->Departmentid) ? 'selected' : '' }}>{{ $dept->DepartmentName }}</option>
+                                            <option value="{{ $dept->Departmentid }}" {{ ($dept->Departmentid == $selectedDeptId || $dept->id == $selectedDeptId) ? 'selected' : '' }}>{{ $dept->DepartmentName }}</option>
                                         @endforeach
                                     </select>
                                 </div>
