@@ -82,6 +82,7 @@
                                 <tr>
                                     <th style="width: 18%">Name / Code</th>
                                     <th style="width: 12%">Email</th>
+                                    <th style="width: 12%">Department</th>
                                     <th style="width: 12%">Designation</th>
                                     <th style="width: 12%">Manager</th>
                                     <th style="width: 12%">Branch</th>
@@ -99,6 +100,13 @@
                                             <small class="text-muted">{{ $emp->UserCode }}</small>
                                         </td>
                                         <td>{{ $emp->EmailId ?? '-' }}</td>
+                                        <td>
+                                            @if($emp->departments && $emp->departments->count() > 0)
+                                                {{ $emp->departments->pluck('DepartmentName')->implode(', ') }}
+                                            @else
+                                                <span class="text-muted">-</span>
+                                            @endif
+                                        </td>
                                         <td>{{ $emp->designation?->Designation ?? '-' }}</td>
                                         <td>
                                             @if ($emp->manager_id)
@@ -131,7 +139,8 @@
                                                     <ul class="dropdown-menu p-2">
                                                         @if (session('is_admin') || \App\Helpers\RbacHelper::canPerformAction('read', 'staff'))
                                                             <li>
-                                                                <a href="{{ route('staff.details', $emp->UserID) }}" class="dropdown-item">
+                                                                <a href="{{ route('staff.details', $emp->UserID) }}"
+                                                                    class="dropdown-item">
                                                                     <i class="ti ti-eye me-1"></i>Full Details
                                                                 </a>
                                                             </li>
@@ -313,7 +322,8 @@
                                             @foreach ($employees as $emp)
                                                 @if ($emp->UserStatus == 'Active')
                                                     <option value="{{ $emp->UserID }}">{{ $emp->FullName }}
-                                                        ({{ $emp->designation?->Designation ?? '-' }})</option>
+                                                        ({{ $emp->designation?->Designation ?? '-' }})
+                                                    </option>
                                                 @endif
                                             @endforeach
                                         </select>

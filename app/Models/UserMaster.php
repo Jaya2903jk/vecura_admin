@@ -78,6 +78,11 @@ class UserMaster extends Model
     {
         return $this->belongsTo(Designation::class, 'Designation', 'DesignationCode');
     }
+     public function department()
+    {
+        return $this->belongsTo(IssueDepartment::class, 'DepartmentName', 'department_id');
+    }
+
     public function branch()
     {
         return $this->belongsTo(NewBranch::class, 'branch_id', 'branch_id');

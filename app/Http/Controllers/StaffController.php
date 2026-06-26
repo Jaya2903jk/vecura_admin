@@ -169,6 +169,7 @@ class StaffController extends Controller
                 'date_of_birth' => $validated['date_of_birth'],
                 'department_id' => $validated['department_id'],
                 'designation_code' => $validated['designation_code'],
+                'Designation' => $validated['designation_code'],
                 'office_type' => $validated['office_type'],
                 'branch_id' => $validated['branch_id'] ?? null,
                 'manager_id' => $validated['manager_id'] ?? null,
