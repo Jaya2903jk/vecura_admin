@@ -631,11 +631,11 @@
                             <h6 class="fw-bold mb-3">Medical Information</h6>
                             <div class="mb-3">
                                 <label class="form-label">Medical Conditions</label>
-                                <textarea name="medical_conditions" class="form-control" rows="3">{{ $employee->profile?->medical_conditions ?? '' }}</textarea>
+                                <textarea name="medical_conditions" class="form-control" rows="3">{{ $employee->medical?->medical_conditions ?? '' }}</textarea>
                             </div>
                             <div class="mb-3">
                                 <label class="form-label">Allergies</label>
-                                <textarea name="allergies" class="form-control" rows="3">{{ $employee->profile?->allergies ?? '' }}</textarea>
+                                <textarea name="allergies" class="form-control" rows="3">{{ $employee->medical?->allergies ?? '' }}</textarea>
                             </div>
                         </div>
                     </div>

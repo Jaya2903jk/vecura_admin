@@ -266,6 +266,10 @@ class StaffController extends Controller
             'educationalDocuments'
         ])->findOrFail($id);
 
+        // Load medical data
+        $medical = DB::table('employee_medical')->where('user_id', $id)->first();
+        $employee->medical = $medical;
+
         $departments = IssueDepartment::all();
         $designations = Designation::all();
         $employees = UserMaster::where('UserStatus', 'Active')->get();
@@ -295,6 +299,8 @@ class StaffController extends Controller
             'manager_id' => 'nullable|exists:User_Master,UserID',
 
             // Personal Details
+            'gender' => 'nullable|in:Male,Female,Other',
+            'employee_category' => 'nullable|in:White Collar,Blue Collar',
             'phone' => 'nullable|string|max:20',
             'alternate_phone' => 'nullable|string|max:20',
             'address' => 'nullable|string',
@@ -344,6 +350,8 @@ class StaffController extends Controller
             // Update employee_profiles
             if ($employee->profile) {
                 $employee->profile->update([
+                    'gender' => $validated['gender'],
+                    'employee_category' => $validated['employee_category'],
                     'phone_number' => $validated['phone'],
                     'alternate_phone' => $validated['alternate_phone'],
                     'address' => $validated['address'],
@@ -356,13 +364,22 @@ class StaffController extends Controller
                     'employee_type' => $validated['employee_type'],
                     'aadhar_number' => $validated['aadhar_number'],
                     'pan_number' => $validated['pan_number'],
-                    'bank_account' => $validated['bank_account'],
+                    'bank_account_number' => $validated['bank_account'],
                     'ifsc_code' => $validated['ifsc_code'],
+                    'blood_group' => $validated['blood_group'],
+                ]);
+            }
+
+            // Update employee_medical
+            DB::table('employee_medical')->updateOrInsert(
+                ['user_id' => $employee->UserID],
+                [
                     'blood_group' => $validated['blood_group'],
                     'medical_conditions' => $validated['medical_conditions'],
                     'allergies' => $validated['allergies'],
-                ]);
-            }
+                    'updated_at' => now(),
+                ]
+            );
 
             DB::commit();
 
