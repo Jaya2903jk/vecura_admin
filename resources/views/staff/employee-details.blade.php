@@ -910,11 +910,15 @@ document.getElementById('editEmployeeForm')?.addEventListener('submit', function
     submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Saving...';
 
     const formData = new FormData(this);
+    const jsonData = Object.fromEntries(formData);
 
     fetch(`/staff/${employeeId}`, {
         method: 'PUT',
-        body: formData,
-        headers: {'X-CSRF-TOKEN': '{{ csrf_token() }}'}
+        body: JSON.stringify(jsonData),
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+        }
     })
     .then(r => r.json())
     .then(data => {
