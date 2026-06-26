@@ -19,6 +19,7 @@ return new class extends Migration
     {
         Schema::table('User_Master', function (Blueprint $table) {
             if (Schema::hasColumn('User_Master', 'manager_id')) {
+                $table->dropIndex(['manager_id']);
                 $table->dropColumn('manager_id');
             }
         });
