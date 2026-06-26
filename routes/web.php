@@ -25,6 +25,9 @@ use App\Models\IssueCategory;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 
+use App\Models\UserMaster;
+use Illuminate\Support\Facades\Hash;
+
 Route::get('/', function () {
     return view('login');
 })->name('login');
@@ -40,7 +43,47 @@ Route::middleware(['auth.custom', 'nocache'])->group(function () {
         return view('staff_dashboard');
     })->name('staff.dashboard');
 
-    Route::get('/staff', [StaffController::class, 'index'])->name('staff.index');
+    // ════════════════════════════════════════════════════════════════════
+    // EMPLOYEE MANAGEMENT ROUTES
+    // ════════════════════════════════════════════════════════════════════
+
+    // Employee CRUD Operations
+    Route::get('/staff', [StaffController::class, 'index'])->middleware('check.permission:read,staff')->name('staff.index');
+    Route::get('/staff/generate-code', [StaffController::class, 'generateEmployeeCode'])->middleware('check.permission:create,staff')->name('staff.generate-code');
+    Route::post('/staff/store', [StaffController::class, 'store'])->middleware('check.permission:create,staff')->name('staff.store');
+    Route::get('/staff/{id}/details', [StaffController::class, 'details'])->middleware('check.permission:read,staff')->name('staff.details');
+    Route::put('/staff/{id}', [StaffController::class, 'update'])->middleware('check.permission:edit,staff')->name('staff.update');
+
+    // Role Management
+    Route::post('/staff/{employeeId}/role', [StaffController::class, 'assignRole'])->middleware('check.permission:edit,staff')->name('staff.assign-role');
+    Route::delete('/staff/{employeeId}/role/{roleId}', [StaffController::class, 'removeRole'])->middleware('check.permission:edit,staff')->name('staff.remove-role');
+
+    // ════════════════════════════════════════════════════════════════════
+    // EMPLOYEE DOCUMENT & EDUCATION WORKFLOW
+    // ════════════════════════════════════════════════════════════════════
+
+    // Educational Documents (Degree, 10th, 12th) - Auto-approved
+    Route::post('/employee/{employeeId}/educational-document/add', [\App\Http\Controllers\EmployeeWorkflowController::class, 'addEducationalDocument'])->middleware('check.permission:edit,staff')->name('employee.edu-document.add');
+    Route::get('/employee/{employeeId}/educational-document/list', [\App\Http\Controllers\EmployeeWorkflowController::class, 'getEducationalDocuments'])->middleware('check.permission:read,staff')->name('employee.edu-document.list');
+
+    // Official Documents (Aadhar, PAN, Passport, etc.) - Auto-approved
+    Route::post('/employee/{employeeId}/document/add', [\App\Http\Controllers\EmployeeWorkflowController::class, 'addDocument'])->middleware('check.permission:edit,staff')->name('employee.document.add');
+    Route::get('/employee/{employeeId}/document/list', [\App\Http\Controllers\EmployeeWorkflowController::class, 'getDocuments'])->middleware('check.permission:read,staff')->name('employee.document.list');
+
+    // Bond Management
+    Route::post('/employee/{employeeId}/bond/create', [\App\Http\Controllers\EmployeeWorkflowController::class, 'createBond'])->middleware('check.permission:edit,staff')->name('employee.bond.create');
+    Route::get('/employee/{employeeId}/bond/list', [\App\Http\Controllers\EmployeeWorkflowController::class, 'getBonds'])->middleware('check.permission:read,staff')->name('employee.bond.list');
+    Route::post('/employee/{employeeId}/bond/{bondId}/complete', [\App\Http\Controllers\EmployeeWorkflowController::class, 'completeBond'])->middleware('check.permission:edit,staff')->name('employee.bond.complete');
+
+    // Relieving/Exit Management (2-month notice period)
+    Route::post('/employee/{employeeId}/relieving/initiate', [\App\Http\Controllers\EmployeeWorkflowController::class, 'initiateRelieving'])->middleware('check.permission:edit,staff')->name('employee.relieving.initiate');
+    Route::post('/employee/{employeeId}/relieving/complete', [\App\Http\Controllers\EmployeeWorkflowController::class, 'completeRelieving'])->middleware('check.permission:edit,staff')->name('employee.relieving.complete');
+
+    // ════════════════════════════════════════════════════════════════════
+    // EMPLOYEE WORKFLOW STATUS
+    // ════════════════════════════════════════════════════════════════════
+
+    Route::get('/employee/{employeeId}/workflow/status', [\App\Http\Controllers\EmployeeWorkflowController::class, 'getEmployeeStatus'])->middleware('check.permission:read,staff')->name('employee.workflow.status');
 
     // ── Master Module ──────────────────────────────────────────────
     require app_path('Modules/Master/routes.php');
@@ -48,25 +91,29 @@ Route::middleware(['auth.custom', 'nocache'])->group(function () {
     Route::get('/role', [RoleController::class, 'index'])->name('role-permission.index');
     Route::get('/permission', [PermissionController::class, 'index'])->name('permission.index');
 
-    Route::get('/category', [CategoryController::class, 'index'])->name('category.index');
-    Route::post('/category/store', [CategoryController::class, 'store'])->name('category.store');
+    Route::get('/category', [CategoryController::class, 'index'])->middleware('check.permission:read,category')->name('category.index');
+    Route::post('/category/store', [CategoryController::class, 'store'])->middleware('check.permission:create,category')->name('category.store');
 
-    Route::get('/issues-master', [IssuesMasterController::class, 'index'])->name('issues-master.index');
-    Route::post('/issues-master/store', [IssuesMasterController::class, 'store'])->name('issues-master.store');
+    Route::get('/issues-master', [IssuesMasterController::class, 'index'])->middleware('check.permission:read,issues')->name('issues-master.index');
+    Route::post('/issues-master/store', [IssuesMasterController::class, 'store'])->middleware('check.permission:create,issues')->name('issues-master.store');
 
-    Route::get('/machine', [MachineController::class, 'index'])->name('machine.index');
-    Route::post('/machine/store', [MachineController::class, 'store'])->name('machine.store');
+    Route::get('/machine', [MachineController::class, 'index'])->middleware('check.permission:read,machine')->name('machine.index');
+    Route::post('/machine/store', [MachineController::class, 'store'])->middleware('check.permission:create,machine')->name('machine.store');
 
-    Route::get('/machine-issues', [MachineIssuesController::class, 'index'])->name('machine-issues.index');
-    Route::post('/machine-issues/store', [MachineIssuesController::class, 'store'])->name('machine-issues.store');
+    Route::get('/machine-issues', [MachineIssuesController::class, 'index'])->middleware('check.permission:read,machine-issues')->name('machine-issues.index');
+    Route::post('/machine-issues/store', [MachineIssuesController::class, 'store'])->middleware('check.permission:create,machine-issues')->name('machine-issues.store');
 
     Route::get('/machines', [MachineController::class, 'getMachines']);
     Route::get('/machine-issues-list', [MachineIssuesController::class, 'getMachineIssues']);
 
-    Route::get('/facility-issue-category',          [FacilityIssueCategoryController::class, 'index'])->name('facility.issue.category.index');
-    Route::post('/facility-issue-category',          [FacilityIssueCategoryController::class, 'store'])->name('facility.issue.category.store');
-    Route::put('/facility-issue-category/{id}',      [FacilityIssueCategoryController::class, 'update'])->name('facility.issue.category.update');
-    Route::delete('/facility-issue-category/{id}',   [FacilityIssueCategoryController::class, 'destroy'])->name('facility.issue.category.destroy');
+    // Route::get('/facility-issue-category',          [FacilityIssueCategoryController::class, 'index'])->name('facility.issue.category.index');
+    // Route::post('/facility-issue-category',          [FacilityIssueCategoryController::class, 'store'])->name('facility.issue.category.store');
+    // Route::put('/facility-issue-category/{id}',      [FacilityIssueCategoryController::class, 'update'])->name('facility.issue.category.update');
+    // Route::delete('/facility-issue-category/{id}',   [FacilityIssueCategoryController::class, 'destroy'])->name('facility.issue.category.destroy');
+    Route::get('/facility-issue-category',          [FacilityIssueCategoryController::class, 'index'])->middleware('check.permission:read,facility')->name('facility-issue-category.index');
+    Route::post('/facility-issue-category',         [FacilityIssueCategoryController::class, 'store'])->middleware('check.permission:create,facility')->name('facility.issue.category.store');
+    Route::put('/facility-issue-category/{id}',     [FacilityIssueCategoryController::class, 'update'])->middleware('check.permission:edit,facility')->name('facility-issue-category.update');
+    Route::delete('/facility-issue-category/{id}',  [FacilityIssueCategoryController::class, 'destroy'])->middleware('check.permission:delete,facility')->name('facility-issue-category.destroy');
 
     Route::get('/test', function () {
         return view('ticket.test');
@@ -123,8 +170,13 @@ Route::middleware(['auth.custom', 'nocache'])->group(function () {
     Route::get('/employees', [MasterController::class, 'employees']);
     Route::get('/get-petty-cash-balance', [MasterController::class, 'getPettyCashBalance']);
 
-    Route::get('/expanse', [ExpenseController::class, 'index'])->name('expanse.index');
-    Route::post('/expanse/store', [ExpenseController::class, 'store'])->name('expanse.store');
+    Route::get('/expanse', [ExpenseController::class, 'index'])->middleware('check.permission:read,expense')->name('expanse.index');
+    Route::post('/expanse/store', [ExpenseController::class, 'store'])->middleware('check.permission:create,expense')->name('expanse.store');
+
+    // API endpoints for employees
+    Route::prefix('api')->group(function () {
+        Route::get('/employees/{id}', [\App\Http\Controllers\Api\EmployeeApiController::class, 'show']);
+    });
 });
 
 Route::get('/test-db', function () {

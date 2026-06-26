@@ -9,7 +9,7 @@
                 <div class="flex-grow-1">
                     <h4 class="fw-bold mb-0">Designation<span
                             class="badge badge-soft-primary border border-primary fs-13 fw-medium ms-2">Total Designation :
-                            54</span></h4>
+                            {{ $designations->total() }}</span></h4>
                 </div>
                 <div class="text-end d-flex">
                     <div class="dropdown me-1">
@@ -24,44 +24,9 @@
                         </ul>
                     </div>
                     <a href="javascript:void(0);" class="btn btn-primary ms-2 fs-13 btn-md" data-bs-toggle="modal"
-                        data-bs-target="#add_modal"><i class="ti ti-plus me-1"></i>Add New Designation</a>
+                        data-bs-target="#add_modal" onclick="resetAddForm()"><i class="ti ti-plus me-1"></i>Add New Designation</a>
                 </div>
             </div>
-
-            {{-- <div class="d-flex align-items-center justify-content-between flex-wrap row-gap-3 mb-3">
-               <div class="search-set mb-3">
-                        <div class="d-flex align-items-center flex-wrap gap-2">
-                            <div class="table-search d-flex align-items-center mb-0">
-                                <div class="search-input">
-                                    <a href="javascript:void(0);" class="btn-searchset"></a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                <div class="d-flex table-dropdown pb-1 right-content align-items-center flex-wrap row-gap-3">
-                    <div class="dropdown me-2">
-                        <a href="javascript:void(0);"
-                            class="btn btn-white bg-white fs-14 py-1 border d-inline-flex text-dark align-items-center"
-                            data-bs-toggle="dropdown">
-                            <i class="ti ti-filter text-gray-5 me-1"></i>Filters
-                        </a>
-                        <div class="dropdown-menu dropdown-menu-end p-3" style="min-width:280px;">
-                            <div class="mb-3">
-                                <label class="form-label">Designation</label>
-                                <select class="select">
-                                    <option>Select</option>
-                                    <option>Active</option>
-                                    <option>Inactive</option>
-                                </select>
-                            </div>
-                            <div class="mb-0 d-flex justify-content-end gap-2">
-                                <button type="button" class="btn btn-light btn-sm">Reset</button>
-                                <button type="button" class="btn btn-primary btn-sm">Apply</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div> --}}
 
             <div class="card border-0">
                 <div class="card-body p-0">
@@ -72,6 +37,7 @@
                                 <tr>
                                     <th>Designation Code</th>
                                     <th>Designation</th>
+                                    <th>Mapped Departments</th>
                                     <th>Status</th>
                                     <th>Action</th>
                                 </tr>
@@ -79,9 +45,21 @@
                             <tbody>
                                 @forelse($designations as $des)
                                     <tr>
-                                        <td>{{ $des->DesignationCode }}</td>
+                                        <td>
+                                            <span class="badge badge-soft-info">{{ $des->DesignationCode }}</span>
+                                        </td>
                                         <td>{{ $des->Designation }}</td>
-
+                                        <td>
+                                            <div class="d-flex flex-wrap gap-1">
+                                                @if($des->departmentMappings->count() > 0)
+                                                    @foreach($des->departmentMappings as $mapping)
+                                                        <span class="badge bg-primary">{{ $mapping->department->DepartmentName }}</span>
+                                                    @endforeach
+                                                @else
+                                                    <span class="text-muted">No departments mapped</span>
+                                                @endif
+                                            </div>
+                                        </td>
                                         <td>
                                             @if ($des->status == 0)
                                                 <span class="badge badge-soft-success border border-success">Active</span>
@@ -97,15 +75,14 @@
                                                 </a>
                                                 <ul class="dropdown-menu p-2">
                                                     <li>
-                                                        <a href="#" class="dropdown-item" data-bs-toggle="modal"
-                                                            data-bs-target="#edit_modal">
-                                                            Edit
+                                                        <a href="javascript:void(0);" class="dropdown-item" data-bs-toggle="modal"
+                                                            data-bs-target="#edit_modal" onclick="loadDesignation({{ $des->id }})">
+                                                            <i class="ti ti-pencil me-1"></i>Edit
                                                         </a>
                                                     </li>
                                                     <li>
-                                                        <a href="#" class="dropdown-item" data-bs-toggle="modal"
-                                                            data-bs-target="#delete_modal">
-                                                            Delete
+                                                        <a href="javascript:void(0);" class="dropdown-item text-danger" onclick="deleteDesignation({{ $des->id }})">
+                                                            <i class="ti ti-trash me-1"></i>Delete
                                                         </a>
                                                     </li>
                                                 </ul>
@@ -114,7 +91,7 @@
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="4" class="text-center">No data found</td>
+                                        <td colspan="5" class="text-center">No data found</td>
                                     </tr>
                                 @endforelse
                             </tbody>
@@ -124,7 +101,7 @@
 
                 </div>
             </div>
-            
+
             <div class="table-footer-bar d-flex justify-content-between align-items-center">
                 <div class="d-flex align-items-center gap-3">
 
@@ -143,12 +120,9 @@
                     </div>
 
                 </div>
-                {{-- <div class="pagination-box">
-                    {{ $designations->appends(['per_page' => $perPage])->links('pagination::bootstrap-5') }}
-                </div> --}}
                 <x-pagination :paginator="$designations" :append="['per_page' => $perPage]" />
-
             </div>
+
             <script>
                 document.getElementById('perPageDept').addEventListener('change', function() {
                     let perPage = this.value;
@@ -157,41 +131,50 @@
                     window.location.href = url.toString();
                 });
             </script>
+
+            {{-- ADD MODAL --}}
             <div id="add_modal" class="modal fade">
-                <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-dialog modal-dialog-centered modal-lg">
                     <div class="modal-content">
                         <div class="modal-header">
                             <h4 class="text-dark modal-title fw-bold">Add New Designation</h4>
                             <button type="button" class="btn-close btn-close-modal custom-btn-close"
                                 data-bs-dismiss="modal" aria-label="Close"><i class="ti ti-x"></i></button>
                         </div>
-                        <form action="designation.html">
+                        <form id="addForm">
+                            @csrf
                             <div class="modal-body">
-
                                 <div class="mb-3">
                                     <label class="form-label">Designation Name<span
                                             class="text-danger ms-1">*</span></label>
-                                    <input type="text" class="form-control" placeholder="Enter designation name">
+                                    <input type="text" name="designation_name" class="form-control" placeholder="Enter designation name" required>
                                 </div>
+
                                 <div class="mb-3">
-                                    <label class="form-label">Department<span class="text-danger ms-1">*</span></label>
-                                    <select class="select">
-                                        <option>Nursing</option>
-                                        <option>Front Office</option>
-                                        <option>Diagnostics</option>
-                                        <option>Billing</option>
-                                    </select>
+                                    <label class="form-label">Map to Departments<span class="text-danger ms-1">*</span></label>
+                                    <div class="border rounded p-3 bg-light" style="max-height: 250px; overflow-y: auto;">
+                                        <div class="row g-2">
+                                            @foreach($departments as $dept)
+                                                <div class="col-md-6">
+                                                    <div class="form-check">
+                                                        <input class="form-check-input" type="checkbox" name="department_ids[]"
+                                                            value="{{ $dept->Departmentid }}" id="add_dept_{{ $dept->Departmentid }}">
+                                                        <label class="form-check-label" for="add_dept_{{ $dept->Departmentid }}">
+                                                            <i class="ti ti-building me-1"></i>{{ $dept->DepartmentName }}
+                                                        </label>
+                                                    </div>
+                                                </div>
+                                            @endforeach
+                                        </div>
+                                    </div>
+                                    <small class="text-muted d-block mt-2">Select which departments this designation belongs to</small>
                                 </div>
-                                <div class="mb-3">
-                                    <label class="form-label">Description<span class="text-danger ms-1">*</span></label>
-                                    <textarea class="form-control" rows="3" placeholder="Enter description"></textarea>
-                                </div>
+
                                 <div class="mb-3">
                                     <label class="form-label">Status<span class="text-danger ms-1">*</span></label>
-                                    <select class="select">
-                                        <option>Active</option>
-                                        <option>Pending</option>
-                                        <option>Inactive</option>
+                                    <select name="status" class="form-select" required>
+                                        <option value="0">Active</option>
+                                        <option value="1">Inactive</option>
                                     </select>
                                 </div>
                             </div>
@@ -205,41 +188,56 @@
                 </div>
             </div>
 
+            {{-- EDIT MODAL --}}
             <div id="edit_modal" class="modal fade">
-                <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-dialog modal-dialog-centered modal-lg">
                     <div class="modal-content">
                         <div class="modal-header">
                             <h4 class="text-dark modal-title fw-bold">Edit Designation</h4>
                             <button type="button" class="btn-close btn-close-modal custom-btn-close"
                                 data-bs-dismiss="modal" aria-label="Close"><i class="ti ti-x"></i></button>
                         </div>
-                        <form action="designation.html">
+                        <form id="editForm">
+                            @csrf
+                            @method('PUT')
+                            <input type="hidden" id="edit_id" name="id">
                             <div class="modal-body">
+                                <div class="mb-3">
+                                    <label class="form-label">Designation Code (Read-only)</label>
+                                    <input type="text" class="form-control" id="edit_code" readonly>
+                                </div>
 
                                 <div class="mb-3">
                                     <label class="form-label">Designation Name<span
                                             class="text-danger ms-1">*</span></label>
-                                    <input type="text" class="form-control" placeholder="Enter designation name">
+                                    <input type="text" name="designation_name" id="edit_name" class="form-control" placeholder="Enter designation name" required>
                                 </div>
+
                                 <div class="mb-3">
-                                    <label class="form-label">Department<span class="text-danger ms-1">*</span></label>
-                                    <select class="select">
-                                        <option>Nursing</option>
-                                        <option>Front Office</option>
-                                        <option>Diagnostics</option>
-                                        <option>Billing</option>
-                                    </select>
+                                    <label class="form-label">Map to Departments<span class="text-danger ms-1">*</span></label>
+                                    <div class="border rounded p-3 bg-light" style="max-height: 250px; overflow-y: auto;">
+                                        <div class="row g-2" id="edit_departments">
+                                            @foreach($departments as $dept)
+                                                <div class="col-md-6">
+                                                    <div class="form-check">
+                                                        <input class="form-check-input edit-dept-checkbox" type="checkbox" name="department_ids[]"
+                                                            value="{{ $dept->Departmentid }}" id="edit_dept_{{ $dept->Departmentid }}">
+                                                        <label class="form-check-label" for="edit_dept_{{ $dept->Departmentid }}">
+                                                            <i class="ti ti-building me-1"></i>{{ $dept->DepartmentName }}
+                                                        </label>
+                                                    </div>
+                                                </div>
+                                            @endforeach
+                                        </div>
+                                    </div>
+                                    <small class="text-muted d-block mt-2">Select which departments this designation belongs to</small>
                                 </div>
-                                <div class="mb-3">
-                                    <label class="form-label">Description<span class="text-danger ms-1">*</span></label>
-                                    <textarea class="form-control" rows="3" placeholder="Enter description"></textarea>
-                                </div>
+
                                 <div class="mb-3">
                                     <label class="form-label">Status<span class="text-danger ms-1">*</span></label>
-                                    <select class="select">
-                                        <option>Active</option>
-                                        <option>Pending</option>
-                                        <option>Inactive</option>
+                                    <select name="status" id="edit_status" class="form-select" required>
+                                        <option value="0">Active</option>
+                                        <option value="1">Inactive</option>
                                     </select>
                                 </div>
                             </div>
@@ -253,6 +251,7 @@
                 </div>
             </div>
 
+            {{-- DELETE MODAL --}}
             <div class="modal fade" id="delete_modal">
                 <div class="modal-dialog modal-dialog-centered modal-sm">
                     <div class="modal-content">
@@ -266,7 +265,7 @@
                             <p class="mb-3">Are you sure you want to delete this designation record?</p>
                             <div class="d-flex justify-content-center gap-2">
                                 <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
-                                <button type="button" class="btn btn-danger">Delete</button>
+                                <button type="button" class="btn btn-danger" id="confirmDelete">Delete</button>
                             </div>
                         </div>
                     </div>
@@ -278,6 +277,135 @@
             <p class="text-dark mb-0">Copyright &copy; 2026 - Vecura.</p>
         </div>
     </div>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
     <script src="{{ asset('build/plugins/sweetalert2/sweetalert2.min.js') }}"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <script>
+        let deleteId = null;
+
+        // Add Designation
+        document.getElementById('addForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const checkedDepts = document.querySelectorAll('input[name="department_ids[]"]:checked').length;
+            if (checkedDepts === 0) {
+                Swal.fire('Required', 'Please select at least one department', 'warning');
+                return;
+            }
+
+            const formData = new FormData(this);
+
+            fetch('{{ route("designation.store") }}', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                }
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.status) {
+                    Swal.fire('Success', data.message, 'success').then(() => {
+                        location.reload();
+                    });
+                } else {
+                    Swal.fire('Error', data.message, 'error');
+                }
+            })
+            .catch(e => Swal.fire('Error', e.message, 'error'));
+        });
+
+        // Load Designation for Edit
+        function loadDesignation(id) {
+            fetch(`/designation/${id}`, {
+                method: 'GET'
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.status) {
+                    document.getElementById('edit_id').value = data.designation.id;
+                    document.getElementById('edit_code').value = data.designation.DesignationCode;
+                    document.getElementById('edit_name').value = data.designation.Designation;
+                    document.getElementById('edit_status').value = data.designation.status;
+
+                    // Uncheck all
+                    document.querySelectorAll('.edit-dept-checkbox').forEach(cb => cb.checked = false);
+
+                    // Check assigned
+                    data.mapped_departments.forEach(deptId => {
+                        const checkbox = document.getElementById(`edit_dept_${deptId}`);
+                        if (checkbox) checkbox.checked = true;
+                    });
+                }
+            })
+            .catch(e => console.error('Error:', e));
+        }
+
+        // Edit Designation
+        document.getElementById('editForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const checkedDepts = document.querySelectorAll('.edit-dept-checkbox:checked').length;
+            if (checkedDepts === 0) {
+                Swal.fire('Required', 'Please select at least one department', 'warning');
+                return;
+            }
+
+            const id = document.getElementById('edit_id').value;
+            const formData = new FormData(this);
+
+            fetch(`/designation/${id}`, {
+                method: 'PUT',
+                body: formData,
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                }
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.status) {
+                    Swal.fire('Success', data.message, 'success').then(() => {
+                        location.reload();
+                    });
+                } else {
+                    Swal.fire('Error', data.message, 'error');
+                }
+            })
+            .catch(e => Swal.fire('Error', e.message, 'error'));
+        });
+
+        // Delete Designation
+        function deleteDesignation(id) {
+            deleteId = id;
+            const deleteModal = new bootstrap.Modal(document.getElementById('delete_modal'));
+            deleteModal.show();
+        }
+
+        document.getElementById('confirmDelete').addEventListener('click', function() {
+            if (deleteId) {
+                fetch(`/designation/${deleteId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    }
+                })
+                .then(r => r.json())
+                .then(data => {
+                    if (data.status) {
+                        Swal.fire('Deleted', data.message, 'success').then(() => {
+                            location.reload();
+                        });
+                    }
+                });
+            }
+        });
+
+        function resetAddForm() {
+            document.getElementById('addForm').reset();
+            document.querySelectorAll('input[name="department_ids[]"]').forEach(cb => cb.checked = false);
+        }
+    </script>
 @endsection

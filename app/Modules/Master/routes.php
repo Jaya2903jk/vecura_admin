@@ -19,9 +19,11 @@ Route::middleware('check.permission:delete,department')->delete('/department/{id
 // Designation
 Route::middleware('check.permission:read,designation')->get('/designation', [DesignationController::class, 'index'])->name('designation.index');
 Route::middleware('check.permission:create,designation')->post('/designation/store', [DesignationController::class, 'store'])->name('designation.store');
+Route::middleware('check.permission:read,designation')->get('/designation/{id}', [DesignationController::class, 'show'])->name('designation.show');
 Route::middleware('check.permission:edit,designation')->put('/designation/{id}', [DesignationController::class, 'update'])->name('designation.update');
 Route::middleware('check.permission:delete,designation')->delete('/designation/{id}', [DesignationController::class, 'destroy'])->name('designation.destroy');
 Route::middleware('check.permission:read,designation')->get('/designation/export/excel', [DesignationController::class, 'exportExcel'])->name('designation.export.excel');
+
 
 // Branch
 Route::middleware('check.permission:read,branch')->get('/new-branch', [BranchController::class, 'index'])->name('new-branch.index');

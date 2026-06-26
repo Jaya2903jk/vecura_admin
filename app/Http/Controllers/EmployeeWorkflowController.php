@@ -51,21 +51,6 @@ class EmployeeWorkflowController extends Controller
         }
     }
 
-    public function verifyEducationalDocument(Request $request, $employeeId, $docId)
-    {
-        $request->validate(['verified_by' => 'required|string']);
-        try {
-            $doc = \App\Models\EmployeeEducationalDocument::findOrFail($docId);
-            $doc->update([
-                'verification_status' => 'Verified',
-                'verified_by' => $request->verified_by,
-                'verification_date' => now(),
-            ]);
-            return response()->json(['status' => true, 'message' => 'Educational document verified']);
-        } catch (\Exception $e) {
-            return response()->json(['status' => false, 'message' => $e->getMessage()], 500);
-        }
-    }
 
     // ============ OFFICIAL DOCUMENT WORKFLOW ============
 
@@ -113,17 +98,120 @@ class EmployeeWorkflowController extends Controller
         }
     }
 
-    public function verifyDocument(Request $request, $employeeId, $documentId)
+    // ============ BOND WORKFLOW ============
+
+    public function createBond(Request $request, $employeeId)
     {
-        $request->validate(['verified_by' => 'required|string']);
+        $validated = $request->validate([
+            'bond_duration_years' => 'required|integer|min:1',
+            'bond_start_date' => 'required|date',
+            'bond_amount' => 'nullable|numeric',
+            'bond_conditions' => 'nullable|string',
+            'bond_document_file' => 'nullable|file|mimes:pdf|max:5120',
+        ]);
+
+        if ($request->hasFile('bond_document_file')) {
+            $file = $request->file('bond_document_file');
+            $filename = 'emp_' . $employeeId . '_bond_' . time() . '.pdf';
+            $validated['bond_document_file'] = $file->storeAs('bonds', $filename, 'public');
+        }
+
         try {
-            $doc = \App\Models\EmployeeDocument::findOrFail($documentId);
-            $doc->update([
-                'verification_status' => 'Verified',
-                'verified_by' => $request->verified_by,
-                'verification_date' => now(),
+            $bondYears = (int)$validated['bond_duration_years'];
+            $bondStartDate = \Carbon\Carbon::parse($validated['bond_start_date']);
+            $bondEndDate = $bondStartDate->addYears($bondYears);
+
+            $bond = \App\Models\EmployeeBond::create([
+                'user_id' => $employeeId,
+                'bond_duration_years' => $bondYears,
+                'bond_start_date' => $validated['bond_start_date'],
+                'bond_end_date' => $bondEndDate,
+                'bond_amount' => $validated['bond_amount'],
+                'bond_conditions' => $validated['bond_conditions'],
+                'bond_document_file' => $validated['bond_document_file'] ?? null,
+                'bond_status' => 'Active',
             ]);
-            return response()->json(['status' => true, 'message' => 'Official document verified']);
+            return response()->json(['status' => true, 'message' => 'Bond created successfully', 'data' => $bond]);
+        } catch (\Exception $e) {
+            return response()->json(['status' => false, 'message' => $e->getMessage()], 500);
+        }
+    }
+
+    public function getBonds($employeeId)
+    {
+        try {
+            $bonds = \App\Models\EmployeeBond::where('user_id', $employeeId)->get();
+            return response()->json(['status' => true, 'data' => $bonds]);
+        } catch (\Exception $e) {
+            return response()->json(['status' => false, 'message' => $e->getMessage()], 500);
+        }
+    }
+
+    public function completeBond(Request $request, $employeeId, $bondId)
+    {
+        try {
+            $bond = \App\Models\EmployeeBond::findOrFail($bondId);
+            $bond->update(['bond_status' => 'Completed']);
+            return response()->json(['status' => true, 'message' => 'Bond completed']);
+        } catch (\Exception $e) {
+            return response()->json(['status' => false, 'message' => $e->getMessage()], 500);
+        }
+    }
+
+    // ============ RELIEVING WORKFLOW ============
+
+    public function initiateRelieving(Request $request, $employeeId)
+    {
+        $validated = $request->validate([
+            'resignation_date' => 'required|date',
+            'reason_for_resignation' => 'nullable|string',
+        ]);
+
+        try {
+            $resignationDate = \Carbon\Carbon::parse($validated['resignation_date']);
+            $noticeCompletionDate = $resignationDate->addMonths(2);
+
+            $relieving = \App\Models\EmployeeRelieving::updateOrCreate(
+                ['user_id' => $employeeId],
+                [
+                    'resignation_date' => $validated['resignation_date'],
+                    'notice_completion_date' => $noticeCompletionDate,
+                    'reason_for_resignation' => $validated['reason_for_resignation'],
+                    'relieving_status' => 'Pending',
+                ]
+            );
+            return response()->json(['status' => true, 'message' => 'Relieving initiated (2-month notice period)', 'data' => $relieving]);
+        } catch (\Exception $e) {
+            return response()->json(['status' => false, 'message' => $e->getMessage()], 500);
+        }
+    }
+
+    public function completeRelieving(Request $request, $employeeId)
+    {
+        $validated = $request->validate([
+            'relieving_date' => 'nullable|date',
+            'all_dues_cleared' => 'required|boolean',
+            'equipment_returned' => 'required|boolean',
+            'final_remarks' => 'nullable|string',
+        ]);
+
+        try {
+            $relieving = \App\Models\EmployeeRelieving::where('user_id', $employeeId)->first();
+            if (!$relieving) {
+                return response()->json(['status' => false, 'message' => 'No relieving record found'], 404);
+            }
+
+            $relieving->update([
+                'relieving_date' => $validated['relieving_date'],
+                'all_dues_cleared' => $validated['all_dues_cleared'],
+                'equipment_returned' => $validated['equipment_returned'],
+                'final_remarks' => $validated['final_remarks'],
+                'relieving_status' => 'Completed',
+            ]);
+
+            \App\Models\UserMaster::where('UserID', $employeeId)->update(['employee_status' => 'Terminated']);
+
+            return response()->json(['status' => true, 'message' => 'Relieving completed']);
         } catch (\Exception $e) {
             return response()->json(['status' => false, 'message' => $e->getMessage()], 500);
         }
@@ -135,6 +223,8 @@ class EmployeeWorkflowController extends Controller
             $employee = UserMaster::findOrFail($employeeId);
             $educationalDocs = \App\Models\EmployeeEducationalDocument::where('user_id', $employeeId)->get();
             $officialDocs = \App\Models\EmployeeDocument::where('user_id', $employeeId)->get();
+            $bonds = \App\Models\EmployeeBond::where('user_id', $employeeId)->get();
+            $relieving = \App\Models\EmployeeRelieving::where('user_id', $employeeId)->first();
 
             return response()->json([
                 'status' => true,
@@ -143,6 +233,8 @@ class EmployeeWorkflowController extends Controller
                     'employee_name' => $employee->FullName,
                     'educational_documents' => $educationalDocs,
                     'official_documents' => $officialDocs,
+                    'bonds' => $bonds,
+                    'relieving' => $relieving,
                 ]
             ]);
         } catch (\Exception $e) {

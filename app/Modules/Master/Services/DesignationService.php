@@ -17,7 +17,13 @@ class DesignationService
     public function create(array $data): JsonResponse
     {
         try {
-            $this->repo->create($data);
+            $designation = $this->repo->create($data);
+
+            // Map departments if provided
+            if (!empty($data['department_ids'])) {
+                $this->mapDepartments($designation, $data['department_ids']);
+            }
+
             return response()->json(['status' => true, 'message' => 'Designation Created Successfully']);
         } catch (\Exception $e) {
             return response()->json(['status' => false, 'message' => 'Something went wrong!'], 500);
@@ -29,9 +35,31 @@ class DesignationService
         try {
             $model = \App\Models\Designation::findOrFail($id);
             $this->repo->update($model, $data);
+
+            // Update department mappings if provided
+            if (isset($data['department_ids'])) {
+                $this->mapDepartments($model, $data['department_ids']);
+            }
+
             return response()->json(['status' => true, 'message' => 'Designation Updated Successfully']);
         } catch (\Exception $e) {
             return response()->json(['status' => false, 'message' => 'Something went wrong!'], 500);
+        }
+    }
+
+    private function mapDepartments(\App\Models\Designation $designation, array $departmentIds): void
+    {
+        // Delete existing mappings
+        $designation->departmentMappings()->delete();
+
+        // Create new mappings
+        foreach ($departmentIds as $deptId) {
+            \App\Models\DesignationDepartment::create([
+                'designation_id' => $designation->id,
+                'designation_code' => $designation->DesignationCode,
+                'department_id' => $deptId,
+                'is_active' => true,
+            ]);
         }
     }
 

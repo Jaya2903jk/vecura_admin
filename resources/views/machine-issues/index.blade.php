@@ -9,8 +9,10 @@
                             class="badge badge-soft-primary border border-primary ms-2">Total Machine Issues : 6</span></h4>
                 </div>
                 <div class="text-end d-flex">
-                    <a href="javascript:void(0);" class="btn btn-primary ms-2 fs-13 btn-md" data-bs-toggle="modal"
-                        data-bs-target="#add_modal"><i class="ti ti-plus me-1"></i>Add New Machine Issues</a>
+                    @if(session('is_admin') || \App\Helpers\RbacHelper::canPerformAction('create', 'machine-issues'))
+                        <a href="javascript:void(0);" class="btn btn-primary ms-2 fs-13 btn-md" data-bs-toggle="modal"
+                            data-bs-target="#add_modal"><i class="ti ti-plus me-1"></i>Add New Machine Issues</a>
+                    @endif
                 </div>
             </div>
 

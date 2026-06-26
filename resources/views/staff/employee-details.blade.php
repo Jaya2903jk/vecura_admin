@@ -40,6 +40,16 @@
                     <i class="ti ti-file me-2"></i>Official Documents
                 </a>
             </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#bond" data-bs-toggle="tab">
+                    <i class="ti ti-lock me-2"></i>Bond
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#relieving" data-bs-toggle="tab">
+                    <i class="ti ti-logout me-2"></i>Relieving
+                </a>
+            </li>
         </ul>
 
         <!-- Tab Content -->
@@ -56,6 +66,10 @@
                                 <div class="mb-3">
                                     <label class="text-muted small">Employee Code</label>
                                     <p class="fw-bold">{{ $employee->employee_code }}</p>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="text-muted small">Full Name</label>
+                                    <p class="fw-bold">{{ $employee->FullName }}</p>
                                 </div>
                                 <div class="mb-3">
                                     <label class="text-muted small">Email</label>
@@ -93,6 +107,10 @@
                                 <div class="mb-3">
                                     <label class="text-muted small">Office Type</label>
                                     <p class="fw-bold">{{ $employee->office_type ?? '-' }}</p>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="text-muted small">Status</label>
+                                    <p><span class="badge bg-{{ $employee->employee_status === 'Active' ? 'success' : 'danger' }}">{{ $employee->employee_status }}</span></p>
                                 </div>
                             </div>
                         </div>
@@ -137,6 +155,46 @@
                             <div class="text-center py-4">
                                 <div class="spinner-border text-primary" role="status"></div>
                             </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- BOND TAB -->
+            <div class="tab-pane fade" id="bond">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h6 class="fw-bold mb-0">Bond Information</h6>
+                        @if(session('is_admin') || \App\Helpers\RbacHelper::canPerformAction('edit', 'staff'))
+                            <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#addBondModal">
+                                <i class="ti ti-plus me-1"></i>Create Bond
+                            </button>
+                        @endif
+                    </div>
+                    <div class="card-body">
+                        <div id="bondContent">
+                            <div class="text-center py-4">
+                                <div class="spinner-border text-primary" role="status"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RELIEVING TAB -->
+            <div class="tab-pane fade" id="relieving">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h6 class="fw-bold mb-0">Relieving / Exit (2-Month Notice Period)</h6>
+                        @if(session('is_admin') || \App\Helpers\RbacHelper::canPerformAction('edit', 'staff'))
+                            <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#initiateRelievingModal">
+                                <i class="ti ti-logout me-1"></i>Initiate Relieving
+                            </button>
+                        @endif
+                    </div>
+                    <div class="card-body">
+                        <div id="relievingContent">
+                            <p class="text-muted text-center py-4">No relieving record yet</p>
                         </div>
                     </div>
                 </div>
@@ -254,6 +312,78 @@
     </div>
 </div>
 
+<!-- Create Bond Modal -->
+<div class="modal fade" id="addBondModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-info text-white">
+                <h5 class="modal-title">Create Bond</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="addBondForm">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Bond Duration (Years) <span class="text-danger">*</span></label>
+                        <input type="number" name="bond_duration_years" class="form-control" min="1" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Bond Start Date <span class="text-danger">*</span></label>
+                        <input type="date" name="bond_start_date" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Bond Amount</label>
+                        <input type="number" name="bond_amount" class="form-control" step="0.01" placeholder="Amount in currency">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Bond Conditions</label>
+                        <textarea name="bond_conditions" class="form-control" rows="3" placeholder="Terms and conditions"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Bond Document (PDF)</label>
+                        <input type="file" name="bond_document_file" class="form-control" accept=".pdf">
+                        <small class="text-muted">Optional: PDF only (Max 5MB)</small>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-info">Create Bond</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Initiate Relieving Modal -->
+<div class="modal fade" id="initiateRelievingModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">Initiate Relieving (2-Month Notice)</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="initiateRelievingForm">
+                <div class="modal-body">
+                    <div class="alert alert-info">
+                        <strong>Notice Period:</strong> 2 months from resignation date
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Resignation Date <span class="text-danger">*</span></label>
+                        <input type="date" name="resignation_date" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Reason for Resignation</label>
+                        <textarea name="reason_for_resignation" class="form-control" rows="3"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-danger">Initiate Relieving</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <!-- Edit Employee Modal -->
 <div class="modal fade" id="editEmployeeModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
@@ -298,6 +428,8 @@ const employeeId = {{ $employee->UserID }};
 function loadWorkflowData() {
     loadEducationDocuments();
     loadOfficialDocuments();
+    loadBonds();
+    loadRelieving();
 }
 
 function loadEducationDocuments() {
@@ -305,15 +437,15 @@ function loadEducationDocuments() {
         .then(r => r.json())
         .then(data => {
             if (data.data && data.data.length > 0) {
-                let html = '<table class="table table-sm"><thead class="table-light"><tr><th>Document Type</th><th>Number</th><th>Date</th><th>Status</th></tr></thead><tbody>';
+                let html = '<table class="table table-sm"><thead class="table-light"><tr><th>Document Type</th><th>Number</th><th>Date</th><th>File</th></tr></thead><tbody>';
                 data.data.forEach(doc => {
-                    const statusBg = doc.verification_status === 'Verified' ? 'success' : (doc.verification_status === 'Pending' ? 'warning' : 'danger');
+                    const fileLink = doc.file_path ? `<a href="/storage/${doc.file_path}" target="_blank" class="btn btn-sm btn-outline-primary"><i class="ti ti-download"></i>View</a>` : '-';
                     html += `
                         <tr>
                             <td><strong>${doc.document_type}</strong></td>
                             <td>${doc.document_number || '-'}</td>
                             <td>${doc.issue_date || '-'}</td>
-                            <td><span class="badge bg-${statusBg}">${doc.verification_status}</span></td>
+                            <td>${fileLink}</td>
                         </tr>
                     `;
                 });
@@ -330,15 +462,16 @@ function loadOfficialDocuments() {
         .then(r => r.json())
         .then(data => {
             if (data.data && data.data.length > 0) {
-                let html = '<table class="table table-sm"><thead class="table-light"><tr><th>Document Type</th><th>Number</th><th>Date</th><th>Status</th></tr></thead><tbody>';
+                let html = '<table class="table table-sm"><thead class="table-light"><tr><th>Document Type</th><th>Number</th><th>Date</th><th>Expiry</th><th>File</th></tr></thead><tbody>';
                 data.data.forEach(doc => {
-                    const statusBg = doc.verification_status === 'Verified' ? 'success' : (doc.verification_status === 'Pending' ? 'warning' : 'danger');
+                    const fileLink = doc.file_path ? `<a href="/storage/${doc.file_path}" target="_blank" class="btn btn-sm btn-outline-primary"><i class="ti ti-download"></i>View</a>` : '-';
                     html += `
                         <tr>
                             <td><strong>${doc.document_type}</strong></td>
                             <td>${doc.document_number || '-'}</td>
                             <td>${doc.issue_date || '-'}</td>
-                            <td><span class="badge bg-${statusBg}">${doc.verification_status}</span></td>
+                            <td>${doc.expiry_date || '-'}</td>
+                            <td>${fileLink}</td>
                         </tr>
                     `;
                 });
@@ -348,6 +481,111 @@ function loadOfficialDocuments() {
                 document.getElementById('officialDocumentContent').innerHTML = '<p class="text-muted text-center py-4">No official documents uploaded</p>';
             }
         });
+}
+
+function loadBonds() {
+    fetch(`/employee/${employeeId}/bond/list`)
+        .then(r => r.json())
+        .then(data => {
+            if (data.data && data.data.length > 0) {
+                let html = '<table class="table table-sm"><thead class="table-light"><tr><th>Duration</th><th>Start Date</th><th>End Date</th><th>Amount</th><th>Status</th><th>Action</th></tr></thead><tbody>';
+                data.data.forEach(bond => {
+                    const statusBg = bond.bond_status === 'Active' ? 'success' : (bond.bond_status === 'Completed' ? 'info' : 'danger');
+                    const actionBtn = bond.bond_status === 'Active' ? `<button class="btn btn-sm btn-success" onclick="completeBond(${bond.id})">Complete</button>` : '-';
+                    html += `
+                        <tr>
+                            <td>${bond.bond_duration_years} years</td>
+                            <td>${bond.bond_start_date}</td>
+                            <td>${bond.bond_end_date || '-'}</td>
+                            <td>${bond.bond_amount ? '₹' + bond.bond_amount : '-'}</td>
+                            <td><span class="badge bg-${statusBg}">${bond.bond_status}</span></td>
+                            <td>${actionBtn}</td>
+                        </tr>
+                    `;
+                });
+                html += '</tbody></table>';
+                document.getElementById('bondContent').innerHTML = html;
+            } else {
+                document.getElementById('bondContent').innerHTML = '<p class="text-muted text-center py-4">No bonds created</p>';
+            }
+        });
+}
+
+function loadRelieving() {
+    fetch(`/employee/${employeeId}/workflow/status`)
+        .then(r => r.json())
+        .then(data => {
+            const relievingData = data.data?.relieving;
+            if (relievingData) {
+                const statusBg = relievingData.relieving_status === 'Pending' ? 'warning' : (relievingData.relieving_status === 'Completed' ? 'success' : 'info');
+                let html = `
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="card border-left border-${statusBg === 'warning' ? 'warning' : 'info'}">
+                                <div class="card-body">
+                                    <h6 class="fw-bold">Relieving Details</h6>
+                                    <div class="mb-2">
+                                        <label class="text-muted small">Resignation Date</label>
+                                        <p class="fw-bold">${relievingData.resignation_date || '-'}</p>
+                                    </div>
+                                    <div class="mb-2">
+                                        <label class="text-muted small">Notice Completion Date</label>
+                                        <p class="fw-bold">${relievingData.notice_completion_date || '-'}</p>
+                                    </div>
+                                    <div class="mb-2">
+                                        <label class="text-muted small">Relieving Date</label>
+                                        <p class="fw-bold">${relievingData.relieving_date || '-'}</p>
+                                    </div>
+                                    <div class="mb-2">
+                                        <label class="text-muted small">Status</label>
+                                        <p><span class="badge bg-${statusBg}">${relievingData.relieving_status}</span></p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h6 class="fw-bold">Exit Checklist</h6>
+                                    <div class="mb-2">
+                                        <label class="text-muted small">All Dues Cleared</label>
+                                        <p class="fw-bold"><span class="badge bg-${relievingData.all_dues_cleared ? 'success' : 'danger'}">${relievingData.all_dues_cleared ? 'Yes' : 'No'}</span></p>
+                                    </div>
+                                    <div class="mb-2">
+                                        <label class="text-muted small">Equipment Returned</label>
+                                        <p class="fw-bold"><span class="badge bg-${relievingData.equipment_returned ? 'success' : 'danger'}">${relievingData.equipment_returned ? 'Yes' : 'No'}</span></p>
+                                    </div>
+                                    <div class="mb-2">
+                                        <label class="text-muted small">Final Remarks</label>
+                                        <p class="fw-bold">${relievingData.final_remarks || '-'}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                document.getElementById('relievingContent').innerHTML = html;
+            } else {
+                document.getElementById('relievingContent').innerHTML = '<p class="text-muted text-center py-4">No relieving record yet</p>';
+            }
+        });
+}
+
+function completeBond(bondId) {
+    if (!confirm('Complete this bond?')) return;
+    fetch(`/employee/${employeeId}/bond/${bondId}/complete`, {
+        method: 'POST',
+        headers: {'X-CSRF-TOKEN': '{{ csrf_token() }}'}
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.status) {
+            Swal.fire('Success', 'Bond completed', 'success');
+            loadBonds();
+        } else {
+            Swal.fire('Error', data.message, 'error');
+        }
+    });
 }
 
 document.getElementById('addEducationDocumentForm')?.addEventListener('submit', function(e) {
@@ -364,7 +602,7 @@ document.getElementById('addEducationDocumentForm')?.addEventListener('submit', 
             Swal.fire('Success', 'Document uploaded', 'success');
             this.reset();
             loadEducationDocuments();
-            document.querySelector('[data-bs-dismiss="modal"]').click();
+            bootstrap.Modal.getInstance(document.getElementById('addEducationDocumentModal')).hide();
         } else {
             Swal.fire('Error', data.message, 'error');
         }
@@ -385,7 +623,49 @@ document.getElementById('addOfficialDocumentForm')?.addEventListener('submit', f
             Swal.fire('Success', 'Document uploaded', 'success');
             this.reset();
             loadOfficialDocuments();
-            document.querySelector('[data-bs-dismiss="modal"]').click();
+            bootstrap.Modal.getInstance(document.getElementById('addOfficialDocumentModal')).hide();
+        } else {
+            Swal.fire('Error', data.message, 'error');
+        }
+    });
+});
+
+document.getElementById('addBondForm')?.addEventListener('submit', function(e) {
+    e.preventDefault();
+    const formData = new FormData(this);
+    fetch(`/employee/${employeeId}/bond/create`, {
+        method: 'POST',
+        body: formData,
+        headers: {'X-CSRF-TOKEN': '{{ csrf_token() }}'}
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.status) {
+            Swal.fire('Success', 'Bond created', 'success');
+            this.reset();
+            loadBonds();
+            bootstrap.Modal.getInstance(document.getElementById('addBondModal')).hide();
+        } else {
+            Swal.fire('Error', data.message, 'error');
+        }
+    });
+});
+
+document.getElementById('initiateRelievingForm')?.addEventListener('submit', function(e) {
+    e.preventDefault();
+    const formData = new FormData(this);
+    fetch(`/employee/${employeeId}/relieving/initiate`, {
+        method: 'POST',
+        body: formData,
+        headers: {'X-CSRF-TOKEN': '{{ csrf_token() }}'}
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.status) {
+            Swal.fire('Success', 'Relieving initiated (2-month notice)', 'success');
+            this.reset();
+            loadRelieving();
+            bootstrap.Modal.getInstance(document.getElementById('initiateRelievingModal')).hide();
         } else {
             Swal.fire('Error', data.message, 'error');
         }

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\UserMaster;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
 {
@@ -36,7 +37,7 @@ class AuthController extends Controller
             ], 404);
         }
 
-        if ($request->password !== $user->Password) {
+        if (!Hash::check($request->password, $user->Password)) {
             return response()->json([
                 'status' => false,
                 'message' => 'Invalid credentials',

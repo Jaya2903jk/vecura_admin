@@ -12,7 +12,9 @@ class DesignationRequest extends FormRequest
     {
         return [
             'designation_name' => 'required|string|max:255',
-            'status'           => 'required',
+            'status'           => 'required|in:0,1',
+            'department_ids'   => 'required|array|min:1',
+            'department_ids.*' => 'exists:issueDepartmentMaster,Departmentid',
         ];
     }
 }

@@ -25,6 +25,7 @@ class AppServiceProvider extends ServiceProvider
         // Register custom middleware alias
         $router = $this->app->make('router');
         $router->aliasMiddleware('check.permission', \App\Http\Middleware\CheckPermission::class);
+        $router->aliasMiddleware('admin.only', \App\Http\Middleware\AdminOnly::class);
 
         // Share master module names with all views
         \Illuminate\Support\Facades\View::share('masterModuleNames', [
