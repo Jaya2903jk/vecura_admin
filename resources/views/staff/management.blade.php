@@ -19,7 +19,6 @@
                 </div>
             </div>
 
-            {{-- Advanced Filters --}}
             <div class="card mb-3">
                 <div class="card-body">
                     <form method="GET" action="{{ route('staff.index') }}" id="filterForm">
@@ -73,7 +72,6 @@
                 </div>
             </div>
 
-            {{-- Employees Table --}}
             <div class="card border-0">
                 <div class="card-body p-0">
                     <div class="table-responsive">
@@ -87,7 +85,6 @@
                                     <th style="width: 12%">Manager</th>
                                     <th style="width: 12%">Branch</th>
                                     <th style="width: 8%">Status</th>
-                                    <th style="width: 8%">Roles</th>
                                     <th style="width: 18%">Actions</th>
                                 </tr>
                             </thead>
@@ -100,13 +97,7 @@
                                             <small class="text-muted">{{ $emp->UserCode }}</small>
                                         </td>
                                         <td>{{ $emp->EmailId ?? '-' }}</td>
-                                        <td>
-                                            @if($emp->departments && $emp->departments->count() > 0)
-                                                {{ $emp->departments->pluck('DepartmentName')->implode(', ') }}
-                                            @else
-                                                <span class="text-muted">-</span>
-                                            @endif
-                                        </td>
+                                        <td>{{ $emp->department?->DepartmentName ?? '-' }}</td>
                                         <td>{{ $emp->designation?->Designation ?? '-' }}</td>
                                         <td>
                                             @if ($emp->manager_id)
@@ -117,7 +108,7 @@
                                                 <span class="text-muted">-</span>
                                             @endif
                                         </td>
-                                        <td>{{ $emp->branch?->Branchname ?? '-' }}</td>
+                                        <td>{{ $emp->branch?->Branchname ?? ($emp->office_type ?? '-') }}</td>
                                         <td>
                                             @if ($emp->UserStatus == 'Active')
                                                 <span class="badge badge-soft-success border border-success">Active</span>
@@ -125,9 +116,7 @@
                                                 <span class="badge badge-soft-danger border border-danger">InActive</span>
                                             @endif
                                         </td>
-                                        <td>
-                                            <span class="badge bg-info">{{ $emp->roles()->count() }}</span>
-                                        </td>
+
                                         <td>
                                             <div class="action-item">
                                                 @if (session('is_admin') ||
@@ -187,7 +176,6 @@
                 </div>
             </div>
 
-            {{-- Pagination --}}
             <div class="table-footer-bar d-flex justify-content-between align-items-center mt-3">
                 <div class="d-flex align-items-center gap-3">
                     <div>

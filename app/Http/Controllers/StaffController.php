@@ -45,7 +45,7 @@ class StaffController extends Controller
             $query->where('UserStatus', $status);
         }
 
-        $employees = $query->with(['roles', 'departments', 'designation', 'branch', 'manager', 'manager.designation'])
+        $employees = $query->with(['roles', 'departments','department', 'designation', 'branch', 'manager', 'manager.designation'])
             ->paginate($perPage);
 
         $branches = NewBranch::where('is_active', 1)->get();

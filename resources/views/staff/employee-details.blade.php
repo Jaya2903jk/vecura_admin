@@ -50,78 +50,116 @@
                     <i class="ti ti-logout me-2"></i>Relieving
                 </a>
             </li>
-            {{-- <li class="nav-item">
-                <a class="nav-link" href="#roles" data-bs-toggle="tab">
-                    <i class="ti ti-shield me-2"></i>Roles & Permissions
-                </a>
-            </li> --}}
+
         </ul>
 
         <!-- Tab Content -->
         <div class="tab-content">
             <!-- OVERVIEW TAB -->
             <div class="tab-pane fade show active" id="overview">
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="card">
-                            <div class="card-header">
-                                <h6 class="fw-bold mb-0">Personal Information</h6>
+                <!-- Employee Summary Card -->
+                <div class="card border-0 bg-gradient mb-4" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                    <div class="card-body text-white p-4">
+                        <div class="row align-items-center">
+                            <div class="col-md-8">
+                                <h5 class="mb-1" style="font-size: 1.5rem;">{{ $employee->FullName }}</h5>
+                                <p class="mb-2" style="font-size: 0.95rem; opacity: 0.9;">{{ $employee->designation?->Designation ?? '-' }} • {{ $employee->departments->first()?->DepartmentName ?? '-' }}</p>
+                                <p class="mb-0" style="font-size: 0.85rem; opacity: 0.8;">Employee Code: <strong>{{ $employee->employee_code }}</strong></p>
                             </div>
-                            <div class="card-body">
-                                <div class="mb-3">
-                                    <label class="text-muted small">Employee Code</label>
-                                    <p class="fw-bold">{{ $employee->employee_code }}</p>
-                                </div>
-                                <div class="mb-3">
-                                    <label class="text-muted small">Full Name</label>
-                                    <p class="fw-bold">{{ $employee->FullName }}</p>
-                                </div>
-                                <div class="mb-3">
-                                    <label class="text-muted small">Email</label>
-                                    <p class="fw-bold">{{ $employee->EmailId ?? '-' }}</p>
-                                </div>
-                                <div class="mb-3">
-                                    <label class="text-muted small">Date of Birth</label>
-                                    <p class="fw-bold">{{ $employee->date_of_birth ? \Carbon\Carbon::parse($employee->date_of_birth)->format('d M Y') : '-' }}</p>
-                                </div>
-                                <div class="mb-3">
-                                    <label class="text-muted small">Phone</label>
-                                    <p class="fw-bold">{{ $employee->profile?->phone_number ?? '-' }}</p>
+                            <div class="col-md-4 text-md-end">
+                                <div class="mb-2">
+                                    <span class="badge bg-white text-dark px-3 py-2">
+                                        <i class="ti ti-circle-filled me-1" style="color: {{ $employee->employee_status === 'Active' ? '#10b981' : '#ef4444' }};"></i>
+                                        {{ $employee->employee_status ?? 'Active' }}
+                                    </span>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-6">
-                        <div class="card">
-                            <div class="card-header">
-                                <h6 class="fw-bold mb-0">Employment Information</h6>
+                </div>
+
+                <div class="row">
+                    <!-- Personal Information -->
+                    <div class="col-lg-6 mb-4">
+                        <div class="card shadow-sm border-0">
+                            <div class="card-header bg-light border-bottom">
+                                <h6 class="mb-0 fw-bold">
+                                    <i class="ti ti-user me-2"></i>Personal Information
+                                </h6>
                             </div>
                             <div class="card-body">
-                                <div class="mb-3">
-                                    <label class="text-muted small">Department</label>
-                                    <p class="fw-bold">{{ $employee->departments->first()?->DepartmentName ?? '-' }}</p>
+                                <div class="row g-3">
+                                    <div class="col-sm-6">
+                                        <label class="form-label text-muted small">Employee Code</label>
+                                        <p class="fw-bold text-dark">{{ $employee->employee_code }}</p>
+                                    </div>
+                                    <div class="col-sm-6">
+                                        <label class="form-label text-muted small">Full Name</label>
+                                        <p class="fw-bold text-dark">{{ $employee->FullName }}</p>
+                                    </div>
+                                    <div class="col-sm-6">
+                                        <label class="form-label text-muted small">Email</label>
+                                        <p class="fw-bold text-dark">
+                                            @if($employee->EmailId)
+                                                <a href="mailto:{{ $employee->EmailId }}" class="text-decoration-none">{{ $employee->EmailId }}</a>
+                                            @else
+                                                <span class="text-muted">-</span>
+                                            @endif
+                                        </p>
+                                    </div>
+                                    <div class="col-sm-6">
+                                        <label class="form-label text-muted small">Phone</label>
+                                        <p class="fw-bold text-dark">{{ $employee->profile?->phone_number ?? '-' }}</p>
+                                    </div>
+                                    <div class="col-sm-6">
+                                        <label class="form-label text-muted small">Date of Birth</label>
+                                        <p class="fw-bold text-dark">{{ $employee->date_of_birth ? \Carbon\Carbon::parse($employee->date_of_birth)->format('d M Y') : '-' }}</p>
+                                    </div>
+                                    <div class="col-sm-6">
+                                        <label class="form-label text-muted small">Blood Group</label>
+                                        <p class="fw-bold text-dark">{{ $employee->profile?->blood_group ?? '-' }}</p>
+                                    </div>
                                 </div>
-                                <div class="mb-3">
-                                    <label class="text-muted small">Designation</label>
-                                    <p class="fw-bold">{{ $employee->designation?->Designation ?? '-' }}</p>
-                                </div>
-                                <div class="mb-3">
-                                    <label class="text-muted small">Manager</label>
-                                    <p class="fw-bold">{{ $employee->manager?->FullName ?? 'N/A' }}</p>
-                                </div>
-                                <div class="mb-3">
-                                    <label class="text-muted small">Office Type</label>
-                                    <p class="fw-bold">{{ $employee->office_type ?? '-' }}</p>
-                                </div>
-                                <div class="mb-3">
-                                    <label class="text-muted small">Status</label>
-                                    <p>
-                                        @php
-                                            $statusBg = ($employee->employee_status === 'Active') ? 'success' : (($employee->employee_status === 'Terminated') ? 'danger' : 'warning');
-                                            $status = $employee->employee_status ?? 'Active';
-                                        @endphp
-                                        <span class="badge bg-{{ $statusBg }}">{{ $status }}</span>
-                                    </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Employment Information -->
+                    <div class="col-lg-6 mb-4">
+                        <div class="card shadow-sm border-0">
+                            <div class="card-header bg-light border-bottom">
+                                <h6 class="mb-0 fw-bold">
+                                    <i class="ti ti-briefcase me-2"></i>Employment Information
+                                </h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="row g-3">
+                                    <div class="col-sm-6">
+                                        <label class="form-label text-muted small">Department</label>
+                                        <p class="fw-bold text-dark">{{ $employee->departments->first()?->DepartmentName ?? '-' }}</p>
+                                    </div>
+                                    <div class="col-sm-6">
+                                        <label class="form-label text-muted small">Designation</label>
+                                        <p class="fw-bold text-dark">{{ $employee->designation?->Designation ?? '-' }}</p>
+                                    </div>
+                                    <div class="col-sm-6">
+                                        <label class="form-label text-muted small">Date of Joining</label>
+                                        <p class="fw-bold text-dark">{{ $employee->profile?->date_of_joining ? \Carbon\Carbon::parse($employee->profile->date_of_joining)->format('d M Y') : '-' }}</p>
+                                    </div>
+                                    <div class="col-sm-6">
+                                        <label class="form-label text-muted small">Employee Type</label>
+                                        <p class="fw-bold text-dark">{{ $employee->profile?->employee_type ?? '-' }}</p>
+                                    </div>
+                                    <div class="col-sm-6">
+                                        <label class="form-label text-muted small">Manager</label>
+                                        <p class="fw-bold text-dark">{{ $employee->manager?->FullName ?? '-' }}</p>
+                                    </div>
+                                    <div class="col-sm-6">
+                                        <label class="form-label text-muted small">Office Type</label>
+                                        <p class="fw-bold text-dark">
+                                            <span class="badge bg-info text-white">{{ $employee->office_type ?? '-' }}</span>
+                                        </p>
+                                    </div>
                                 </div>
                             </div>
                         </div>

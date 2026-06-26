@@ -65,9 +65,12 @@ class UserMaster extends Model
         'office_type',
         'manager_id',
         'employee_status',
+        'doj',
     ];
     // App\Models\UserMaster.php
-
+    protected $casts = [
+        'doj' => 'date',
+    ];
     public function userGroup()
     {
         // Match UserGroupCode to UserGroupMaster.UserGroupCode
@@ -78,9 +81,13 @@ class UserMaster extends Model
     {
         return $this->belongsTo(Designation::class, 'Designation', 'DesignationCode');
     }
-     public function department()
+    public function department()
     {
-        return $this->belongsTo(IssueDepartment::class, 'DepartmentName', 'department_id');
+        return $this->belongsTo(
+            IssueDepartment::class,
+            'department_id',   // Foreign key in UserMaster
+            'Departmentid'     // Primary key in IssueDepartment
+        );
     }
 
     public function branch()
