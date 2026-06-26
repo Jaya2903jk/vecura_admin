@@ -258,7 +258,11 @@ class StaffController extends Controller
             'designation',
             'branch',
             'manager',
-            'profile'
+            'profile',
+            'bonds',
+            'relieving',
+            'documents',
+            'educationalDocuments'
         ])->findOrFail($id);
 
         return view('staff.employee-details', [

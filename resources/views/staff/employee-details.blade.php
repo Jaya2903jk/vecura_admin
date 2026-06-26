@@ -110,7 +110,13 @@
                                 </div>
                                 <div class="mb-3">
                                     <label class="text-muted small">Status</label>
-                                    <p><span class="badge bg-{{ $employee->employee_status === 'Active' ? 'success' : 'danger' }}">{{ $employee->employee_status }}</span></p>
+                                    <p>
+                                        @php
+                                            $statusBg = ($employee->employee_status === 'Active') ? 'success' : (($employee->employee_status === 'Terminated') ? 'danger' : 'warning');
+                                            $status = $employee->employee_status ?? 'Active';
+                                        @endphp
+                                        <span class="badge bg-{{ $statusBg }}">{{ $status }}</span>
+                                    </p>
                                 </div>
                             </div>
                         </div>
@@ -488,16 +494,16 @@ function loadBonds() {
         .then(r => r.json())
         .then(data => {
             if (data.data && data.data.length > 0) {
-                let html = '<table class="table table-sm"><thead class="table-light"><tr><th>Duration</th><th>Start Date</th><th>End Date</th><th>Amount</th><th>Status</th><th>Action</th></tr></thead><tbody>';
+                let html = '<table class="table table-sm table-hover"><thead class="table-light"><tr><th>Duration</th><th>Start Date</th><th>End Date</th><th>Amount</th><th>Status</th><th>Action</th></tr></thead><tbody>';
                 data.data.forEach(bond => {
                     const statusBg = bond.bond_status === 'Active' ? 'success' : (bond.bond_status === 'Completed' ? 'info' : 'danger');
                     const actionBtn = bond.bond_status === 'Active' ? `<button class="btn btn-sm btn-success" onclick="completeBond(${bond.id})">Complete</button>` : '-';
                     html += `
                         <tr>
-                            <td>${bond.bond_duration_years} years</td>
-                            <td>${bond.bond_start_date}</td>
-                            <td>${bond.bond_end_date || '-'}</td>
-                            <td>${bond.bond_amount ? '₹' + bond.bond_amount : '-'}</td>
+                            <td><strong>${bond.bond_duration_years} year${bond.bond_duration_years > 1 ? 's' : ''}</strong></td>
+                            <td>${new Date(bond.bond_start_date).toLocaleDateString()}</td>
+                            <td>${bond.bond_end_date ? new Date(bond.bond_end_date).toLocaleDateString() : '-'}</td>
+                            <td>${bond.bond_amount ? '₹ ' + parseFloat(bond.bond_amount).toFixed(2) : '-'}</td>
                             <td><span class="badge bg-${statusBg}">${bond.bond_status}</span></td>
                             <td>${actionBtn}</td>
                         </tr>
@@ -508,6 +514,9 @@ function loadBonds() {
             } else {
                 document.getElementById('bondContent').innerHTML = '<p class="text-muted text-center py-4">No bonds created</p>';
             }
+        }).catch(e => {
+            console.log('Bond load error:', e);
+            document.getElementById('bondContent').innerHTML = '<p class="text-muted text-center py-4">No bonds created</p>';
         });
 }
 
@@ -516,12 +525,12 @@ function loadRelieving() {
         .then(r => r.json())
         .then(data => {
             const relievingData = data.data?.relieving;
-            if (relievingData) {
+            if (relievingData && relievingData.id) {
                 const statusBg = relievingData.relieving_status === 'Pending' ? 'warning' : (relievingData.relieving_status === 'Completed' ? 'success' : 'info');
                 let html = `
                     <div class="row">
                         <div class="col-md-6">
-                            <div class="card border-left border-${statusBg === 'warning' ? 'warning' : 'info'}">
+                            <div class="card">
                                 <div class="card-body">
                                     <h6 class="fw-bold">Relieving Details</h6>
                                     <div class="mb-2">
@@ -529,7 +538,7 @@ function loadRelieving() {
                                         <p class="fw-bold">${relievingData.resignation_date || '-'}</p>
                                     </div>
                                     <div class="mb-2">
-                                        <label class="text-muted small">Notice Completion Date</label>
+                                        <label class="text-muted small">Notice Completion Date (2 Months)</label>
                                         <p class="fw-bold">${relievingData.notice_completion_date || '-'}</p>
                                     </div>
                                     <div class="mb-2">
@@ -549,11 +558,11 @@ function loadRelieving() {
                                     <h6 class="fw-bold">Exit Checklist</h6>
                                     <div class="mb-2">
                                         <label class="text-muted small">All Dues Cleared</label>
-                                        <p class="fw-bold"><span class="badge bg-${relievingData.all_dues_cleared ? 'success' : 'danger'}">${relievingData.all_dues_cleared ? 'Yes' : 'No'}</span></p>
+                                        <p><span class="badge bg-${relievingData.all_dues_cleared ? 'success' : 'danger'}">${relievingData.all_dues_cleared ? '✓ Yes' : '✗ No'}</span></p>
                                     </div>
                                     <div class="mb-2">
                                         <label class="text-muted small">Equipment Returned</label>
-                                        <p class="fw-bold"><span class="badge bg-${relievingData.equipment_returned ? 'success' : 'danger'}">${relievingData.equipment_returned ? 'Yes' : 'No'}</span></p>
+                                        <p><span class="badge bg-${relievingData.equipment_returned ? 'success' : 'danger'}">${relievingData.equipment_returned ? '✓ Yes' : '✗ No'}</span></p>
                                     </div>
                                     <div class="mb-2">
                                         <label class="text-muted small">Final Remarks</label>
@@ -568,6 +577,9 @@ function loadRelieving() {
             } else {
                 document.getElementById('relievingContent').innerHTML = '<p class="text-muted text-center py-4">No relieving record yet</p>';
             }
+        }).catch(e => {
+            console.log('Relieving load error:', e);
+            document.getElementById('relievingContent').innerHTML = '<p class="text-muted text-center py-4">No relieving record yet</p>';
         });
 }
 
