@@ -807,8 +807,22 @@ function completeBond(bondId) {
     });
 }
 
+let isEducationDocSubmitting = false;
+
 document.getElementById('addEducationDocumentForm')?.addEventListener('submit', function(e) {
     e.preventDefault();
+
+    if (isEducationDocSubmitting) {
+        Swal.fire('Wait', 'Document upload is in progress...', 'info');
+        return false;
+    }
+    isEducationDocSubmitting = true;
+
+    const submitBtn = this.querySelector('button[type="submit"]');
+    const originalBtnText = submitBtn.innerHTML;
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Uploading...';
+
     const formData = new FormData(this);
     fetch(`/employee/${employeeId}/educational-document/add`, {
         method: 'POST',
@@ -824,12 +838,35 @@ document.getElementById('addEducationDocumentForm')?.addEventListener('submit', 
             bootstrap.Modal.getInstance(document.getElementById('addEducationDocumentModal')).hide();
         } else {
             Swal.fire('Error', data.message, 'error');
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalBtnText;
+            isEducationDocSubmitting = false;
         }
+    })
+    .catch(error => {
+        Swal.fire('Error', 'Upload failed: ' + error.message, 'error');
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalBtnText;
+        isEducationDocSubmitting = false;
     });
 });
 
+let isOfficialDocSubmitting = false;
+
 document.getElementById('addOfficialDocumentForm')?.addEventListener('submit', function(e) {
     e.preventDefault();
+
+    if (isOfficialDocSubmitting) {
+        Swal.fire('Wait', 'Document upload is in progress...', 'info');
+        return false;
+    }
+    isOfficialDocSubmitting = true;
+
+    const submitBtn = this.querySelector('button[type="submit"]');
+    const originalBtnText = submitBtn.innerHTML;
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Uploading...';
+
     const formData = new FormData(this);
     fetch(`/employee/${employeeId}/document/add`, {
         method: 'POST',
@@ -845,12 +882,35 @@ document.getElementById('addOfficialDocumentForm')?.addEventListener('submit', f
             bootstrap.Modal.getInstance(document.getElementById('addOfficialDocumentModal')).hide();
         } else {
             Swal.fire('Error', data.message, 'error');
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalBtnText;
+            isOfficialDocSubmitting = false;
         }
+    })
+    .catch(error => {
+        Swal.fire('Error', 'Upload failed: ' + error.message, 'error');
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalBtnText;
+        isOfficialDocSubmitting = false;
     });
 });
 
+let isBondSubmitting = false;
+
 document.getElementById('addBondForm')?.addEventListener('submit', function(e) {
     e.preventDefault();
+
+    if (isBondSubmitting) {
+        Swal.fire('Wait', 'Bond creation is in progress...', 'info');
+        return false;
+    }
+    isBondSubmitting = true;
+
+    const submitBtn = this.querySelector('button[type="submit"]');
+    const originalBtnText = submitBtn.innerHTML;
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Creating...';
+
     const formData = new FormData(this);
     fetch(`/employee/${employeeId}/bond/create`, {
         method: 'POST',
@@ -866,12 +926,35 @@ document.getElementById('addBondForm')?.addEventListener('submit', function(e) {
             bootstrap.Modal.getInstance(document.getElementById('addBondModal')).hide();
         } else {
             Swal.fire('Error', data.message, 'error');
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalBtnText;
+            isBondSubmitting = false;
         }
+    })
+    .catch(error => {
+        Swal.fire('Error', 'Failed: ' + error.message, 'error');
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalBtnText;
+        isBondSubmitting = false;
     });
 });
 
+let isRelievingSubmitting = false;
+
 document.getElementById('initiateRelievingForm')?.addEventListener('submit', function(e) {
     e.preventDefault();
+
+    if (isRelievingSubmitting) {
+        Swal.fire('Wait', 'Relieving initiation is in progress...', 'info');
+        return false;
+    }
+    isRelievingSubmitting = true;
+
+    const submitBtn = this.querySelector('button[type="submit"]');
+    const originalBtnText = submitBtn.innerHTML;
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Initiating...';
+
     const formData = new FormData(this);
     fetch(`/employee/${employeeId}/relieving/initiate`, {
         method: 'POST',
@@ -887,7 +970,16 @@ document.getElementById('initiateRelievingForm')?.addEventListener('submit', fun
             bootstrap.Modal.getInstance(document.getElementById('initiateRelievingModal')).hide();
         } else {
             Swal.fire('Error', data.message, 'error');
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalBtnText;
+            isRelievingSubmitting = false;
         }
+    })
+    .catch(error => {
+        Swal.fire('Error', 'Failed: ' + error.message, 'error');
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalBtnText;
+        isRelievingSubmitting = false;
     });
 });
 
