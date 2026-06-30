@@ -15,6 +15,68 @@ use Illuminate\Support\Facades\DB;
 
 class StaffController extends Controller
 {
+    // public function index(Request $request)
+    // {
+    //     $perPage = $request->get('per_page', 10);
+    //     $search = $request->get('search', '');
+    //     $department = $request->get('department', '');
+    //     $designation = $request->get('designation', '');
+    //     $status = $request->get('status', '');
+    //     $branch = $request->get('branch', '');
+
+    //     $query = UserMaster::query();
+
+    //     // Manager sees only their subordinates, Admin sees all
+    //     if (!session('is_admin')) {
+    //         $userId = session('user_id');
+    //         $query->where('manager_id', $userId);
+    //     }
+
+    //     if ($search) {
+    //         $query->where('FullName', 'like', "%$search%")
+    //             ->orWhere('UserCode', 'like', "%$search%")
+    //             ->orWhere('EmailId', 'like', "%$search%");
+    //     }
+
+    //     if ($department) {
+    //         $query->whereHas('departments', function($q) use ($department) {
+    //             $q->where('Departmentid', $department);
+    //         });
+    //     }
+
+    //     if ($designation) {
+    //         $query->where('Designation', $designation);
+    //     }
+
+    //     if ($status) {
+    //         $query->where('UserStatus', $status);
+    //     }
+
+    //     if ($branch) {
+    //         $query->where('branch_id', $branch);
+    //     }
+
+    //     $employees = $query->with(['roles', 'departments','department', 'designation', 'branch', 'manager', 'manager.designation'])
+    //         ->paginate($perPage);
+
+    //     $branches = NewBranch::where('is_active', 1)->get();
+    //     $designations = Designation::all();
+    //     $departments = IssueDepartment::all();
+    //     $roles = Role::all();
+    //     return view('staff.management', [
+    //         'employees' => $employees,
+    //         'branches' => $branches,
+    //         'designations' => $designations,
+    //         'departments' => $departments,
+    //         'roles' => $roles,
+    //         'perPage' => $perPage,
+    //         'search' => $search,
+    //         'department' => $department,
+    //         'designation' => $designation,
+    //         'status' => $status,
+    //         'branch' => $branch
+    //     ]);
+    // }
     public function index(Request $request)
     {
         $perPage = $request->get('per_page', 10);
@@ -22,6 +84,7 @@ class StaffController extends Controller
         $department = $request->get('department', '');
         $designation = $request->get('designation', '');
         $status = $request->get('status', '');
+        $branch = $request->get('branch', '');
 
         $query = UserMaster::query();
 
@@ -32,13 +95,15 @@ class StaffController extends Controller
         }
 
         if ($search) {
-            $query->where('FullName', 'like', "%$search%")
-                ->orWhere('UserCode', 'like', "%$search%")
-                ->orWhere('EmailId', 'like', "%$search%");
+            $query->where(function ($q) use ($search) {
+                $q->where('FullName', 'like', "%{$search}%")
+                    ->orWhere('UserCode', 'like', "%{$search}%")
+                    ->orWhere('EmailId', 'like', "%{$search}%");
+            });
         }
 
         if ($department) {
-            $query->whereHas('departments', function($q) use ($department) {
+            $query->whereHas('departments', function ($q) use ($department) {
                 $q->where('Departmentid', $department);
             });
         }
@@ -51,27 +116,43 @@ class StaffController extends Controller
             $query->where('UserStatus', $status);
         }
 
-        $employees = $query->with(['roles', 'departments','department', 'designation', 'branch', 'manager', 'manager.designation'])
+        if ($branch) {
+            $query->where('branch_id', $branch);
+        }
+
+        $employees = $query->with(['roles', 'departments', 'department', 'designation', 'branch', 'manager', 'manager.designation'])
             ->paginate($perPage);
 
+        // CHECK IF THIS IS AN AJAX REQUEST - Return JSON
+        if ($request->ajax()) {
+            return response()->json([
+                'employees' => $employees->items(),
+                'total' => $employees->total(),
+                'per_page' => $employees->perPage(),
+                'current_page' => $employees->currentPage()
+            ]);
+        }
+
+        // Return view for regular page load
         $branches = NewBranch::where('is_active', 1)->get();
-        $designations = Designation::all();
-        $departments = IssueDepartment::all();
-        $roles = Role::all();
+        $designationsList = Designation::all();
+        $departmentsList = IssueDepartment::all();
+        $rolesList = Role::all();
+
         return view('staff.management', [
             'employees' => $employees,
             'branches' => $branches,
-            'designations' => $designations,
-            'departments' => $departments,
-            'roles' => $roles,
+            'designations' => $designationsList,
+            'departments' => $departmentsList,
+            'roles' => $rolesList,
             'perPage' => $perPage,
             'search' => $search,
             'department' => $department,
             'designation' => $designation,
-            'status' => $status
+            'status' => $status,
+            'branch' => $branch
         ]);
     }
-
     public function generateEmployeeCode()
     {
         try {
@@ -120,7 +201,7 @@ class StaffController extends Controller
             'department_id' => 'required|exists:issueDepartmentMaster,Departmentid',
             'designation_code' => 'required|exists:DesignationMaster,DesignationCode',
             'office_type' => 'required|in:Branch Location,Corporate Office,Head Office,Regional Office',
-            'branch_id' => 'nullable|exists:Branch,BranchID',
+            'branch_id' => 'nullable|exists:Branch,branch_id',
 
             // Personal Details
             'phone' => 'nullable|string|max:20',
@@ -571,9 +652,11 @@ class StaffController extends Controller
 
             $onboarding->update($updateData);
 
-            if ($onboarding->system_access_provided && $onboarding->id_card_issued &&
+            if (
+                $onboarding->system_access_provided && $onboarding->id_card_issued &&
                 $onboarding->equipment_provided && $onboarding->orientation_completed &&
-                $onboarding->documentation_submitted) {
+                $onboarding->documentation_submitted
+            ) {
                 $onboarding->update(['onboarding_status' => 'Completed']);
             }
 

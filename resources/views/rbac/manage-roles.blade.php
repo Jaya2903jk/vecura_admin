@@ -132,16 +132,13 @@
                             <span id="assignedCount" class="badge bg-success">0</span>
                         </div>
 
-                        {{-- Loading State --}}
                         <div id="permLoadingState" class="text-center py-4">
                             <div class="spinner-border spinner-border-sm text-primary me-2" role="status"></div>
                             <span class="text-muted">Loading permissions...</span>
                         </div>
 
-                        {{-- Permission List (grouped by module, filled by JS) --}}
                         <div id="permissionList" style="display:none;"></div>
 
-                        {{-- Empty State --}}
                         <div id="permEmptyState" class="text-center text-muted py-4 border rounded" style="display:none;">
                             No permissions assigned yet
                         </div>
@@ -186,7 +183,7 @@
     <script>
         let currentRoleId = null;
         let availableModules = [];
-
+        let allPermissions = [];
         // Maps action/module names to Tabler icon classes only — no colors, inherits your theme
         const ACTION_ICONS = {
             read: 'ti-eye',
@@ -309,26 +306,26 @@
                             const moduleIcon = MODULE_ICONS[module] || 'ti-box';
 
                             html += `<div class="card mb-2">
-                                <div class="card-header bg-light d-flex justify-content-between align-items-center py-2">
-                                    <span>
-                                        <i class="ti ${moduleIcon} me-2"></i>
-                                        <strong>${module.toUpperCase()}</strong>
-                                    </span>
-                                    <span class="badge bg-secondary">${perms.length}</span>
-                                </div>
-                                <div class="card-body p-0">`;
+                            <div class="card-header bg-light d-flex justify-content-between align-items-center py-2">
+                                <span>
+                                    <i class="ti ${moduleIcon} me-2"></i>
+                                    <strong>${module.toUpperCase()}</strong>
+                                </span>
+                                <span class="badge bg-secondary">${perms.length}</span>
+                            </div>
+                            <div class="card-body p-0">`;
 
                             perms.forEach(perm => {
                                 const icon = ACTION_ICONS[perm.name] || 'ti-circle';
                                 const label = perm.name.charAt(0).toUpperCase() + perm.name.slice(1);
 
                                 html += `<div class="d-flex justify-content-between align-items-center p-2 border-bottom">
-                                    <span><i class="ti ${icon} me-2 text-muted"></i>${label}</span>
-                                    <button type="button" class="btn btn-sm btn-danger"
-                                        onclick="removePermission(${roleId}, ${perm.id})">
-                                        <i class="ti ti-trash"></i>
-                                    </button>
-                                </div>`;
+                                <span><i class="ti ${icon} me-2 text-muted"></i>${label}</span>
+                                <button type="button" class="btn btn-sm btn-danger"
+                                    onclick="removePermission(${roleId}, ${perm.id})">
+                                    <i class="ti ti-trash"></i>
+                                </button>
+                            </div>`;
                             });
 
                             html += `</div></div>`;
@@ -349,7 +346,8 @@
                 })
                 .catch(e => {
                     console.error('Error loading permissions:', e);
-                    loadingState.innerHTML = '<span class="text-danger"><i class="ti ti-alert-circle me-1"></i>Error loading permissions</span>';
+                    loadingState.innerHTML =
+                        '<span class="text-danger"><i class="ti ti-alert-circle me-1"></i>Error loading permissions</span>';
                 });
         }
 
@@ -385,13 +383,16 @@
                                 'X-CSRF-TOKEN': document.querySelector('[name="_token"]').value,
                                 'Content-Type': 'application/json'
                             },
-                            body: JSON.stringify({ permission_id: perm.id })
+                            body: JSON.stringify({
+                                permission_id: perm.id
+                            })
                         })
                         .then(r => r.json())
                         .then(data => {
                             if (data.status) {
                                 document.getElementById('moduleSelect').value = '';
-                                document.getElementById('actionSelect').innerHTML = '<option value="">-- Choose Action --</option>';
+                                document.getElementById('actionSelect').innerHTML =
+                                    '<option value="">-- Choose Action --</option>';
 
                                 loadPermissionsForRole(currentRoleId);
 
@@ -426,7 +427,9 @@
 
                 fetch(`/rbac/role/${roleId}/permission/${permissionId}`, {
                         method: 'DELETE',
-                        headers: { 'X-CSRF-TOKEN': document.querySelector('[name="_token"]').value }
+                        headers: {
+                            'X-CSRF-TOKEN': document.querySelector('[name="_token"]').value
+                        }
                     })
                     .then(r => r.json())
                     .then(data => {

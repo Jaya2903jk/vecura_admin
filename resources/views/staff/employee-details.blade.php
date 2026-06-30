@@ -88,10 +88,10 @@
                                     <label class="text-muted small">Phone</label>
                                     <p class="fw-bold">{{ $employee->profile?->phone_number ?? '-' }}</p>
                                 </div>
-                                <div class="mb-3">
+                                {{-- <div class="mb-3">
                                     <label class="text-muted small">Category</label>
                                     <p class="fw-bold">{{ $employee->profile?->employee_category ?? '-' }}</p>
-                                </div>
+                                </div> --}}
                                 <div class="mb-3">
                                     <label class="text-muted small">Address</label>
                                     <p class="fw-bold">{{ $employee->profile?->address ?? '-' }}</p>

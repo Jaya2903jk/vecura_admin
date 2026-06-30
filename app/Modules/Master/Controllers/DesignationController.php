@@ -24,10 +24,34 @@ class DesignationController extends Controller
         return $this->service->create($request->validated());
     }
 
-    public function update(DesignationRequest $request, $id)
+    public function update($id, DesignationRequest $request)
     {
+         logger()->info('Update request data:', [
+            'id' => $id,
+            'route_id' => $request->route('id'),
+            'all_data' => $request->all(),
+            'validated_data' => $request->validated(),
+        ]);
         return $this->service->update($id, $request->validated());
     }
+//   public function update($id, Request $request)
+//     {
+//         dd($request->all());
+//         try {
+//             $designation = \App\Models\Designation::findOrFail($id);
+//             $designation->update($request->all());
+
+//             return response()->json([
+//                 'status' => true,
+//                 'message' => 'Designation Updated Successfully'
+//             ]);
+//         } catch (\Exception $e) {
+//             return response()->json([
+//                 'status' => false,
+//                 'message' => $e->getMessage()
+//             ], 500);
+//         }
+//     }
 
     public function destroy($id)
     {

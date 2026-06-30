@@ -91,16 +91,11 @@
                 </div>
             </div>
 
-            <div class="card border-0" id="employeeTableCard">
-    <div class="card-body p-0">
-        <div id="loadingSpinner" class="text-center py-5" style="display: none; position: absolute; width: 100%; background: white; z-index: 100;">
-            <div class="spinner-border text-primary" role="status">
-                <span class="visually-hidden">Loading...</span>
-            </div>
-            <p class="mt-3 text-muted fw-semibold">Loading employees...</p>
-        </div>
-        <div class="table-responsive" id="tableContainer">
-            <table class="table table-hover mb-0">
+            <div class="card border-0">
+                <div class="card-body p-0">
+
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
                             <thead class="table-light" style="position: sticky; top: 0; z-index: 10;">
                                 <tr>
                                     <th style="width: 18%">Name / Code</th>
@@ -526,7 +521,7 @@
     <div class="modal fade" id="editEmployeeModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered modal-lg">
             <div class="modal-content">
-                <div class="modal-header bg-primary text-white">
+                <div class="modal-header bg-warning text-white">
                     <h5 class="modal-title"><i class="ti ti-pencil me-2"></i>Edit Employee</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
@@ -975,38 +970,6 @@ function triggerAutoFilter() {
 }
 
 // Load employees via AJAX
-// function loadEmployeesAjax() {
-//     const search = document.getElementById('searchInput').value;
-//     const department = document.getElementById('departmentFilter').value;
-//     const designation = document.getElementById('designationFilter').value;
-//     const branch = document.getElementById('branchFilter').value;
-//     const status = document.getElementById('statusFilter').value;
-
-//     const params = new URLSearchParams();
-//     if (search) params.append('search', search);
-//     if (department) params.append('department', department);
-//     if (designation) params.append('designation', designation);
-//     if (branch) params.append('branch', branch);
-//     if (status) params.append('status', status);
-
-//     fetch(`{{ route('staff.index') }}?${params.toString()}`, {
-//         method: 'GET',
-//         headers: {
-//             'Accept': 'application/json',
-//             'X-CSRF-TOKEN': '{{ csrf_token() }}'
-//         }
-//     })
-//     .then(r => r.json())
-//     .then(data => {
-//         if (data.employees && data.employees.length > 0) {
-//             renderEmployeeTableAjax(data.employees);
-//         } else {
-//             document.querySelector('tbody').innerHTML = '<tr><td colspan="9" class="text-center text-muted py-4">No employees found</td></tr>';
-//         }
-//     })
-//     .catch(e => console.error('Error:', e));
-// }
-// Load employees via AJAX
 function loadEmployeesAjax() {
     const search = document.getElementById('searchInput').value;
     const department = document.getElementById('departmentFilter').value;
@@ -1021,53 +984,24 @@ function loadEmployeesAjax() {
     if (branch) params.append('branch', branch);
     if (status) params.append('status', status);
 
-    // Show loader
-    const spinner = document.getElementById('loadingSpinner');
-    const tableContainer = document.getElementById('tableContainer');
-    const card = document.getElementById('employeeTableCard');
-
-    spinner.style.display = 'block';
-    tableContainer.style.opacity = '0.3';
-    card.style.position = 'relative';
-
     fetch(`{{ route('staff.index') }}?${params.toString()}`, {
         method: 'GET',
         headers: {
-            'X-Requested-With': 'XMLHttpRequest',
             'Accept': 'application/json',
             'X-CSRF-TOKEN': '{{ csrf_token() }}'
         }
     })
-    .then(r => {
-        console.log('Response status:', r.status);
-        if (!r.ok) {
-            throw new Error(`HTTP Error: ${r.status}`);
-        }
-        return r.json();
-    })
+    .then(r => r.json())
     .then(data => {
-        console.log('Data received:', data);
-
-        // Hide loader
-        spinner.style.display = 'none';
-        tableContainer.style.opacity = '1';
-
         if (data.employees && data.employees.length > 0) {
             renderEmployeeTableAjax(data.employees);
         } else {
             document.querySelector('tbody').innerHTML = '<tr><td colspan="9" class="text-center text-muted py-4">No employees found</td></tr>';
         }
     })
-    .catch(error => {
-        console.error('Full error:', error);
-
-        // Hide loader on error
-        spinner.style.display = 'none';
-        tableContainer.style.opacity = '1';
-
-        Swal.fire('Error', 'Failed to load employees: ' + error.message, 'error');
-    });
+    .catch(e => console.error('Error:', e));
 }
+
 // Render employee table from AJAX data
 function renderEmployeeTableAjax(employees) {
     let html = '';

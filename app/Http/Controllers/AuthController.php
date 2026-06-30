@@ -37,7 +37,28 @@ class AuthController extends Controller
             ], 404);
         }
 
-        if (!Hash::check($request->password, $user->Password)) {
+        // if (!Hash::check($request->password, $user->Password)) {
+        //     return response()->json([
+        //         'status' => false,
+        //         'message' => 'Invalid credentials',
+        //     ], 401);
+        // }
+        $isValid = false;
+        // Check if password is bcrypt hashed
+        if (preg_match('/^\$2[ayb]\$/', $user->Password)) {
+            // Hashed password
+            $isValid = Hash::check($request->password, $user->Password);
+        } else {
+            // Plain text password
+            $isValid = ($request->password === $user->Password);
+            // Optional: Automatically convert plain text password to hash
+            // if ($isValid) {
+            //     $user->Password = Hash::make($request->password);
+            //     $user->save();
+            // }
+        }
+
+        if (!$isValid) {
             return response()->json([
                 'status' => false,
                 'message' => 'Invalid credentials',

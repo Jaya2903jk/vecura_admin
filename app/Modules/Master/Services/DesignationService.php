@@ -48,19 +48,20 @@ class DesignationService
     }
 
     private function mapDepartments(\App\Models\Designation $designation, array $departmentIds): void
-    {
-        // Delete existing mappings
-        $designation->departmentMappings()->delete();
-        // Create new mappings
-        foreach ($departmentIds as $deptId) {
-            \App\Models\DesignationDepartment::create([
-                'designation_code' => $designation->DesignationCode,
-                'department_id' => (int)$deptId,
-                'is_active' => true,
-            ]);
-        }
+{
+    // Delete existing mappings
+    $designation->departmentMappings()->delete();
+    
+    // Create new mappings
+    foreach ($departmentIds as $deptId) {
+        \App\Models\DesignationDepartment::create([
+            'designation_id' => $designation->id,  // ✅ Add this!
+            'designation_code' => $designation->DesignationCode,
+            'department_id' => (int)$deptId,
+            'is_active' => true,
+        ]);
     }
-
+}
     public function delete(int $id): JsonResponse
     {
         try {

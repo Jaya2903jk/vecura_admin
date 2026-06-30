@@ -430,79 +430,145 @@
         }
 
         // Edit Designation
-        document.getElementById('editForm').addEventListener('submit', function(e) {
-            e.preventDefault();
+        // document.getElementById('editForm').addEventListener('submit', function(e) {
+        //     e.preventDefault();
 
-            // Validate form fields
-            const designationName = document.getElementById('edit_name').value.trim();
-            const status = document.getElementById('edit_status').value;
-            const checkedDepts = document.querySelectorAll('.edit-dept-checkbox:checked').length;
+        //     // Validate form fields
+        //     const designationName = document.getElementById('edit_name').value.trim();
+        //     const status = document.getElementById('edit_status').value;
+        //     const checkedDepts = document.querySelectorAll('.edit-dept-checkbox:checked').length;
 
-            if (!designationName) {
-                Swal.fire('Required', 'Designation name is required', 'warning');
-                return;
-            }
+        //     if (!designationName) {
+        //         Swal.fire('Required', 'Designation name is required', 'warning');
+        //         return;
+        //     }
 
-            if (!status || status === '') {
-                Swal.fire('Required', 'Status is required', 'warning');
-                return;
-            }
+        //     if (!status || status === '') {
+        //         Swal.fire('Required', 'Status is required', 'warning');
+        //         return;
+        //     }
 
-            if (checkedDepts === 0) {
-                Swal.fire('Required', 'Please select at least one department', 'warning');
-                return;
-            }
+        //     if (checkedDepts === 0) {
+        //         Swal.fire('Required', 'Please select at least one department', 'warning');
+        //         return;
+        //     }
 
-            const id = document.getElementById('edit_id').value;
-            const formData = new FormData(this);
-            const submitBtn = this.querySelector('button[type="submit"]');
-            submitBtn.disabled = true;
-            submitBtn.textContent = 'Updating...';
+        //     const id = document.getElementById('edit_id').value;
+        //     const formData = new FormData(this);
+        //     const submitBtn = this.querySelector('button[type="submit"]');
+        //     submitBtn.disabled = true;
+        //     submitBtn.textContent = 'Updating...';
 
-            fetch(`/designation/${id}`, {
-                method: 'PUT',
-                body: formData,
-                headers: {
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                    'Accept': 'application/json'
-                }
-            })
-            .then(r => {
-                if (r.status === 302) {
-                    throw new Error('Access denied. You do not have permission to edit designations.');
-                }
-                if (r.status === 422) {
-                    return r.json().then(data => {
-                        const errors = data.errors;
-                        const errorMessages = Object.entries(errors)
-                            .map(([field, messages]) => `${field}: ${messages[0]}`)
-                            .join('\n');
-                        throw new Error(errorMessages);
-                    });
-                }
-                if (!r.ok) {
-                    throw new Error('HTTP Error: ' + r.status);
-                }
-                return r.json();
-            })
-            .then(data => {
-                if (data.status) {
-                    Swal.fire('Success', data.message, 'success').then(() => {
-                        location.reload();
-                    });
-                } else {
-                    Swal.fire('Error', data.message, 'error');
-                    submitBtn.disabled = false;
-                    submitBtn.textContent = 'Save Changes';
-                }
-            })
-            .catch(e => {
-                Swal.fire('Error', e.message, 'error');
-                submitBtn.disabled = false;
-                submitBtn.textContent = 'Save Changes';
-            });
+        //     fetch(`/designation/${id}`, {
+        //         method: 'PUT',
+        //         body: formData,
+        //         headers: {
+        //             'Content-Type': 'application/json',
+        //             'X-CSRF-TOKEN': '{{ csrf_token() }}',
+        //             'Accept': 'application/json'
+        //         }
+        //     })
+        //     .then(r => {
+        //         if (r.status === 302) {
+        //             throw new Error('Access denied. You do not have permission to edit designations.');
+        //         }
+        //         if (r.status === 422) {
+        //             return r.json().then(data => {
+        //                 const errors = data.errors;
+        //                 const errorMessages = Object.entries(errors)
+        //                     .map(([field, messages]) => `${field}: ${messages[0]}`)
+        //                     .join('\n');
+        //                 throw new Error(errorMessages);
+        //             });
+        //         }
+        //         if (!r.ok) {
+        //             throw new Error('HTTP Error: ' + r.status);
+        //         }
+        //         return r.json();
+        //     })
+        //     .then(data => {
+        //         if (data.status) {
+        //             Swal.fire('Success', data.message, 'success').then(() => {
+        //                 location.reload();
+        //             });
+        //         } else {
+        //             Swal.fire('Error', data.message, 'error');
+        //             submitBtn.disabled = false;
+        //             submitBtn.textContent = 'Save Changes';
+        //         }
+        //     })
+        //     .catch(e => {
+        //         Swal.fire('Error', e.message, 'error');
+        //         submitBtn.disabled = false;
+        //         submitBtn.textContent = 'Save Changes';
+        //     });
+        // });
+document.getElementById('editForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+
+    const designationName = document.getElementById('edit_name').value.trim();
+    const status = document.getElementById('edit_status').value;
+    const checkedDepts = document.querySelectorAll('.edit-dept-checkbox:checked').length;
+
+    if (!designationName) {
+        Swal.fire('Required', 'Designation name is required', 'warning');
+        return;
+    }
+
+    if (!status || status === '') {
+        Swal.fire('Required', 'Status is required', 'warning');
+        return;
+    }
+
+    if (checkedDepts === 0) {
+        Swal.fire('Required', 'Please select at least one department', 'warning');
+        return;
+    }
+
+    const id = document.getElementById('edit_id').value;
+    
+    // Convert FormData to JSON
+    const formData = new FormData(this);
+    const jsonData = Object.fromEntries(formData);
+    
+    // Handle checkboxes (they might not convert properly from FormData)
+    const deptIds = Array.from(document.querySelectorAll('.edit-dept-checkbox:checked'))
+        .map(cb => cb.value);
+    jsonData.department_ids = deptIds;
+
+    const submitBtn = this.querySelector('button[type="submit"]');
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Updating...';
+
+    fetch(`/designation/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify(jsonData),  // ← Proper JSON
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+            'Accept': 'application/json'
+        }
+    })
+    .then(r => {
+        if (r.status === 302) {
+            throw new Error('Access denied. You do not have permission to edit designations.');
+        }
+        if (!r.ok) {
+            throw new Error('HTTP Error: ' + r.status);
+        }
+        return r.json();
+    })
+    .then(data => {
+        Swal.fire('Success', data.message, 'success').then(() => {
+            location.reload();
         });
-
+    })
+    .catch(e => {
+        Swal.fire('Error', e.message, 'error');
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Save Changes';
+    });
+});
         // Delete Designation
         function deleteDesignation(id) {
             deleteId = id;
@@ -615,7 +681,17 @@
                 console.error('Error:', e);
             });
         }
-
+// Auto-search on input
+        let searchTimeout;
+        document.getElementById('searchInput').addEventListener('input', function(e) {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                const search = document.getElementById('searchInput').value;
+                const status = document.getElementById('statusFilter').value;
+                const department = document.getElementById('departmentFilter').value;
+                loadDesignations(search, status, department);
+            }, 500);
+        });
         // Event Listeners
         document.getElementById('searchBtn').addEventListener('click', function() {
             const search = document.getElementById('searchInput').value;

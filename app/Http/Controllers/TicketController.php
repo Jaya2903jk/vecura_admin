@@ -37,7 +37,7 @@ class TicketController extends Controller
         $currentUserId = session('user_id');
         // Logged in user
         $loginUser = UserMaster::where('UserID', $currentUserId)->first();
-        $totalTickets = IssueTicket::whereIn('type', ['vsupport', 'hr', 'biomedical', 'accounts', 'Settlement', 'petty cash', 'petty bill','facility'])->count();
+        $totalTickets = IssueTicket::whereIn('type', ['vsupport', 'hr', 'biomedical', 'accounts', 'Settlement', 'petty cash', 'petty bill', 'facility'])->count();
 
         $perPage = $request->get('per_page', 10);
         $status = $request->status;
@@ -61,8 +61,12 @@ class TicketController extends Controller
                 },
             ])
             ->orderBy('CreatedDate', 'desc')
-            ->whereIn('type', ['vsupport', 'hr', 'biomedical', 'accounts', 'Settlement', 'petty cash', 'petty bill','facility']);
+            ->whereIn('type', ['vsupport', 'hr', 'biomedical', 'accounts', 'Settlement', 'petty cash', 'petty bill', 'facility']);
 
+        // if (!session('is_admin')) {
+        //     $q->where('UserId', $currentUserId);  // Now it's numeric
+        // }
+        // dd( $q->get());
         if ($request->has('type') && $type != '') {
             $q->where('type', $type);
         }
@@ -70,7 +74,7 @@ class TicketController extends Controller
             $q->where('Status', $status);
         }
         $tickets = $q->paginate($perPage)->appends($request->all());
-        $currentUserId = session('user_id');
+        // $currentUserId = session('user_id');
 
         $assignList = UserMaster::with('designation')
             ->where('UserID', '!=', $currentUserId)
@@ -772,7 +776,6 @@ class TicketController extends Controller
                     IssueTicket::where('ticketId', $settlement->ticket_id)
                         ->where('Status', 0)
                         ->update(['Status' => 0]);
-                   
                 } elseif ($issueId == $PC_REQUEST) {
 
                     // ── Validator ─────────────────────────────────────────────────────
@@ -1442,10 +1445,10 @@ class TicketController extends Controller
             ->where('UserID', $currentUserId)
             ->first();
 
-        $currentUserCode = $user->UserCode ?? null;
+        $currentUserId = $user->UserCode ?? null;
         $designationName = $user->designation->Designation ?? null;
-        $currentUserCode = session('user_code'); // if available
-        $currentUserCode = UserMaster::where('UserID', $currentUserId)
+        $currentUserId = session('user_code'); // if available
+        $currentUserId = UserMaster::where('UserID', $currentUserId)
             ->value('UserCode');
 
         $firstComplaint = $ticket->complaints()
@@ -1464,7 +1467,7 @@ class TicketController extends Controller
 
         // ROLE FLAGS
         $isCreator = $currentUserId == $createdById;
-        $isAssignee = $currentUserCode == $currentAssigneeId;
+        $isAssignee = $currentUserId == $currentAssigneeId;
 
         $isAdmin = in_array(session('role_name'), ['Admin']);
         // $isAuditTeam = in_array(session('role_name'), ['Audit']);
