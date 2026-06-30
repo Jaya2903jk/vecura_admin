@@ -16,6 +16,7 @@ use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\SettlementController;
 use App\Http\Controllers\StaffController;
+use App\Http\Controllers\TargetController;
 use App\Http\Controllers\TicketController;
 use App\Http\Controllers\PcRequestController;
 use App\Http\Controllers\PcBillController;
@@ -24,9 +25,9 @@ use App\Http\Controllers\FacilityIssueCategoryController;
 use App\Models\IssueCategory;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
-
 use App\Models\UserMaster;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
 
 Route::get('/', function () {
     return view('login');
@@ -35,7 +36,19 @@ Route::get('/', function () {
 Route::post('/login', [AuthController::class, 'login'])->name('login.post');
 
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+Route::get('/test-mail', function () {
 
+    try {
+        Mail::raw('This is a test email from Laravel SMTP.', function ($message) {
+            $message->to('vecura.developer@gmail.com')
+                ->subject('Laravel SMTP Test');
+        });
+
+        return "✅ Mail sent successfully!";
+    } catch (\Exception $e) {
+        return "❌ Error: " . $e->getMessage();
+    }
+});
 // Protected routes
 Route::middleware(['auth.custom', 'nocache'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
@@ -85,6 +98,11 @@ Route::middleware(['auth.custom', 'nocache'])->group(function () {
     // ════════════════════════════════════════════════════════════════════
 
     Route::get('/employee/{employeeId}/workflow/status', [\App\Http\Controllers\EmployeeWorkflowController::class, 'getEmployeeStatus'])->middleware('check.permission:read,staff')->name('employee.workflow.status');
+
+    // ════════════════════════════════════════════════════════════════════
+    // TARGETS & PROJECTIONS
+    // ════════════════════════════════════════════════════════════════════
+    Route::resource('targets', TargetController::class)->middleware('check.permission:read,staff');
 
     // ── Master Module ──────────────────────────────────────────────
     require app_path('Modules/Master/routes.php');
@@ -183,4 +201,25 @@ Route::middleware(['auth.custom', 'nocache'])->group(function () {
 Route::get('/test-db', function () {
     $data = DB::select('SELECT TOP 10 * FROM User_Master');
     return response()->json($data);
+});
+
+Route::get('/test-pdf', function () {
+    try {
+        $employee = DB::table('User_Master')->first();
+
+        if (!$employee) {
+            return "❌ No employee found in database";
+        }
+
+        $offerLetterService = new \App\Services\OfferLetterService();
+        $path = $offerLetterService->generateOfferLetter($employee);
+
+        if ($path && file_exists($path)) {
+            return "✅ PDF generated successfully at: " . $path . "<br>File size: " . filesize($path) . " bytes";
+        } else {
+            return "❌ PDF not found at: " . $path;
+        }
+    } catch (\Exception $e) {
+        return "❌ Error: " . $e->getMessage();
+    }
 });

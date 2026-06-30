@@ -22,18 +22,19 @@
                 <i class="ti ti-info-circle me-2"></i>
                 <strong>Default Login Password for New Employees:</strong>
                 <span class=" text-dark px-3 py-2 ms-2"><strong>Vecura@123</strong></span>
-                <small class="d-block mt-2 text-muted">Share this password when creating new employees. They must change it on first login.</small>
+                <small class="d-block mt-2 text-muted">Share this password when creating new employees. They must change it
+                    on first login.</small>
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
             <div class="card mb-3">
                 <div class="card-body">
                     {{-- <form method="GET" action="{{ route('staff.index') }}" id="filterForm"> --}}
-                        <form id="filterForm">
+                    <form id="filterForm">
                         <div class="row g-3">
                             <div class="col-md-3">
                                 <label class="form-label fw-semibold">Search</label>
-                                <input type="text" name="search" id="searchInput" class="form-control" placeholder="Name, Code, Email..."
-                                    value="{{ $search }}">
+                                <input type="text" name="search" id="searchInput" class="form-control"
+                                    placeholder="Name, Code, Email..." value="{{ $search }}">
                             </div>
                             <div class="col-md-2">
                                 <label class="form-label fw-semibold">Department</label>
@@ -81,9 +82,10 @@
                                 </select>
                             </div>
                             <div class="col-md-2 d-flex align-items-end gap-2">
-                                <button type="button" id="resetBtn" class="btn btn-secondary w-100" onclick="resetFiltersAjax()">
-    <i class="ti ti-reload me-1"></i>Reset
-</button>
+                                <button type="button" id="resetBtn" class="btn btn-secondary w-100"
+                                    onclick="resetFiltersAjax()">
+                                    <i class="ti ti-reload me-1"></i>Reset
+                                </button>
                             </div>
 
                         </div>
@@ -92,15 +94,16 @@
             </div>
 
             <div class="card border-0" id="employeeTableCard">
-    <div class="card-body p-0">
-        <div id="loadingSpinner" class="text-center py-5" style="display: none; position: absolute; width: 100%; background: white; z-index: 100;">
-            <div class="spinner-border text-primary" role="status">
-                <span class="visually-hidden">Loading...</span>
-            </div>
-            <p class="mt-3 text-muted fw-semibold">Loading employees...</p>
-        </div>
-        <div class="table-responsive" id="tableContainer">
-            <table class="table table-hover mb-0">
+                <div class="card-body p-0">
+                    <div id="loadingSpinner" class="text-center py-5"
+                        style="display: none; position: absolute; width: 100%; background: white; z-index: 100;">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="mt-3 text-muted fw-semibold">Loading employees...</p>
+                    </div>
+                    <div class="table-responsive" id="tableContainer">
+                        <table class="table table-hover mb-0">
                             <thead class="table-light" style="position: sticky; top: 0; z-index: 10;">
                                 <tr>
                                     <th style="width: 18%">Name / Code</th>
@@ -109,8 +112,8 @@
                                     <th style="width: 12%">Designation</th>
                                     <th style="width: 12%">Manager</th>
                                     <th style="width: 12%">Branch</th>
-                                    <th style="width: 12%">Office Type</th>
-                                    <th style="width: 8%">Status</th>
+                                    <th style="width: 10%">User Status</th>
+                                    <th style="width: 12%">Employee Status</th>
                                     <th style="width: 18%">Actions</th>
                                 </tr>
                             </thead>
@@ -134,14 +137,54 @@
                                                 <span class="text-muted">-</span>
                                             @endif
                                         </td>
-                                         <td>{{ $emp->branch?->branch_name ?? '-' }}</td>
-                                        <td>{{ $emp->branch?->Branchname ?? ($emp->office_type ?? '-') }}</td>
+                                        <td>{{ $emp->branch?->branch_name ?? '-' }}</td>
                                         <td>
-                                            @if ($emp->UserStatus == 'Active')
-                                                <span class="badge badge-soft-success border border-success">Active</span>
-                                            @else
-                                                <span class="badge badge-soft-danger border border-danger">InActive</span>
-                                            @endif
+                                            <select class="form-select form-select-sm user-status-dropdown"
+                                                data-emp-id="{{ $emp->UserID }}"
+                                                onchange="updateUserStatus({{ $emp->UserID }}, this.value)">
+                                                <option value="Active"
+                                                    {{ $emp->UserStatus == 'Active' ? 'selected' : '' }}>Active</option>
+                                                <option value="InActive"
+                                                    {{ $emp->UserStatus == 'InActive' ? 'selected' : '' }}>InActive
+                                                </option>
+                                            </select>
+                                        </td>
+                                        <td>
+                                            <select class="form-select form-select-sm employee-status-dropdown"
+                                                data-emp-id="{{ $emp->UserID }}"
+                                                onchange="updateEmployeeStatus({{ $emp->UserID }}, this.value)">
+                                                <option value="">-- Select --</option>
+                                                <option value="Active"
+                                                    {{ $emp->employee_status == 'Active' ? 'selected' : '' }}>Active
+                                                </option>
+                                                <option value="Inactive"
+                                                    {{ $emp->employee_status == 'Inactive' ? 'selected' : '' }}>Inactive
+                                                </option>
+                                                <option value="On Probation"
+                                                    {{ $emp->employee_status == 'On Probation' ? 'selected' : '' }}>On
+                                                    Probation</option>
+                                                <option value="Confirmed"
+                                                    {{ $emp->employee_status == 'Confirmed' ? 'selected' : '' }}>Confirmed
+                                                </option>
+                                                <option value="Notice Period"
+                                                    {{ $emp->employee_status == 'Notice Period' ? 'selected' : '' }}>Notice
+                                                    Period</option>
+                                                <option value="Resigned"
+                                                    {{ $emp->employee_status == 'Resigned' ? 'selected' : '' }}>Resigned
+                                                </option>
+                                                <option value="Terminated"
+                                                    {{ $emp->employee_status == 'Terminated' ? 'selected' : '' }}>
+                                                    Terminated</option>
+                                                <option value="Absconding"
+                                                    {{ $emp->employee_status == 'Absconding' ? 'selected' : '' }}>
+                                                    Absconding</option>
+                                                <option value="On Leave"
+                                                    {{ $emp->employee_status == 'On Leave' ? 'selected' : '' }}>On Leave
+                                                </option>
+                                                <option value="Relieved"
+                                                    {{ $emp->employee_status == 'Relieved' ? 'selected' : '' }}>Relieved
+                                                </option>
+                                            </select>
                                         </td>
 
                                         <td>
@@ -279,7 +322,7 @@
                                     </div>
                                 </div>
                                 <div class="mb-3">
-                                    <label class="form-label">Email</label>
+                                    <label class="form-label">Email<span class="text-danger">*</span></label>
                                     <input type="email" name="email" class="form-control"
                                         placeholder="employee@company.com">
                                 </div>
@@ -633,9 +676,18 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
 
+    <style>
+        /* Professional ERP Status Dropdown Styling */
+        .user-status-dropdown,
+        .employee-status-dropdown {
+            font-size: 13px;
+            font-weight: 500;
+            letter-spacing: 0.3px;
+        }
+    </style>
+
     <script>
         let currentEmployeeId = null;
-
 
         // Show role description when selected
         document.getElementById('roleSelect')?.addEventListener('change', function() {
@@ -654,6 +706,92 @@
             url.searchParams.set('per_page', this.value);
             window.location.href = url.toString();
         });
+
+        // Update user status (Active/InActive) via AJAX
+        function updateUserStatus(empId, newStatus) {
+            const dropdown = document.querySelector(`.user-status-dropdown[data-emp-id="${empId}"]`);
+            if (!dropdown) return;
+
+            const originalValue = dropdown.value;
+            dropdown.disabled = true;
+
+            fetch(`/staff/${empId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'X-HTTP-Method-Override': 'PUT'
+                    },
+                    body: JSON.stringify({
+                        user_status: newStatus
+                    })
+                })
+                .then(r => r.json())
+                .then(data => {
+                    dropdown.disabled = false;
+                    if (data.status) {
+                        dropdown.value = newStatus;
+                        Swal.fire({
+                            title: 'Success',
+                            text: `User status updated to ${newStatus}`,
+                            icon: 'success',
+                            timer: 2000
+                        });
+                    } else {
+                        dropdown.value = originalValue;
+                        Swal.fire('Error', data.message || 'Failed to update status', 'error');
+                    }
+                })
+                .catch(error => {
+                    dropdown.disabled = false;
+                    dropdown.value = originalValue;
+                    console.error('Error:', error);
+                    Swal.fire('Error', 'An error occurred while updating status', 'error');
+                });
+        }
+
+        // Update employee status (employment lifecycle) via AJAX
+        function updateEmployeeStatus(empId, newStatus) {
+            const dropdown = document.querySelector(`.employee-status-dropdown[data-emp-id="${empId}"]`);
+            if (!dropdown) return;
+
+            const originalValue = dropdown.value;
+            dropdown.disabled = true;
+
+            fetch(`/staff/${empId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'X-HTTP-Method-Override': 'PUT'
+                    },
+                    body: JSON.stringify({
+                        employee_status: newStatus
+                    })
+                })
+                .then(r => r.json())
+                .then(data => {
+                    dropdown.disabled = false;
+                    if (data.status) {
+                        dropdown.value = newStatus;
+                        Swal.fire({
+                            title: 'Success',
+                            text: `Employee status updated to ${newStatus}`,
+                            icon: 'success',
+                            timer: 2000
+                        });
+                    } else {
+                        dropdown.value = originalValue;
+                        Swal.fire('Error', data.message || 'Failed to update status', 'error');
+                    }
+                })
+                .catch(error => {
+                    dropdown.disabled = false;
+                    dropdown.value = originalValue;
+                    console.error('Error:', error);
+                    Swal.fire('Error', 'An error occurred while updating employee status', 'error');
+                });
+        }
 
         // Generate Employee Code when modal opens
         document.getElementById('addEmployeeModal').addEventListener('show.bs.modal', function(e) {
@@ -964,123 +1102,144 @@
                 }
             });
         }
-let autoFilterTimeout = null;
+        let autoFilterTimeout = null;
 
-// Auto-search and filter on input change (AJAX)
-function triggerAutoFilter() {
-    clearTimeout(autoFilterTimeout);
-    autoFilterTimeout = setTimeout(() => {
-        loadEmployeesAjax();
-    }, 300);
-}
-
-// Load employees via AJAX
-// function loadEmployeesAjax() {
-//     const search = document.getElementById('searchInput').value;
-//     const department = document.getElementById('departmentFilter').value;
-//     const designation = document.getElementById('designationFilter').value;
-//     const branch = document.getElementById('branchFilter').value;
-//     const status = document.getElementById('statusFilter').value;
-
-//     const params = new URLSearchParams();
-//     if (search) params.append('search', search);
-//     if (department) params.append('department', department);
-//     if (designation) params.append('designation', designation);
-//     if (branch) params.append('branch', branch);
-//     if (status) params.append('status', status);
-
-//     fetch(`{{ route('staff.index') }}?${params.toString()}`, {
-//         method: 'GET',
-//         headers: {
-//             'Accept': 'application/json',
-//             'X-CSRF-TOKEN': '{{ csrf_token() }}'
-//         }
-//     })
-//     .then(r => r.json())
-//     .then(data => {
-//         if (data.employees && data.employees.length > 0) {
-//             renderEmployeeTableAjax(data.employees);
-//         } else {
-//             document.querySelector('tbody').innerHTML = '<tr><td colspan="9" class="text-center text-muted py-4">No employees found</td></tr>';
-//         }
-//     })
-//     .catch(e => console.error('Error:', e));
-// }
-// Load employees via AJAX
-function loadEmployeesAjax() {
-    const search = document.getElementById('searchInput').value;
-    const department = document.getElementById('departmentFilter').value;
-    const designation = document.getElementById('designationFilter').value;
-    const branch = document.getElementById('branchFilter').value;
-    const status = document.getElementById('statusFilter').value;
-
-    const params = new URLSearchParams();
-    if (search) params.append('search', search);
-    if (department) params.append('department', department);
-    if (designation) params.append('designation', designation);
-    if (branch) params.append('branch', branch);
-    if (status) params.append('status', status);
-
-    // Show loader
-    const spinner = document.getElementById('loadingSpinner');
-    const tableContainer = document.getElementById('tableContainer');
-    const card = document.getElementById('employeeTableCard');
-
-    spinner.style.display = 'block';
-    tableContainer.style.opacity = '0.3';
-    card.style.position = 'relative';
-
-    fetch(`{{ route('staff.index') }}?${params.toString()}`, {
-        method: 'GET',
-        headers: {
-            'X-Requested-With': 'XMLHttpRequest',
-            'Accept': 'application/json',
-            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+        // Auto-search and filter on input change (AJAX)
+        function triggerAutoFilter() {
+            clearTimeout(autoFilterTimeout);
+            autoFilterTimeout = setTimeout(() => {
+                loadEmployeesAjax();
+            }, 300);
         }
-    })
-    .then(r => {
-        console.log('Response status:', r.status);
-        if (!r.ok) {
-            throw new Error(`HTTP Error: ${r.status}`);
+
+        // Load employees via AJAX
+        // function loadEmployeesAjax() {
+        //     const search = document.getElementById('searchInput').value;
+        //     const department = document.getElementById('departmentFilter').value;
+        //     const designation = document.getElementById('designationFilter').value;
+        //     const branch = document.getElementById('branchFilter').value;
+        //     const status = document.getElementById('statusFilter').value;
+
+        //     const params = new URLSearchParams();
+        //     if (search) params.append('search', search);
+        //     if (department) params.append('department', department);
+        //     if (designation) params.append('designation', designation);
+        //     if (branch) params.append('branch', branch);
+        //     if (status) params.append('status', status);
+
+        //     fetch(`{{ route('staff.index') }}?${params.toString()}`, {
+        //         method: 'GET',
+        //         headers: {
+        //             'Accept': 'application/json',
+        //             'X-CSRF-TOKEN': '{{ csrf_token() }}'
+        //         }
+        //     })
+        //     .then(r => r.json())
+        //     .then(data => {
+        //         if (data.employees && data.employees.length > 0) {
+        //             renderEmployeeTableAjax(data.employees);
+        //         } else {
+        //             document.querySelector('tbody').innerHTML = '<tr><td colspan="9" class="text-center text-muted py-4">No employees found</td></tr>';
+        //         }
+        //     })
+        //     .catch(e => console.error('Error:', e));
+        // }
+        // Load employees via AJAX
+        function loadEmployeesAjax() {
+            const search = document.getElementById('searchInput').value;
+            const department = document.getElementById('departmentFilter').value;
+            const designation = document.getElementById('designationFilter').value;
+            const branch = document.getElementById('branchFilter').value;
+            const status = document.getElementById('statusFilter').value;
+
+            const params = new URLSearchParams();
+            if (search) params.append('search', search);
+            if (department) params.append('department', department);
+            if (designation) params.append('designation', designation);
+            if (branch) params.append('branch', branch);
+            if (status) params.append('status', status);
+
+            // Show loader
+            const spinner = document.getElementById('loadingSpinner');
+            const tableContainer = document.getElementById('tableContainer');
+            const card = document.getElementById('employeeTableCard');
+
+            spinner.style.display = 'block';
+            tableContainer.style.opacity = '0.3';
+            card.style.position = 'relative';
+
+            fetch(`{{ route('staff.index') }}?${params.toString()}`, {
+                    method: 'GET',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    }
+                })
+                .then(r => {
+                    console.log('Response status:', r.status);
+                    if (!r.ok) {
+                        throw new Error(`HTTP Error: ${r.status}`);
+                    }
+                    return r.json();
+                })
+                .then(data => {
+                    console.log('Data received:', data);
+
+                    // Hide loader
+                    spinner.style.display = 'none';
+                    tableContainer.style.opacity = '1';
+
+                    if (data.employees && data.employees.length > 0) {
+                        renderEmployeeTableAjax(data.employees);
+                    } else {
+                        document.querySelector('tbody').innerHTML =
+                            '<tr><td colspan="9" class="text-center text-muted py-4">No employees found</td></tr>';
+                    }
+                })
+                .catch(error => {
+                    console.error('Full error:', error);
+
+                    // Hide loader on error
+                    spinner.style.display = 'none';
+                    tableContainer.style.opacity = '1';
+
+                    Swal.fire('Error', 'Failed to load employees: ' + error.message, 'error');
+                });
         }
-        return r.json();
-    })
-    .then(data => {
-        console.log('Data received:', data);
+        // Render employee table from AJAX data
+        function renderEmployeeTableAjax(employees) {
+            let html = '';
+            employees.forEach(emp => {
+                const deptName = emp.department?.DepartmentName ?? '-';
+                const desName = emp.designation?.Designation ?? '-';
+                const managerName = emp.manager?.FullName ?? '-';
+                const branchName = emp.branch?.Branchname ?? emp.branch?.branch_name ?? '-';
 
-        // Hide loader
-        spinner.style.display = 'none';
-        tableContainer.style.opacity = '1';
+                const userStatusDropdown = `
+            <select class="form-select form-select-sm user-status-dropdown" data-emp-id="${emp.UserID}" onchange="updateUserStatus(${emp.UserID}, this.value)">
+                <option value="Active" ${emp.UserStatus === 'Active' ? 'selected' : ''}>Active</option>
+                <option value="InActive" ${emp.UserStatus === 'InActive' ? 'selected' : ''}>InActive</option>
+            </select>
+        `;
 
-        if (data.employees && data.employees.length > 0) {
-            renderEmployeeTableAjax(data.employees);
-        } else {
-            document.querySelector('tbody').innerHTML = '<tr><td colspan="9" class="text-center text-muted py-4">No employees found</td></tr>';
-        }
-    })
-    .catch(error => {
-        console.error('Full error:', error);
+                const employeeStatusDropdown = `
+            <select class="form-select form-select-sm employee-status-dropdown" data-emp-id="${emp.UserID}" onchange="updateEmployeeStatus(${emp.UserID}, this.value)">
+                <option value="">-- Select --</option>
+                <option value="Active" ${emp.employee_status === 'Active' ? 'selected' : ''}>Active</option>
+                <option value="Inactive" ${emp.employee_status === 'Inactive' ? 'selected' : ''}>Inactive</option>
+                <option value="On Probation" ${emp.employee_status === 'On Probation' ? 'selected' : ''}>On Probation</option>
+                <option value="Confirmed" ${emp.employee_status === 'Confirmed' ? 'selected' : ''}>Confirmed</option>
+                <option value="Notice Period" ${emp.employee_status === 'Notice Period' ? 'selected' : ''}>Notice Period</option>
+                <option value="Resigned" ${emp.employee_status === 'Resigned' ? 'selected' : ''}>Resigned</option>
+                <option value="Terminated" ${emp.employee_status === 'Terminated' ? 'selected' : ''}>Terminated</option>
+                <option value="Absconding" ${emp.employee_status === 'Absconding' ? 'selected' : ''}>Absconding</option>
+                <option value="On Leave" ${emp.employee_status === 'On Leave' ? 'selected' : ''}>On Leave</option>
+                <option value="Relieved" ${emp.employee_status === 'Relieved' ? 'selected' : ''}>Relieved</option>
+            </select>
+        `;
 
-        // Hide loader on error
-        spinner.style.display = 'none';
-        tableContainer.style.opacity = '1';
-
-        Swal.fire('Error', 'Failed to load employees: ' + error.message, 'error');
-    });
-}
-// Render employee table from AJAX data
-function renderEmployeeTableAjax(employees) {
-    let html = '';
-    employees.forEach(emp => {
-        const deptName = emp.department?.DepartmentName ?? '-';
-        const desName = emp.designation?.Designation ?? '-';
-        const managerName = emp.manager?.FullName ?? '-';
-        const branchName = emp.branch?.Branchname ?? emp.branch?.branch_name ?? '-';
-        const statusBadge = emp.UserStatus === 'Active'
-            ? '<span class="badge badge-soft-success border border-success">Active</span>'
-            : '<span class="badge badge-soft-danger border border-danger">InActive</span>';
-
-        html += `
+                html += `
             <tr>
                 <td>
                     <strong>${emp.FullName}</strong>
@@ -1094,9 +1253,11 @@ function renderEmployeeTableAjax(employees) {
                     ${emp.manager_id && emp.manager ? `${managerName}<br><small class="text-muted">${emp.manager.designation?.Designation ?? ''}</small>` : '<span class="text-muted">-</span>'}
                 </td>
                 <td>${branchName}</td>
-                <td>${emp.office_type ?? '-'}</td>
                 <td>
-                    ${statusBadge}
+                    ${userStatusDropdown}
+                </td>
+                <td>
+                    ${employeeStatusDropdown}
                 </td>
                 <td>
                     <div class="action-item">
@@ -1135,38 +1296,39 @@ function renderEmployeeTableAjax(employees) {
                 </td>
             </tr>
         `;
-    });
-    document.querySelector('tbody').innerHTML = html;
-}
+            });
+            document.querySelector('tbody').innerHTML = html;
+        }
 
-// Search input auto-filter on keystroke
-document.getElementById('searchInput')?.addEventListener('keyup', function(e) {
-    triggerAutoFilter();
-});
+        // Search input auto-filter on keystroke
+        document.getElementById('searchInput')?.addEventListener('keyup', function(e) {
+            triggerAutoFilter();
+        });
 
-// Filter dropdowns auto-filter on change
-document.getElementById('departmentFilter')?.addEventListener('change', function() {
-    triggerAutoFilter();
-});
+        // Filter dropdowns auto-filter on change
+        document.getElementById('departmentFilter')?.addEventListener('change', function() {
+            triggerAutoFilter();
+        });
 
-document.getElementById('designationFilter')?.addEventListener('change', function() {
-    triggerAutoFilter();
-});
+        document.getElementById('designationFilter')?.addEventListener('change', function() {
+            triggerAutoFilter();
+        });
 
-document.getElementById('branchFilter')?.addEventListener('change', function() {
-    triggerAutoFilter();
-});
+        document.getElementById('branchFilter')?.addEventListener('change', function() {
+            triggerAutoFilter();
+        });
 
-document.getElementById('statusFilter')?.addEventListener('change', function() {
-    triggerAutoFilter();
-});
-function resetFiltersAjax() {
-    document.getElementById('searchInput').value = '';
-    document.getElementById('departmentFilter').value = '';
-    document.getElementById('designationFilter').value = '';
-    document.getElementById('branchFilter').value = '';
-    document.getElementById('statusFilter').value = '';
-    loadEmployeesAjax();
-}
+        document.getElementById('statusFilter')?.addEventListener('change', function() {
+            triggerAutoFilter();
+        });
+
+        function resetFiltersAjax() {
+            document.getElementById('searchInput').value = '';
+            document.getElementById('departmentFilter').value = '';
+            document.getElementById('designationFilter').value = '';
+            document.getElementById('branchFilter').value = '';
+            document.getElementById('statusFilter').value = '';
+            loadEmployeesAjax();
+        }
     </script>
 @endsection

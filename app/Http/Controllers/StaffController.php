@@ -10,8 +10,12 @@ use App\Models\Role;
 use App\Models\EmployeeRole;
 use App\Models\EmployeeOnboarding;
 use App\Models\EmployeeOffboarding;
+use App\Mail\EmployeeWelcomeMail;
+use App\Services\OfferLetterService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Log;
 
 class StaffController extends Controller
 {
@@ -189,6 +193,9 @@ class StaffController extends Controller
 
     public function store(Request $request)
     {
+        // Ensure JSON response for JSON requests
+        $request->headers->set('Accept', 'application/json');
+
         $validated = $request->validate([
             // Basic Info
             'first_name' => 'required|string|max:100',
@@ -307,6 +314,38 @@ class StaffController extends Controller
 
             DB::commit();
 
+            // Send welcome email with offer letter (optional - doesn't block employee creation)
+            try {
+                $employee->load(['designation', 'department', 'branch']);
+
+                if ($employee->EmailId) {
+                    $offerLetterPath = null;
+
+                    // Generate PDF offer letter
+                    if (class_exists('Barryvdh\DomPDF\Facade\Pdf')) {
+                        try {
+                            $offerLetterService = new OfferLetterService();
+                            $generatedPath = $offerLetterService->generateOfferLetter($employee);
+
+                            if ($generatedPath && file_exists($generatedPath)) {
+                                $offerLetterPath = $generatedPath;
+                                Log::info('PDF generated successfully: ' . $offerLetterPath);
+                            } else {
+                                Log::warning('PDF generation failed: File not found at ' . $generatedPath);
+                            }
+                        } catch (\Exception $pdfError) {
+                            Log::warning('PDF generation exception: ' . $pdfError->getMessage());
+                        }
+                    }
+
+                    // Queue welcome email with PDF attachment (sends in background)
+                    Mail::queue(new EmployeeWelcomeMail($employee, $offerLetterPath));
+                    Log::info('Welcome email queued for ' . $employee->EmailId . ' for employee ' . $employee->UserCode . (($offerLetterPath) ? ' with PDF attached' : ' without PDF'));
+                }
+            } catch (\Exception $e) {
+                Log::error('Failed to send welcome email for employee ' . $employee->UserID . ': ' . $e->getMessage());
+            }
+
             return response()->json([
                 'status' => true,
                 'message' => 'Employee created successfully',
@@ -379,6 +418,54 @@ class StaffController extends Controller
 
     public function update(Request $request, $id)
     {
+        // Check if this is a status-only update
+        if (($request->has('user_status') || $request->has('employee_status')) && count($request->all()) <= 3) {
+            // User Status update
+            if ($request->has('user_status')) {
+                $validated = $request->validate([
+                    'user_status' => 'required|in:Active,InActive',
+                ]);
+
+                try {
+                    $employee = UserMaster::findOrFail($id);
+                    $employee->update(['UserStatus' => $validated['user_status']]);
+
+                    return response()->json([
+                        'status' => true,
+                        'message' => 'User status updated successfully'
+                    ]);
+                } catch (\Exception $e) {
+                    return response()->json([
+                        'status' => false,
+                        'message' => 'Error: ' . $e->getMessage()
+                    ], 500);
+                }
+            }
+
+            // Employee Status update
+            if ($request->has('employee_status')) {
+                $validated = $request->validate([
+                    'employee_status' => 'required|in:Active,Inactive,On Probation,Confirmed,Notice Period,Resigned,Terminated,Absconding,On Leave,Relieved',
+                ]);
+
+                try {
+                    $employee = UserMaster::findOrFail($id);
+                    $employee->update(['employee_status' => $validated['employee_status']]);
+
+                    return response()->json([
+                        'status' => true,
+                        'message' => 'Employee status updated successfully'
+                    ]);
+                } catch (\Exception $e) {
+                    return response()->json([
+                        'status' => false,
+                        'message' => 'Error: ' . $e->getMessage()
+                    ], 500);
+                }
+            }
+        }
+
+        // Full update validation
         $validated = $request->validate([
             // Basic Info
             'first_name' => 'required|string|max:100',
@@ -388,7 +475,7 @@ class StaffController extends Controller
             'department_id' => 'required|exists:issueDepartmentMaster,Departmentid',
             'designation_code' => 'required|exists:DesignationMaster,DesignationCode',
             'office_type' => 'required|in:Branch Location,Corporate Office,Head Office,Regional Office',
-            'user_status' => 'required|in:Active,InActive',
+            'user_status' => 'required|in:Active,InActive,On Probation,Confirmed,Notice Period,Resigned,Terminated,Absconding,On Leave,Relieved',
             'manager_id' => 'nullable|exists:User_Master,UserID',
 
             // Personal Details
