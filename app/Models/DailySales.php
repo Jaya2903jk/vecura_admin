@@ -5,25 +5,28 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class Target extends Model
+class DailySales extends Model
 {
     use SoftDeletes;
 
     protected $fillable = [
         'user_id',
         'branch_id',
-        'target_type',
-        'target_amount',
-        'effective_from',
-        'effective_to',
-        'description',
-        'created_by',
+        'sale_date',
+        'day_target',
+        'day_sales',
+        'visits',
+        'joined',
+        'cc_appointments',
+        'sales_type',
+        'notes',
+        'entered_by',
     ];
 
     protected $casts = [
-        'effective_from' => 'date',
-        'effective_to' => 'date',
-        'target_amount' => 'decimal:2',
+        'sale_date' => 'date',
+        'day_target' => 'decimal:2',
+        'day_sales' => 'decimal:2',
     ];
 
     public function employee()

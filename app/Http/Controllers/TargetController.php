@@ -60,7 +60,7 @@ class TargetController extends Controller
     {
         $validated = $request->validate([
             'user_id' => 'nullable|exists:User_Master,UserID',
-            'branch_id' => 'nullable|exists:new_branches,id',
+            'branch_id' => 'nullable|exists:branch,branch_id',
             'target_type' => 'required|in:day,month',
             'target_amount' => 'required|numeric|min:0',
             'effective_from' => 'required|date',
@@ -87,7 +87,7 @@ class TargetController extends Controller
     {
         $validated = $request->validate([
             'user_id' => 'nullable|exists:User_Master,UserID',
-            'branch_id' => 'nullable|exists:new_branches,id',
+            'branch_id' => 'nullable|exists:branch,branch_id',
             'target_type' => 'required|in:day,month',
             'target_amount' => 'required|numeric|min:0',
             'effective_from' => 'required|date',

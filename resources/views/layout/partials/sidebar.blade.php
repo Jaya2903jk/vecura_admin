@@ -193,21 +193,10 @@
                     @endisAdmin --}}
 
 
-                    @php
-                        $moduleGroups = \App\Models\Module::whereNotNull('parent')
-                            ->where('is_active', 1)
-                            ->orderBy('parent')
-                            ->orderBy('sort_order')
-                            ->get()
-                            ->groupBy('parent');
-                    @endphp
-                    @foreach ($moduleGroups as $parentName => $modules)
+                    <!-- Sidebar modules loaded from cache (1 hour TTL) -->
+                    @forelse ($moduleGroups as $parentName => $modules)
                         @php
                             $moduleNames = $modules->pluck('name')->toArray();
-
-                            // $hasPermission =
-                            //     session('is_admin') ||
-                            //     \App\Helpers\RbacHelper::hasPermissionForAny('read', $moduleNames);
                             $hasAnyMasterPermission =
                                 session('is_admin') ||
                                 \App\Helpers\RbacHelper::hasPermissionForAny('read', $moduleNames);
@@ -263,7 +252,9 @@
                                 </ul>
                             </li>
                         @endif
-                    @endforeach
+                    @empty
+                        <li class="text-muted text-center py-2">No modules available</li>
+                    @endforelse
 
 
                     {{-- <li class="menu-title"><span>Ticket Masters</span></li>

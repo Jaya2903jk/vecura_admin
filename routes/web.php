@@ -22,6 +22,7 @@ use App\Http\Controllers\PcRequestController;
 use App\Http\Controllers\PcBillController;
 use App\Http\Controllers\FacilityController;
 use App\Http\Controllers\FacilityIssueCategoryController;
+use App\Http\Controllers\Admin\CacheController;
 use App\Models\IssueCategory;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
@@ -103,12 +104,17 @@ Route::middleware(['auth.custom', 'nocache'])->group(function () {
     // TARGETS & PROJECTIONS
     // ════════════════════════════════════════════════════════════════════
     Route::resource('targets', TargetController::class)->middleware('check.permission:read,staff');
+    Route::get('/sales-report', [\App\Http\Controllers\SalesReportController::class, 'index'])->middleware('check.permission:read,staff')->name('sales-report.index');
+    Route::get('/sales-report-complete', [\App\Http\Controllers\SalesReportController::class, 'indexComplete'])->middleware('check.permission:read,staff')->name('sales-report.complete');
+    Route::get('/sales-report/export-pdf', [\App\Http\Controllers\SalesReportController::class, 'exportPdf'])->middleware('check.permission:read,staff')->name('sales-report.export-pdf');
+    Route::get('/sales-report/export-excel', [\App\Http\Controllers\SalesReportController::class, 'exportExcel'])->middleware('check.permission:read,staff')->name('sales-report.export-excel');
 
     // ── Master Module ──────────────────────────────────────────────
     require app_path('Modules/Master/routes.php');
 
     Route::get('/role', [RoleController::class, 'index'])->name('role-permission.index');
     Route::get('/permission', [PermissionController::class, 'index'])->name('permission.index');
+
 
     Route::get('/category', [CategoryController::class, 'index'])->middleware('check.permission:read,category')->name('category.index');
     Route::post('/category/store', [CategoryController::class, 'store'])->middleware('check.permission:create,category')->name('category.store');
@@ -198,28 +204,4 @@ Route::middleware(['auth.custom', 'nocache'])->group(function () {
     });
 });
 
-Route::get('/test-db', function () {
-    $data = DB::select('SELECT TOP 10 * FROM User_Master');
-    return response()->json($data);
-});
 
-Route::get('/test-pdf', function () {
-    try {
-        $employee = DB::table('User_Master')->first();
-
-        if (!$employee) {
-            return "❌ No employee found in database";
-        }
-
-        $offerLetterService = new \App\Services\OfferLetterService();
-        $path = $offerLetterService->generateOfferLetter($employee);
-
-        if ($path && file_exists($path)) {
-            return "✅ PDF generated successfully at: " . $path . "<br>File size: " . filesize($path) . " bytes";
-        } else {
-            return "❌ PDF not found at: " . $path;
-        }
-    } catch (\Exception $e) {
-        return "❌ Error: " . $e->getMessage();
-    }
-});
