@@ -12,6 +12,7 @@ use App\Models\EmployeeOnboarding;
 use App\Models\EmployeeOffboarding;
 use App\Mail\EmployeeWelcomeMail;
 use App\Services\OfferLetterService;
+use App\Services\MasterDataCacheService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
@@ -19,68 +20,7 @@ use Illuminate\Support\Facades\Log;
 
 class StaffController extends Controller
 {
-    // public function index(Request $request)
-    // {
-    //     $perPage = $request->get('per_page', 10);
-    //     $search = $request->get('search', '');
-    //     $department = $request->get('department', '');
-    //     $designation = $request->get('designation', '');
-    //     $status = $request->get('status', '');
-    //     $branch = $request->get('branch', '');
-
-    //     $query = UserMaster::query();
-
-    //     // Manager sees only their subordinates, Admin sees all
-    //     if (!session('is_admin')) {
-    //         $userId = session('user_id');
-    //         $query->where('manager_id', $userId);
-    //     }
-
-    //     if ($search) {
-    //         $query->where('FullName', 'like', "%$search%")
-    //             ->orWhere('UserCode', 'like', "%$search%")
-    //             ->orWhere('EmailId', 'like', "%$search%");
-    //     }
-
-    //     if ($department) {
-    //         $query->whereHas('departments', function($q) use ($department) {
-    //             $q->where('Departmentid', $department);
-    //         });
-    //     }
-
-    //     if ($designation) {
-    //         $query->where('Designation', $designation);
-    //     }
-
-    //     if ($status) {
-    //         $query->where('UserStatus', $status);
-    //     }
-
-    //     if ($branch) {
-    //         $query->where('branch_id', $branch);
-    //     }
-
-    //     $employees = $query->with(['roles', 'departments','department', 'designation', 'branch', 'manager', 'manager.designation'])
-    //         ->paginate($perPage);
-
-    //     $branches = NewBranch::where('is_active', 1)->get();
-    //     $designations = Designation::all();
-    //     $departments = IssueDepartment::all();
-    //     $roles = Role::all();
-    //     return view('staff.management', [
-    //         'employees' => $employees,
-    //         'branches' => $branches,
-    //         'designations' => $designations,
-    //         'departments' => $departments,
-    //         'roles' => $roles,
-    //         'perPage' => $perPage,
-    //         'search' => $search,
-    //         'department' => $department,
-    //         'designation' => $designation,
-    //         'status' => $status,
-    //         'branch' => $branch
-    //     ]);
-    // }
+    // public function index(Request $request
     public function index(Request $request)
     {
         $perPage = $request->get('per_page', 10);
@@ -137,11 +77,11 @@ class StaffController extends Controller
             ]);
         }
 
-        // Return view for regular page load
-        $branches = NewBranch::where('is_active', 1)->get();
-        $designationsList = Designation::all();
-        $departmentsList = IssueDepartment::all();
-        $rolesList = Role::all();
+        // Return view for regular page load (using cached master data)
+        $branches = MasterDataCacheService::getBranches();
+        $designationsList = MasterDataCacheService::getDesignations();
+        $departmentsList = MasterDataCacheService::getDepartments();
+        $rolesList = MasterDataCacheService::getRoles();
 
         return view('staff.management', [
             'employees' => $employees,

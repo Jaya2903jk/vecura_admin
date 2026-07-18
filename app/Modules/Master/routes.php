@@ -8,6 +8,9 @@ use App\Modules\Master\Controllers\CountryController;
 use App\Modules\Master\Controllers\ZoneController;
 use App\Modules\Master\Controllers\StateController;
 use App\Modules\Master\Controllers\CityController;
+use App\Modules\Master\Controllers\OccupationController;
+use App\Modules\Master\Controllers\RegTypeController;
+use App\Modules\Master\Controllers\KnownByController;
 use Illuminate\Support\Facades\Route;
 
 // Department
@@ -61,6 +64,24 @@ Route::get('/city', [CityController::class, 'index'])->name('city.index');
 Route::post('/city/store', [CityController::class, 'store'])->name('city.store');
 Route::put('/city/{id}', [CityController::class, 'update'])->name('city.update');
 Route::delete('/city/{id}', [CityController::class, 'destroy'])->name('city.destroy');
+
+// Occupation
+Route::get('/occupation', [OccupationController::class, 'index'])->name('occupation.index');
+Route::post('/occupation/store', [OccupationController::class, 'store'])->name('occupation.store');
+Route::put('/occupation/{id}', [OccupationController::class, 'update'])->name('occupation.update');
+Route::delete('/occupation/{id}', [OccupationController::class, 'destroy'])->name('occupation.destroy');
+
+// Registration Type
+Route::get('/regtype', [RegTypeController::class, 'index'])->name('regtype.index');
+Route::post('/regtype/store', [RegTypeController::class, 'store'])->name('regtype.store');
+Route::put('/regtype/{id}', [RegTypeController::class, 'update'])->name('regtype.update');
+Route::delete('/regtype/{id}', [RegTypeController::class, 'destroy'])->name('regtype.destroy');
+
+// Known By
+Route::get('/knownby', [KnownByController::class, 'index'])->name('knownby.index');
+Route::post('/knownby/store', [KnownByController::class, 'store'])->name('knownby.store');
+Route::put('/knownby/{id}', [KnownByController::class, 'update'])->name('knownby.update');
+Route::delete('/knownby/{id}', [KnownByController::class, 'destroy'])->name('knownby.destroy');
 
 // RBAC Management
 require __DIR__ . '/rbac-routes.php';

@@ -11,6 +11,7 @@ use App\Models\ConsultantSales;
 use App\Models\UserMaster;
 use App\Models\NewBranch;
 use App\Models\IssueDepartment;
+use App\Services\MasterDataCacheService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
@@ -25,8 +26,8 @@ class SalesReportController extends Controller
         $employeeId = $request->get('employee_id');
         $monthYear = $request->get('month_year', date('Y-m'));
 
-        $branches = NewBranch::where('is_active', 1)->orderBy('branch_name')->get();
-        $departments = IssueDepartment::all();
+        $branches = MasterDataCacheService::getBranches();
+        $departments = MasterDataCacheService::getDepartments();
         $employees = UserMaster::orderBy('FullName')->limit(200)->get();
 
         $reportData = $this->generateReport($reportType, $targetType, $branchId, $employeeId, $monthYear);

@@ -4,6 +4,7 @@ namespace App\Modules\Master\Services;
 
 use App\Modules\Master\Repositories\DesignationRepository;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Cache;
 
 class DesignationService
 {
@@ -24,6 +25,9 @@ class DesignationService
                 $this->mapDepartments($designation, $data['department_ids']);
             }
 
+            Cache::forget('designations_list');
+            Cache::forget('issue_departments');
+
             return response()->json(['status' => true, 'message' => 'Designation Created Successfully']);
         } catch (\Exception $e) {
             return response()->json(['status' => false, 'message' => $e->getMessage()], 500);
@@ -40,6 +44,9 @@ class DesignationService
             if (isset($data['department_ids'])) {
                 $this->mapDepartments($model, $data['department_ids']);
             }
+
+            Cache::forget('designations_list');
+            Cache::forget('issue_departments');
 
             return response()->json(['status' => true, 'message' => 'Designation Updated Successfully']);
         } catch (\Exception $e) {
@@ -67,6 +74,10 @@ class DesignationService
         try {
             $model = \App\Models\Designation::findOrFail($id);
             $this->repo->delete($model);
+
+            Cache::forget('designations_list');
+            Cache::forget('issue_departments');
+
             return response()->json(['status' => true, 'message' => 'Designation Deleted Successfully']);
         } catch (\Exception $e) {
             return response()->json(['status' => false, 'message' => $e->getMessage()], 500);

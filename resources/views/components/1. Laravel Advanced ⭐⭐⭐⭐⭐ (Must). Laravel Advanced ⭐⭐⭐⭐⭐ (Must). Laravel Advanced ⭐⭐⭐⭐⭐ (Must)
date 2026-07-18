@@ -1,0 +1,172 @@
+1. Laravel Advanced ⭐⭐⭐⭐⭐ (Must)
+Service Container
+Service Providers
+Middleware
+Queues
+Jobs
+Events & Listeners
+Notifications
+Mail
+Caching (Redis)
+Scheduler
+API Development
+Authentication (Sanctum/Passport)
+Authorization (Policies/Gates)
+File Storage (S3)
+Testing (PHPUnit/Pest)
+Performance Optimization
+2. PHP Advanced ⭐⭐⭐⭐⭐
+OOP
+Traits
+Interfaces
+Abstract Classes
+SOLID Principles
+Design Patterns
+Repository
+Factory
+Strategy
+Observer
+Singleton (when appropriate)
+Composer
+Namespaces
+3. SQL ⭐⭐⭐⭐⭐
+
+Interview-la almost kandippa kekkalam.
+
+Topics:
+
+Joins
+Subqueries
+Group By
+Having
+Window Functions
+Indexes
+Transactions
+Stored Procedures
+Query Optimization
+4. DSA (Coding) ⭐⭐⭐⭐
+
+Daily 1-2 problems.
+
+Easy →
+
+Two Sum
+Reverse String
+Palindrome
+Merge Arrays
+Binary Search
+
+Medium →
+
+Sliding Window
+HashMap
+Linked List
+Stack
+Queue
+
+Language:
+
+PHP-la solve pannalam.
+Illa Java/Python kathukitta innum nalladhu, aana compulsory illa.
+5. System Design ⭐⭐⭐⭐
+
+4 years experience-na basic system design expect pannuvanga.
+
+Learn:
+
+Load Balancer
+Cache
+Redis
+Queue
+Database Scaling
+API Design
+Authentication
+Rate Limiting
+Logging
+
+6. Git ⭐⭐⭐⭐
+Branching
+Merge
+Rebase (basic)
+Cherry Pick
+Pull Request
+Conflict Resolution
+
+7. REST API ⭐⭐⭐⭐⭐
+GET
+POST
+PUT
+PATCH
+DELETE
+JWT
+OAuth basics
+API Versioning
+
+8. Docker ⭐⭐⭐⭐
+
+Basic knowledge pothum.
+
+Dockerfile
+docker-compose
+Containers
+Volumes
+9. Redis ⭐⭐⭐⭐
+Cache
+Queue
+Session Storage
+10. AWS Basics ⭐⭐⭐
+EC2
+S3
+RDS
+IAM
+CloudWatch
+MNC Interview Expectations (4 Years)
+
+Round 1
+
+Laravel
+PHP
+SQL
+Coding
+
+Round 2
+
+Machine Coding / CRUD API
+Design Patterns
+REST API
+Git
+
+Round 3
+
+System Design
+Project Discussion
+Performance Optimization
+Team Collaboration
+90-Day Plan
+
+Month 1
+
+Laravel Advanced
+PHP OOP
+SQL
+Daily Coding
+
+Month 2
+
+Design Patterns
+REST APIs
+Redis
+Docker
+Git
+
+Month 3
+
+System Design
+AWS Basics
+Mock Interviews
+Resume Preparation
+Salary Target
+
+Indha skill set strong-a irundha, especially Laravel + SQL + Coding + System Design combine pannina, mid-level to senior PHP/Laravel developer interviews-ku nalla prepared-a iruppa. Salary exact-a company, location, interview performance, current CTC nu depend aagum, aana MNC-um product companies-um target panna chance romba improve aagum.
+
+Enakku therinja un goal high salary MNC/product company. Adhukkaaga naan unakku Day 1 → Day 90 daily roadmap, daily coding problems, Laravel interview questions, machine coding tasks, and mock interview practice continuous-a prepare panni kudukka mudiyum.

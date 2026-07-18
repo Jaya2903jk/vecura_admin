@@ -26,7 +26,7 @@
                     on first login.</small>
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
-            <div class="card mb-3">
+            <div class="card border-0 mb-3">
                 <div class="card-body">
                     {{-- <form method="GET" action="{{ route('staff.index') }}" id="filterForm"> --}}
                     <form id="filterForm">

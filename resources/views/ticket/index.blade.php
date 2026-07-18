@@ -851,17 +851,6 @@
 
                                 table.append(row);
                             });
-                            //  block duplicate ticket
-                            // if (hasOpen) {
-                            //     $('#submitBtn')
-                            //         .prop('disabled', true)
-                            //         .text('Active Ticket Exists');
-                            // } else {
-                            //     $('#submitBtn')
-                            //         .prop('disabled', false)
-                            //         .text('Add Ticket');
-                            // }
-
                         } else {
                             $('#customerTicketsBlock').hide();
                             $('#submitBtn')

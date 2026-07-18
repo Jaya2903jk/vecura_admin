@@ -4,6 +4,16 @@ namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Pagination\Paginator;
+use App\Models\NewBranch;
+use App\Models\IssueDepartment;
+use App\Models\Designation;
+use App\Models\Role;
+use App\Observers\NewBranchObserver;
+use App\Observers\IssueDepartmentObserver;
+use App\Observers\DesignationMasterObserver;
+use App\Observers\RoleObserver;
+use App\Repositories\PatientRepositoryInterface;
+use App\Repositories\PatientRepository;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -12,7 +22,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->bind(PatientRepositoryInterface::class, PatientRepository::class);
     }
 
     /**
@@ -45,5 +55,11 @@ class AppServiceProvider extends ServiceProvider
         \Illuminate\Support\Facades\Blade::if('isAdmin', function () {
             return \App\Helpers\RbacHelper::isAdmin();
         });
+
+        // Register model observers for auto-cache clearing
+        NewBranch::observe(NewBranchObserver::class);
+        IssueDepartment::observe(IssueDepartmentObserver::class);
+        Designation::observe(DesignationMasterObserver::class);
+        Role::observe(RoleObserver::class);
     }
 }

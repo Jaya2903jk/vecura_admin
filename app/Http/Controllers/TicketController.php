@@ -111,7 +111,7 @@ class TicketController extends Controller
                 return $item->designation->Designation ?? '';
             })
             ->values();
-        // dd($tickets);
+       
         $leaveRequestId = config('ticket.LEAVE_REQUEST');
 
         return view('ticket.index', compact('tickets', 'assignList', 'totalTickets', 'perPage', 'leaveRequestId'));

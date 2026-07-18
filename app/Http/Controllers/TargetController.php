@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Target;
 use App\Models\UserMaster;
 use App\Models\NewBranch;
+use App\Services\MasterDataCacheService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -34,7 +35,7 @@ class TargetController extends Controller
         }
 
         $targets = $query->paginate(15);
-        $branches = NewBranch::where('is_active', 1)->get();
+        $branches = MasterDataCacheService::getBranches();
         $employees = UserMaster::orderBy('FullName')->limit(100)->get();
 
         if ($request->ajax()) {
@@ -77,7 +78,7 @@ class TargetController extends Controller
 
     public function edit(Target $target)
     {
-        $branches = NewBranch::where('is_active', 1)->get();
+        $branches = MasterDataCacheService::getBranches();
         $employees = UserMaster::orderBy('FullName')->get();
 
         return view('targets.edit', compact('target', 'branches', 'employees'));

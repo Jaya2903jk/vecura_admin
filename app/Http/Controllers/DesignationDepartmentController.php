@@ -6,6 +6,7 @@ use App\Models\Designation;
 use App\Models\IssueDepartment;
 use App\Models\DesignationDepartment;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 
 class DesignationDepartmentController extends Controller
 {
@@ -47,6 +48,9 @@ class DesignationDepartmentController extends Controller
                 ]);
             }
 
+            Cache::forget('designations_list');
+            Cache::forget('issue_departments');
+
             return response()->json([
                 'status' => true,
                 'message' => 'Departments mapped successfully to ' . $designation->Designation,
@@ -85,6 +89,9 @@ class DesignationDepartmentController extends Controller
         try {
             $mapping = DesignationDepartment::findOrFail($id);
             $mapping->delete();
+
+            Cache::forget('designations_list');
+            Cache::forget('issue_departments');
 
             return response()->json([
                 'status' => true,
