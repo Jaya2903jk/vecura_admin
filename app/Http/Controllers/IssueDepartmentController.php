@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Cache;
 use App\Models\IssueCategory;
 
 class IssueDepartmentController extends Controller {
@@ -33,6 +34,8 @@ class IssueDepartmentController extends Controller {
             'Status' => 1,
             'CreatedDate' => now()
         ] );
+
+        Cache::forget('issue_departments');
 
         return response()->json( [
             'status' => true,
@@ -66,6 +69,8 @@ class IssueDepartmentController extends Controller {
             'DepartmentName' => $request->DepartmentName
         ] );
 
+        Cache::forget('issue_departments');
+
         return response()->json( [
             'status' => true,
             'message' => 'Department updated'
@@ -77,6 +82,8 @@ class IssueDepartmentController extends Controller {
         ->table( 'issueDepartmentMaster' )
         ->where( 'Departmentid', $id )
         ->delete();
+
+        Cache::forget('issue_departments');
 
         return response()->json( [
             'status' => true,

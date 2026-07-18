@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\{Module, Permission};
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 
 class ModuleManagementController extends Controller
 {
@@ -26,6 +27,9 @@ class ModuleManagementController extends Controller
             $module = Module::create($validated + ['is_active' => $validated['is_active'] ?? 1]);
 
             $this->createPermissionsForModule($module->name);
+
+            // Auto-clear sidebar cache on module creation
+            Cache::forget('sidebar_modules');
 
             return response()->json([
                 'status' => true,
@@ -77,6 +81,9 @@ class ModuleManagementController extends Controller
 
             $module->update($validated);
 
+            // Auto-clear sidebar cache on module update
+            Cache::forget('sidebar_modules');
+
             return response()->json([
                 'status' => true,
                 'message' => 'Module updated successfully'
@@ -96,6 +103,9 @@ class ModuleManagementController extends Controller
 
             Permission::where('module', $moduleName)->delete();
             $module->delete();
+
+            // Auto-clear sidebar cache on module deletion
+            Cache::forget('sidebar_modules');
 
             return response()->json([
                 'status' => true,

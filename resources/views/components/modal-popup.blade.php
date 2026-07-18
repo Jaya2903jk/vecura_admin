@@ -14389,9 +14389,7 @@
                 <form id="ticketForm" class="needs-validation" novalidate enctype="multipart/form-data">
                     @csrf
                     <div class="modal-body">
-                        <!-- start row -->
                         <div class="row">
-                            <!-- end col -->
                             <div class="col-lg-12">
                                 <div class="mb-2">
                                     <label class="form-label">Department<span class="text-danger">*</span></label>
@@ -14424,8 +14422,6 @@
                                 <div class="col-lg-6">
                                     <div class="mb-2">
                                         <label class="form-label">Alternate Mobile
-                                            {{-- <span
-                                                class="text-danger ms-1">*</span> --}}
                                         </label>
                                         <input type="number" class="form-control" name="alternateMobile"
                                             placeholder="" required>
@@ -14445,8 +14441,6 @@
                                             <option value="TRY26040001" data-name="KARTHIKA">KARTHIKA</option>
                                             <option value="TRY25100109" data-name="A.ANANTH KUMAR">A.ANANTH KUMAR
                                             </option>
-                                            {{-- <option value="TRY26040003" data-name="PRIYA">PRIYA</option>
-                                        <option value="TRY26040004" data-name="ARUN">ARUN</option> --}}
                                         </select>
 
                                         <input type="hidden" name="customer_name" id="customerName">

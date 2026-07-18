@@ -22,8 +22,10 @@
                             <li><a class="dropdown-item" href="#">Download as Excel</a></li>
                         </ul>
                     </div>
-                    <a href="javascript:void(0);" class="btn btn-primary ms-2 fs-13 btn-md" data-bs-toggle="modal"
-                        data-bs-target="#add_modal"><i class="ti ti-plus me-1"></i>Add New Expense</a>
+                    @if(session('is_admin') || \App\Helpers\RbacHelper::canPerformAction('create', 'expense'))
+                        <a href="javascript:void(0);" class="btn btn-primary ms-2 fs-13 btn-md" data-bs-toggle="modal"
+                            data-bs-target="#add_modal"><i class="ti ti-plus me-1"></i>Add New Expense</a>
+                    @endif
                 </div>
             </div>
 
@@ -92,23 +94,29 @@
 
                                         <td>
                                             <div class="action-item">
-                                                <a href="javascript:void(0);" data-bs-toggle="dropdown">
-                                                    <i class="ti ti-dots-vertical"></i>
-                                                </a>
-                                                <ul class="dropdown-menu p-2">
-                                                    <li>
-                                                        <a href="#" class="dropdown-item" data-bs-toggle="modal"
-                                                            data-bs-target="#edit_modal">
-                                                            Edit
-                                                        </a>
-                                                    </li>
-                                                    <li>
-                                                        <a href="#" class="dropdown-item" data-bs-toggle="modal"
-                                                            data-bs-target="#delete_modal">
-                                                            Delete
-                                                        </a>
-                                                    </li>
-                                                </ul>
+                                                @if(session('is_admin') || \App\Helpers\RbacHelper::canPerformAction('edit', 'expense') || \App\Helpers\RbacHelper::canPerformAction('delete', 'expense'))
+                                                    <a href="javascript:void(0);" data-bs-toggle="dropdown">
+                                                        <i class="ti ti-dots-vertical"></i>
+                                                    </a>
+                                                    <ul class="dropdown-menu p-2">
+                                                        @if(session('is_admin') || \App\Helpers\RbacHelper::canPerformAction('edit', 'expense'))
+                                                            <li>
+                                                                <a href="#" class="dropdown-item" data-bs-toggle="modal"
+                                                                    data-bs-target="#edit_modal">
+                                                                    Edit
+                                                                </a>
+                                                            </li>
+                                                        @endif
+                                                        @if(session('is_admin') || \App\Helpers\RbacHelper::canPerformAction('delete', 'expense'))
+                                                            <li>
+                                                                <a href="#" class="dropdown-item" data-bs-toggle="modal"
+                                                                    data-bs-target="#delete_modal">
+                                                                    Delete
+                                                                </a>
+                                                            </li>
+                                                        @endif
+                                                    </ul>
+                                                @endif
                                             </div>
                                         </td>
                                     </tr>

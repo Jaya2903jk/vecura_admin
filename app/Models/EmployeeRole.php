@@ -11,7 +11,16 @@ class EmployeeRole extends Pivot
 
     protected $casts = ['assigned_at' => 'datetime'];
 
-    public function employee() { return $this->belongsTo(UserMaster::class, 'employee_id', 'UserID'); }
-    public function role() { return $this->belongsTo(Role::class); }
-    public function assignedBy() { return $this->belongsTo(UserMaster::class, 'assigned_by', 'UserID'); }
+    public function employee()
+    {
+        return $this->belongsTo(UserMaster::class, 'employee_id', 'UserID');
+    }
+    public function role()
+    {
+        return $this->belongsTo(Role::class);
+    }
+    public function assignedBy()
+    {
+        return $this->belongsTo(UserMaster::class, 'assigned_by', 'UserID');
+    }
 }

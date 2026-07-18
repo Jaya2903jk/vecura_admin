@@ -21,13 +21,12 @@ class BranchController extends Controller
         return $this->service->create($request->validated());
     }
 
-    public function update(Request $request, $id)
+    public function update(BranchRequest $request, $id)
     {
         if ($request->boolean('_status_only')) {
-            return $this->service->update($id, $request->only(['is_active', '_status_only']));
+            return $this->service->update($id, $request->only(['is_active']));
         }
-        $validated = (new BranchRequest())->setContainer(app())->validateResolved() ?? $request->validate((new BranchRequest())->rules());
-        return $this->service->update($id, $request->all());
+        return $this->service->update($id, $request->validated());
     }
 
     public function destroy($id)

@@ -18,8 +18,21 @@ class CheckPermission
             return redirect('/')->with('error', 'Unauthorized');
         }
 
+        // Allow admin users
+        if (session('is_admin')) {
+            return $next($request);
+        }
+
         if (!RbacHelper::hasPermission($permissionName, $module)) {
-            return redirect()->back()->with('error', 'Permission denied: ' . $permissionName . ':' . ($module ?? 'all'));
+            // For API requests, return JSON error
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Permission denied'
+                ], 403);
+            }
+            // For web requests, show permission denied page
+            return response()->view('errors.permission-denied', [], 403);
         }
 
         return $next($request);

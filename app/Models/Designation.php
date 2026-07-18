@@ -19,7 +19,22 @@ class Designation extends Model {
         'ModifiedBy',
         'ModifiedDate',
         'status'
-        
     ];
 
+    public function departments()
+    {
+        return $this->belongsToMany(
+            IssueDepartment::class,
+            'designation_department',
+            'designation_code',
+            'department_id',
+            'DesignationCode',
+            'Departmentid'
+        );
+    }
+
+    public function departmentMappings()
+    {
+        return $this->hasMany(DesignationDepartment::class, 'designation_code', 'DesignationCode');
+    }
 }

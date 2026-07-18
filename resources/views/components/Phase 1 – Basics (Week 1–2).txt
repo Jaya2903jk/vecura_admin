@@ -1,0 +1,95 @@
+Phase 1 – Basics (Week 1–2)
+
+Purpose: PHP syntax + logical thinking.
+
+Topics:
+
+✅ if/else
+✅ loops
+✅ functions
+✅ arrays
+✅ strings
+✅ foreach
+✅ associative arrays
+✅ Laravel Collections basics
+
+Example:
+
+Task 1
+
+$numbers = [10,20,30,40,50];
+
+Find
+
+Sum
+Average
+Maximum
+Minimum
+
+Task 2
+
+$name = "laravel";
+
+Output
+
+Levaral
+
+(without using strrev())
+
+Phase 2 – Logic Building (Week 3–4)
+Frequency Count
+Remove Duplicates
+Second Largest Number
+Missing Number
+Palindrome
+Anagram
+Fibonacci
+Prime Number
+Armstrong
+Pattern Problems
+Phase 3 – Laravel Logic
+
+Collections
+
+collect()
+->where()
+->map()
+->filter()
+->groupBy()
+->pluck()
+->sortBy()
+->unique()
+
+Eloquent
+
+User::where(...)
+->with(...)
+->when(...)
+->whereHas(...)
+Phase 4 – SQL Thinking
+Joins
+Group By
+Having
+Window Functions
+Ranking
+CTE
+Phase 5 – Interview Level
+
+Example
+
+Employee Table
+
+Find employees
+whose salary is greater
+than department average.
+Phase 6 – Product Company Level
+
+Problems similar to:
+
+Two Sum
+LRU Cache
+Merge Intervals
+Binary Search
+Sliding Window
+BFS
+DFS

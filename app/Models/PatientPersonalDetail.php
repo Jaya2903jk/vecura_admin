@@ -5,7 +5,8 @@ namespace App\Models;
 use App\Models\LocationMaster;
 use Illuminate\Database\Eloquent\Model;
 
-class PatientPersonalDetail extends Model {
+class PatientPersonalDetail extends Model
+{
     //
     protected $table = 'Patient_Personal_Details';
     // exact table name
@@ -79,9 +80,19 @@ class PatientPersonalDetail extends Model {
         'WhatsappMobile',
         'TreatmentJoinedBillNo',
         'PANNumber',
-        'AadharNumber'
+        'AadharNumber',
+        'Mobile_Checkbox'
     ];
-     public function location() {
-        return $this->belongsTo( LocationMaster::class, 'Loc_Id', 'LocationCode' );
+    public function location()
+    {
+        return $this->belongsTo(LocationMaster::class, 'Loc_Id', 'LocationCode');
+    }
+     public function city()
+    {
+        return $this->belongsTo(City::class, 'City', 'city_id');
+    }
+     public function state()
+    {
+        return $this->belongsTo(State::class, 'State', 'state_id');
     }
 }

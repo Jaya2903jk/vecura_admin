@@ -95,9 +95,7 @@ class RbacManagementController extends Controller
         return response()->json(['status' => true, 'message' => 'Hierarchy access assigned']);
     }
 
-    // Step 1B: Manage Roles and Assign Permissions
-    // Create roles and assign which permissions each role has
-    // Example: "ZoneManager" role gets "read:ticket", "read:iou", "approve:iou" permissions
+   
     public function manageRoles() {
         return view('rbac.manage-roles', ['roles' => Role::with('permissions')->paginate(10)]);
     }
@@ -232,6 +230,21 @@ class RbacManagementController extends Controller
             return response()->json([
                 'status' => true,
                 'message' => 'Permission deleted successfully'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Error: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function getAllRoles() {
+        try {
+            $roles = Role::select('id', 'role_name', 'description')->get();
+            return response()->json([
+                'status' => true,
+                'roles' => $roles
             ]);
         } catch (\Exception $e) {
             return response()->json([

@@ -5,6 +5,7 @@ namespace App\Modules\Master\Controllers;
 use App\Http\Controllers\Controller;
 use App\Modules\Master\Requests\DesignationRequest;
 use App\Modules\Master\Services\DesignationService;
+use App\Models\IssueDepartment;
 use Illuminate\Http\Request;
 
 class DesignationController extends Controller
@@ -13,7 +14,9 @@ class DesignationController extends Controller
 
     public function index(Request $request)
     {
-        return view('designation.index', $this->service->getAll($request->get('per_page', 10)));
+        $data = $this->service->getAll($request->get('per_page', 10));
+        $data['departments'] = IssueDepartment::all();
+        return view('designation.index', $data);
     }
 
     public function store(DesignationRequest $request)
@@ -21,14 +24,57 @@ class DesignationController extends Controller
         return $this->service->create($request->validated());
     }
 
-    public function update(DesignationRequest $request, $id)
+    public function update($id, DesignationRequest $request)
     {
+         logger()->info('Update request data:', [
+            'id' => $id,
+            'route_id' => $request->route('id'),
+            'all_data' => $request->all(),
+            'validated_data' => $request->validated(),
+        ]);
         return $this->service->update($id, $request->validated());
     }
+//   public function update($id, Request $request)
+//     {
+//         dd($request->all());
+//         try {
+//             $designation = \App\Models\Designation::findOrFail($id);
+//             $designation->update($request->all());
+
+//             return response()->json([
+//                 'status' => true,
+//                 'message' => 'Designation Updated Successfully'
+//             ]);
+//         } catch (\Exception $e) {
+//             return response()->json([
+//                 'status' => false,
+//                 'message' => $e->getMessage()
+//             ], 500);
+//         }
+//     }
 
     public function destroy($id)
     {
         return $this->service->delete($id);
+    }
+
+    public function show($id)
+    {
+        try {
+            $designation = \App\Models\Designation::with('departmentMappings')->findOrFail($id);
+            $mappedDepartments = $designation->departmentMappings->pluck('department_id')->toArray();
+
+            return response()->json([
+                'status' => true,
+                'designation' => $designation,
+                'mapped_departments' => $mappedDepartments
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Not found'
+            ], 404);
+        }
     }
 
     public function exportExcel()
@@ -44,5 +90,59 @@ class DesignationController extends Controller
         }
         $html .= '</tbody></table>';
         return response($html, 200, $headers);
+    }
+
+    public function search(Request $request)
+    {
+        try {
+            $search = $request->get('search', '');
+            $status = $request->get('status', null);
+            $departmentId = $request->get('department_id', null);
+
+            $query = \App\Models\Designation::with('departmentMappings.department');
+
+            if ($search) {
+                $query->where('DesignationCode', 'like', "%$search%")
+                      ->orWhere('Designation', 'like', "%$search%");
+            }
+
+            if ($status !== null && $status !== '') {
+                $query->where('status', $status);
+            }
+
+            if ($departmentId) {
+                $query->whereHas('departmentMappings', function($q) use ($departmentId) {
+                    $q->where('department_id', $departmentId);
+                });
+            }
+
+            $designations = $query->orderBy('DesignationCode')->get();
+
+            $formatted = $designations->map(function($des) {
+                return [
+                    'id' => $des->id,
+                    'DesignationCode' => $des->DesignationCode,
+                    'Designation' => $des->Designation,
+                    'status' => $des->status,
+                    'department_mappings' => $des->departmentMappings->map(function($mapping) {
+                        return [
+                            'id' => $mapping->id,
+                            'department_id' => $mapping->department_id,
+                            'department_name' => $mapping->department->DepartmentName
+                        ];
+                    })->toArray()
+                ];
+            })->toArray();
+
+            return response()->json([
+                'status' => true,
+                'designations' => $formatted
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => false,
+                'message' => $e->getMessage()
+            ], 500);
+        }
     }
 }

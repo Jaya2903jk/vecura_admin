@@ -15,10 +15,14 @@
                     </h4>
                 </div>
                 <div class="text-end">
-                    <a href="javascript:void(0);" class="btn btn-primary fs-13 btn-md" data-bs-toggle="modal"
-                        data-bs-target="#add_modal">
-                        <i class="ti ti-plus me-1"></i>Add New Category
-                    </a>
+                    @if (session('is_admin') || \App\Helpers\RbacHelper::canPerformAction('create', 'facility-issues'))
+                        <a href="javascript:void(0);" class="btn btn-primary fs-13 btn-md" data-bs-toggle="modal"
+                            data-bs-target="#add_modal">
+                            <i class="ti ti-plus me-1"></i>Add New Category
+                        </a>
+                    @endif
+
+
                 </div>
             </div>
 
@@ -56,16 +60,20 @@
                                                 </a>
                                                 <ul class="dropdown-menu p-2">
                                                     <li>
-                                                        <a href="#" class="dropdown-item"
-                                                            onclick="openEdit({{ $cat->id }}, '{{ addslashes($cat->name) }}', '{{ addslashes($cat->description ?? '') }}', {{ $cat->status }})">
-                                                            Edit
-                                                        </a>
+                                                        @if (session('is_admin') || \App\Helpers\RbacHelper::canPerformAction('edit', 'facility-issues'))
+                                                            <a href="#" class="dropdown-item"
+                                                                onclick="openEdit({{ $cat->id }}, '{{ addslashes($cat->name) }}', '{{ addslashes($cat->description ?? '') }}', {{ $cat->status }})">
+                                                                Edit
+                                                            </a>
+                                                        @endif
                                                     </li>
                                                     <li>
-                                                        <a href="#" class="dropdown-item text-danger"
-                                                            onclick="confirmDelete({{ $cat->id }}, '{{ addslashes($cat->name) }}')">
-                                                            Delete
-                                                        </a>
+                                                        @if (session('is_admin') || \App\Helpers\RbacHelper::canPerformAction('delete', 'facility-issues'))
+                                                            <a href="#" class="dropdown-item text-danger"
+                                                                onclick="confirmDelete({{ $cat->id }}, '{{ addslashes($cat->name) }}')">
+                                                                Delete
+                                                            </a>
+                                                        @endif
                                                     </li>
                                                 </ul>
                                             </div>
