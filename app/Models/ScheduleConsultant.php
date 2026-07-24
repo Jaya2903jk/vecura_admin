@@ -175,10 +175,14 @@ class ScheduleConsultant extends Model
     {
         return $this->belongsTo(PatientPersonalDetail::class, 'Sch_Custid', 'PatientID');
     }
+    public function appointmentFor()
+    {
+        return $this->belongsTo(AppointmentFor::class, 'Sch_AppointFor', 'AppointtCode');
+    }
 
     public function doctor()
     {
-        return $this->belongsTo(UserMaster::class, 'Sch_Doctname', 'FullName');
+        return $this->belongsTo(DoctorMaster::class, 'Sch_Doctname', 'Doctor_Id');
     }
 
     public function location()

@@ -2,14 +2,22 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\NewBranch;
-use App\Models\PatientPersonalDetail;
-use App\Models\UserMaster;
+use App\Models\AppointmentFor;
+use App\Models\City;
 use App\Models\Country;
+use App\Models\KnownByMaster;
+use App\Models\NewBranch;
+use App\Models\OccupationMaster;
+use App\Models\PatientPersonalDetail;
+use App\Models\RegTypeMaster;
+use App\Models\ScheduleConsultant;
+use App\Models\State;
+use App\Models\UserMaster;
+use App\Models\Zone;
 use App\Repositories\PatientRepositoryInterface;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
-use Barryvdh\DomPDF\Facade\Pdf;
 
 class PatientController extends Controller
 {
@@ -50,18 +58,31 @@ class PatientController extends Controller
     public function show($id)
     {
         $patient = $this->patientRepository->getById($id);
-
         // Get patient appointments from ScheduleConsultant table
-        $appointments = \App\Models\ScheduleConsultant::byPatient($id)
+        $appointments = ScheduleConsultant::byPatient($patient->RegistrationNo)
+            ->with('doctor.userMaster')
             ->orderBy('Sch_Datetime', 'desc')
+            ->get();
+        $bookedAppointmentFor = $appointments
+            ->pluck('Sch_AppointFor')
+            ->filter()
+            ->unique()
+            ->toArray();
+        // dd($bookedAppointmentFor);
+        // $appointment_for_options = AppointmentFor::orderBy('AppointName')->get();
+        $appointment_for_options = AppointmentFor::whereNotIn(
+            'AppointtCode',
+            $bookedAppointmentFor
+        )
+            ->orderBy('AppointName')
             ->get();
 
         return view('patient.view', [
             'patient' => $patient,
             'appointments' => $appointments,
+            'appointment_for_options' => $appointment_for_options,
         ]);
     }
-
 
     public function create()
     {
@@ -70,14 +91,14 @@ class PatientController extends Controller
         $branches = NewBranch::where('is_active', 1)
             ->orderBy('branch_name')
             ->get();
-        $countries = \App\Models\Country::where('is_active', 1)
+        $countries = Country::where('is_active', 1)
             ->orderBy('country_name')
             ->get();
 
         // Fetch master data for dropdowns
-        $registrationTypes = \App\Models\RegTypeMaster::orderBy('RegType')->get();
-        $occupations = \App\Models\OccupationMaster::orderBy('occupation_name')->get();
-        $knownBys = \App\Models\KnownByMaster::where('kstatus', 'Active')->orderBy('KwnBy')->get();
+        $registrationTypes = RegTypeMaster::orderBy('RegType')->get();
+        $occupations = OccupationMaster::orderBy('occupation_name')->get();
+        $knownBys = KnownByMaster::where('kstatus', 'Active')->orderBy('KwnBy')->get();
 
         return view('patient.create', [
             'filterOptions' => $filterOptions,
@@ -89,38 +110,40 @@ class PatientController extends Controller
             'knownBys' => $knownBys,
         ]);
     }
+
     public function generateRegistrationNumber(Request $request)
     {
         $branchId = $request->input('branch_id');
 
-        if (!$branchId) {
+        if (! $branchId) {
             return response()->json(['registration_number' => '']);
         }
 
         $branch = NewBranch::find($branchId);
-        if (!$branch) {
+        if (! $branch) {
             return response()->json(['registration_number' => '']);
         }
 
         $branchCode = strtoupper(substr($branch->branch_code, 0, 3));
         $yearMonth = date('ym');
         // $yearMonth =  2601;
-        $lastPatient = PatientPersonalDetail::where('RegistrationNo', 'like', $branchCode . $yearMonth . '%')
+        $lastPatient = PatientPersonalDetail::where('RegistrationNo', 'like', $branchCode.$yearMonth.'%')
             ->orderBy('RegistrationNo', 'desc')
             ->first();
 
-        if (!$lastPatient || !$lastPatient->RegistrationNo) {
-            $nextNumber = $branchCode . $yearMonth . '0001';
+        if (! $lastPatient || ! $lastPatient->RegistrationNo) {
+            $nextNumber = $branchCode.$yearMonth.'0001';
         } else {
             $regNo = $lastPatient->RegistrationNo;
-            if (preg_match('/^' . preg_quote($branchCode . $yearMonth, '/') . '(\d+)$/', $regNo, $matches)) {
-                $number = (int)$matches[1];
+            if (preg_match('/^'.preg_quote($branchCode.$yearMonth, '/').'(\d+)$/', $regNo, $matches)) {
+                $number = (int) $matches[1];
                 $number++;
-                $nextNumber = $branchCode . $yearMonth . str_pad($number, 4, '0', STR_PAD_LEFT);
+                $nextNumber = $branchCode.$yearMonth.str_pad($number, 4, '0', STR_PAD_LEFT);
             } else {
-                $nextNumber = $branchCode . $yearMonth . '0001';
+                $nextNumber = $branchCode.$yearMonth.'0001';
             }
         }
+
         return response()->json(['registration_number' => $nextNumber]);
     }
 
@@ -129,136 +152,136 @@ class PatientController extends Controller
 
         $validated = $request->validate([
             // Branch & Registration
-            'branch_id'          => 'required|exists:branch,branch_id',
-            'RegistrationNo'     => 'nullable|string|max:50',
-            'RegistrationDate'   => 'nullable|date',
+            'branch_id' => 'required|exists:branch,branch_id',
+            'RegistrationNo' => 'nullable|string|max:50',
+            'RegistrationDate' => 'nullable|date',
 
             // Basic details
-            'Title'              => 'required|in:Mr,Mrs,Ms,Dr',
-            'FirstName'          => 'required|string|max:100',
-            'LastName'           => 'nullable|string|max:100',
-            'Sex'                => 'required|in:M,F,Other',
-            'DateOfBirth'        => 'required|date|before:today',
-            'Age'                => 'required|integer|min:0|max:150',
-            'Marital_Status'     => 'nullable|string|max:50',
-            'Occupation'         => 'required|string|max:100',
+            'Title' => 'required|in:Mr,Mrs,Ms,Dr',
+            'FirstName' => 'required|string|max:100',
+            'LastName' => 'nullable|string|max:100',
+            'Sex' => 'required|in:M,F,Other',
+            'DateOfBirth' => 'required|date|before:today',
+            'Age' => 'required|integer|min:0|max:150',
+            'Marital_Status' => 'nullable|string|max:50',
+            'Occupation' => 'required|string|max:100',
 
             // Contact
             // 'Mobile'             => 'required|numeric|digits:10',
-            'Mobile'             => 'required|numeric|digits:10|unique:Patient_Personal_Details,Mobile',
-            'WhatsappMobile'     => 'required|numeric|digits:10',
-            'EMail'              => 'nullable|email',
-            'Res_Telephone'      => 'nullable|string|max:20',
-            'Off_Telephone'      => 'nullable|string|max:20',
+            'Mobile' => 'required|numeric|digits:10|unique:Patient_Personal_Details,Mobile',
+            'WhatsappMobile' => 'required|numeric|digits:10',
+            'EMail' => 'nullable|email',
+            'Res_Telephone' => 'nullable|string|max:20',
+            'Off_Telephone' => 'nullable|string|max:20',
 
             // Address
-            'Country'            => 'required',
-            'Zone'               => 'nullable|string|max:100',
-            'State'              => 'required|string|max:100',
-            'City'               => 'required|string|max:100',
-            'Area'               => 'required|string|max:100',
-            'Street'             => 'required|string|max:100',
-            'PinCode'            => 'required|string|max:10',
+            'Country' => 'required',
+            'Zone' => 'nullable|string|max:100',
+            'State' => 'required|string|max:100',
+            'City' => 'required|string|max:100',
+            'Area' => 'required|string|max:100',
+            'Street' => 'required|string|max:100',
+            'PinCode' => 'required|string|max:10',
 
             // Medical & registration details
-            'Doctorname'         => 'required|string|max:100',
-            'Type'               => 'required|string|max:50',
-            'Ref_By_Patient'     => 'required|string|max:100',
-            'Knownby'            => 'required|string|max:100',
-            'Complaints'         => 'nullable|string',
+            'Doctorname' => 'required|string|max:100',
+            'Type' => 'required|string|max:50',
+            'Ref_By_Patient' => 'required|string|max:100',
+            'Knownby' => 'required|string|max:100',
+            'Complaints' => 'nullable|string',
 
             // Preferences & notifications
-            'smsAlert'           => 'required|in:Yes,No',
-            'emailAlert'         => 'nullable|in:Yes,No',
-            'Whatsapp'           => 'nullable|in:Yes,No',
+            'smsAlert' => 'required|in:Yes,No',
+            'emailAlert' => 'nullable|in:Yes,No',
+            'Whatsapp' => 'nullable|in:Yes,No',
             'OnlineConsultation' => 'nullable|in:Yes,No',
-            'Mobile_Checkbox'    => 'nullable|boolean',
+            'Mobile_Checkbox' => 'nullable|boolean',
 
             // Additional information
-            'SpecialDiscount'    => 'nullable|in:Yes,No',
-            'GoogleReview'       => 'nullable|in:Yes,No',
-            'GoogleReviewLink'   => 'nullable|url',
-            'PANNumber'          => 'nullable|string|max:20',
-            'AadharNumber'       => 'nullable|string|max:20',
-            'Wedding_Day'        => 'nullable|date',
+            'SpecialDiscount' => 'nullable|in:Yes,No',
+            'GoogleReview' => 'nullable|in:Yes,No',
+            'GoogleReviewLink' => 'nullable|url',
+            'PANNumber' => 'nullable|string|max:20',
+            'AadharNumber' => 'nullable|string|max:20',
+            'Wedding_Day' => 'nullable|date',
         ], [
             // Friendly custom messages shown in the stacked error toasts
-            'branch_id.required'      => 'Please select a branch.',
-            'branch_id.exists'        => 'Selected branch is invalid.',
-            'Title.required'          => 'Please select a title.',
-            'FirstName.required'      => 'First name is required.',
-            'Sex.required'            => 'Please select gender.',
-            'DateOfBirth.required'    => 'Date of birth is required.',
-            'DateOfBirth.before'      => 'Date of birth must be in the past.',
-            'Age.required'            => 'Age is required (select date of birth).',
-            'Occupation.required'     => 'Please select an occupation.',
+            'branch_id.required' => 'Please select a branch.',
+            'branch_id.exists' => 'Selected branch is invalid.',
+            'Title.required' => 'Please select a title.',
+            'FirstName.required' => 'First name is required.',
+            'Sex.required' => 'Please select gender.',
+            'DateOfBirth.required' => 'Date of birth is required.',
+            'DateOfBirth.before' => 'Date of birth must be in the past.',
+            'Age.required' => 'Age is required (select date of birth).',
+            'Occupation.required' => 'Please select an occupation.',
 
-            'Mobile.required'         => 'Mobile number is required.',
-            'Mobile.digits'           => 'Mobile number must be exactly 10 digits.',
-            'Mobile.numeric'          => 'Mobile number must contain digits only.',
-            'Mobile.unique'           => 'This mobile number is already registered.',
+            'Mobile.required' => 'Mobile number is required.',
+            'Mobile.digits' => 'Mobile number must be exactly 10 digits.',
+            'Mobile.numeric' => 'Mobile number must contain digits only.',
+            'Mobile.unique' => 'This mobile number is already registered.',
 
             'WhatsappMobile.required' => 'Whatsapp mobile is required.',
-            'WhatsappMobile.digits'   => 'Whatsapp mobile must be exactly 10 digits.',
-            'WhatsappMobile.numeric'  => 'Whatsapp mobile must contain digits only.',
-            'EMail.email'             => 'Please enter a valid email address.',
-            'Country.required'        => 'Please select a country.',
-            'State.required'          => 'Please select a state.',
-            'City.required'           => 'Please select a city.',
-            'Area.required'           => 'Please select an area.',
-            'Street.required'         => 'Street / address is required.',
-            'PinCode.required'        => 'Pin code is required.',
-            'Doctorname.required'     => 'Please select a consultant.',
-            'Type.required'           => 'Please select a registration type.',
+            'WhatsappMobile.digits' => 'Whatsapp mobile must be exactly 10 digits.',
+            'WhatsappMobile.numeric' => 'Whatsapp mobile must contain digits only.',
+            'EMail.email' => 'Please enter a valid email address.',
+            'Country.required' => 'Please select a country.',
+            'State.required' => 'Please select a state.',
+            'City.required' => 'Please select a city.',
+            'Area.required' => 'Please select an area.',
+            'Street.required' => 'Street / address is required.',
+            'PinCode.required' => 'Pin code is required.',
+            'Doctorname.required' => 'Please select a consultant.',
+            'Type.required' => 'Please select a registration type.',
             'Ref_By_Patient.required' => 'Ref. by customer is required.',
-            'Knownby.required'        => 'Please select how the customer knew about us.',
-            'smsAlert.required'       => 'Please select SMS/Whatsapp notification preference.',
-            'GoogleReviewLink.url'    => 'Google review link must be a valid URL.',
+            'Knownby.required' => 'Please select how the customer knew about us.',
+            'smsAlert.required' => 'Please select SMS/Whatsapp notification preference.',
+            'GoogleReviewLink.url' => 'Google review link must be a valid URL.',
         ]);
 
         try {
-        // Auto-generate registration number if not provided
-        if (empty($validated['RegistrationNo'])) {
-            $validated['RegistrationNo'] = $this->generateRegistrationNumber($validated['branch_id']);
-        }
-        $validated['Title']          = strtoupper($validated['Title']);                    // MR, MRS, MS, DR
-        $validated['Occupation']     = strtoupper($validated['Occupation']);               // DOCTOR, ENGINEER
-        $validated['Marital_Status'] = !empty($validated['Marital_Status'])
-            ? strtoupper($validated['Marital_Status'])                                     // SINGLE, MARRIED
-            : null;
-        // System fields
-        $validated['CreatedBy']        = session('user_id');
-        $validated['CreatedDate']      = now();
-        $validated['RegistrationDate'] = $validated['RegistrationDate'] ?? now();
-        $validated['CustomerStatus']   = 'Active';
+            // Auto-generate registration number if not provided
+            if (empty($validated['RegistrationNo'])) {
+                $validated['RegistrationNo'] = $this->generateRegistrationNumber($validated['branch_id']);
+            }
+            $validated['Title'] = strtoupper($validated['Title']);                    // MR, MRS, MS, DR
+            $validated['Occupation'] = strtoupper($validated['Occupation']);               // DOCTOR, ENGINEER
+            $validated['Marital_Status'] = ! empty($validated['Marital_Status'])
+                ? strtoupper($validated['Marital_Status'])                                     // SINGLE, MARRIED
+                : null;
+            // System fields
+            $validated['CreatedBy'] = session('user_id');
+            $validated['CreatedDate'] = now();
+            $validated['RegistrationDate'] = $validated['RegistrationDate'] ?? now();
+            $validated['CustomerStatus'] = 'Active';
 
-        // $validated['Mobile_Checkbox'] = $request->boolean('Mobile_Checkbox') ? 1 : 0;
+            // $validated['Mobile_Checkbox'] = $request->boolean('Mobile_Checkbox') ? 1 : 0;
 
-        $get_country_code = Country::where('country_id', $validated['Country'])->first();
-        $validated['Country'] = $get_country_code->country_code;
-        $validated['Country'] = 'ADY1';
-        $get_branch_code = NewBranch::where('branch_id', $validated['branch_id'])->first();
-        unset($validated['Zone']);
-        $validated['Loc_Id'] = $get_branch_code->branch_code;
-        $validated['RegTypeId']   = $validated['Type'];
-        $validated['Type']   = 'New';
-        $validated['NonTreatable']   = 'Weight Loss';
+            $get_country_code = Country::where('country_id', $validated['Country'])->first();
+            $validated['Country'] = $get_country_code->country_code;
+            $validated['Country'] = 'ADY1';
+            $get_branch_code = NewBranch::where('branch_id', $validated['branch_id'])->first();
+            unset($validated['Zone']);
+            $validated['Loc_Id'] = $get_branch_code->branch_code;
+            $validated['RegTypeId'] = $validated['Type'];
+            $validated['Type'] = 'New';
+            $validated['NonTreatable'] = 'Weight Loss';
 
-        // dd($validated);
-        $this->patientRepository->create($validated);
+            // dd($validated);
+            $this->patientRepository->create($validated);
 
-        if ($request->expectsJson()) {
-            return response()->json([
-                'success'  => true,
-                'message'  => 'Patient registered successfully.',
-                'redirect' => route('patient.index'),
-            ]);
-        }
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Patient registered successfully.',
+                    'redirect' => route('patient.index'),
+                ]);
+            }
 
-        return redirect()->route('patient.index')
-            ->with('success', 'Patient registered successfully.');
+            return redirect()->route('patient.index')
+                ->with('success', 'Patient registered successfully.');
         } catch (\Throwable $e) {
-            Log::error('Patient store failed: ' . $e->getMessage(), [
+            Log::error('Patient store failed: '.$e->getMessage(), [
                 'trace' => $e->getTraceAsString(),
             ]);
 
@@ -273,6 +296,7 @@ class PatientController extends Controller
                 ->with('error', 'Failed to register patient. Please try again.');
         }
     }
+
     private function getConsultants()
     {
         return UserMaster::where('User_Master.UserStatus', 'Active')
@@ -285,6 +309,7 @@ class PatientController extends Controller
             ->orderBy('User_Master.FullName')
             ->get();
     }
+
     public function edit($id)
     {
         $patient = $this->patientRepository->getById($id);
@@ -300,17 +325,17 @@ class PatientController extends Controller
             ->orderBy('User_Master.FullName')
             ->get();
 
-        $branches = \App\Models\NewBranch::where('is_active', 1)
+        $branches = NewBranch::where('is_active', 1)
             ->orderBy('branch_name')
             ->get();
-        $countries = \App\Models\Country::where('is_active', 1)
+        $countries = Country::where('is_active', 1)
             ->orderBy('country_name')
             ->get();
 
         // Fetch master data for dropdowns
-        $registrationTypes = \App\Models\RegTypeMaster::orderBy('RegType')->get();
-        $occupations = \App\Models\OccupationMaster::orderBy('occupation_name')->get();
-        $knownBys = \App\Models\KnownByMaster::where('kstatus', 'Active')->orderBy('KwnBy')->get();
+        $registrationTypes = RegTypeMaster::orderBy('RegType')->get();
+        $occupations = OccupationMaster::orderBy('occupation_name')->get();
+        $knownBys = KnownByMaster::where('kstatus', 'Active')->orderBy('KwnBy')->get();
 
         return view('patient.edit', [
             'patient' => $patient,
@@ -323,6 +348,7 @@ class PatientController extends Controller
             'knownBys' => $knownBys,
         ]);
     }
+
     public function update(Request $request, $id)
     {
         $validated = $request->validate([
@@ -375,7 +401,7 @@ class PatientController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Patient updated successfully.',
-                'redirect' => route('patient.show', $id)
+                'redirect' => route('patient.show', $id),
             ]);
         }
 
@@ -425,7 +451,7 @@ class PatientController extends Controller
 
     private function exportToExcel($patients)
     {
-        $filename = 'patients_' . date('Y_m_d_His') . '.csv';
+        $filename = 'patients_'.date('Y_m_d_His').'.csv';
         $headers = [
             'Content-Type' => 'text/csv',
             'Content-Disposition' => "attachment; filename=\"$filename\"",
@@ -437,7 +463,7 @@ class PatientController extends Controller
 
             foreach ($patients as $patient) {
                 fputcsv($file, [
-                    $patient->FirstName . ' ' . ($patient->LastName ?? ''),
+                    $patient->FirstName.' '.($patient->LastName ?? ''),
                     $patient->RegistrationNo ?? '',
                     $patient->Mobile ?? '',
                     $patient->EMail ?? '',
@@ -457,18 +483,18 @@ class PatientController extends Controller
         $html = view('patient.export_pdf', ['patients' => $patients])->render();
         $pdf = Pdf::loadHTML($html);
 
-        return $pdf->download('patients_' . date('Y_m_d_His') . '.pdf');
+        return $pdf->download('patients_'.date('Y_m_d_His').'.pdf');
     }
 
     public function getStates(Request $request)
     {
         $countryId = $request->input('country_id');
 
-        if (!$countryId) {
+        if (! $countryId) {
             return response()->json(['states' => []]);
         }
 
-        $states = \App\Models\State::where('country_id', $countryId)
+        $states = State::where('country_id', $countryId)
             ->where('is_active', 1)
             ->orderBy('state_name')
             ->select('state_id', 'state_name')
@@ -481,11 +507,11 @@ class PatientController extends Controller
     {
         $stateId = $request->input('state_id');
 
-        if (!$stateId) {
+        if (! $stateId) {
             return response()->json(['cities' => []]);
         }
 
-        $cities = \App\Models\City::where('state_id', $stateId)
+        $cities = City::where('state_id', $stateId)
             ->where('is_active', 1)
             ->orderBy('city_name')
             ->select('city_id', 'city_name')
@@ -498,11 +524,11 @@ class PatientController extends Controller
     {
         $countryId = $request->input('country_id');
 
-        if (!$countryId) {
+        if (! $countryId) {
             return response()->json(['zones' => []]);
         }
 
-        $zones = \App\Models\Zone::where('country_id', $countryId)
+        $zones = Zone::where('country_id', $countryId)
             ->where('is_active', 1)
             ->orderBy('zone_name')
             ->select('zone_id', 'zone_name')
@@ -515,7 +541,7 @@ class PatientController extends Controller
     {
         $cityId = $request->input('city_id');
 
-        if (!$cityId) {
+        if (! $cityId) {
             return response()->json(['branches' => []]);
         }
 
@@ -527,6 +553,4 @@ class PatientController extends Controller
 
         return response()->json(['branches' => $branches]);
     }
-
-
 }

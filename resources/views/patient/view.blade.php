@@ -53,13 +53,13 @@
                                                 <span class="menu-arrow"></span>
                                             </a>
                                             <ul>
-                                                <li><a href="javascript:void(0);" class="tab-trigger"
+                                                <!-- <li><a href="javascript:void(0);" class="tab-trigger"
                                                         data-tab="appointments-upcoming">Upcoming</a></li>
                                                 <li><a href="javascript:void(0);" class="tab-trigger"
                                                         data-tab="appointments-history">History</a></li>
                                                 <li><a href="javascript:void(0);" class="tab-trigger"
                                                         data-tab="appointments-new" data-bs-toggle="modal"
-                                                        data-bs-target="#bookAppointmentModal">Book New</a></li>
+                                                        data-bs-target="#bookAppointmentModal">Book New</a></li> -->
                                                 <li><a href="javascript:void(0);" class="tab-trigger"
                                                         data-tab="email-templates">Email Templates</a></li>
                                             </ul>
@@ -73,7 +73,7 @@
                                             <ul>
                                                 <li><a href="javascript:void(0);" class="tab-trigger"
                                                         data-tab="consultation">Consultation History</a></li>
-                                                <li><a href="javascript:void(0);" class="tab-trigger"
+                                                        <li><a href="javascript:void(0);" class="tab-trigger"
                                                         data-tab="consultation">Add Consultation</a></li>
                                             </ul>
                                         </li>
@@ -599,7 +599,7 @@
                                             <h6 class="fw-bold mb-0">Appointments</h6>
                                             <button class="btn btn-primary btn-sm" data-bs-toggle="modal"
                                                 data-bs-target="#bookAppointmentModal">
-                                                <i class="ti ti-calendar-plus me-1"></i>Book New Appointment
+                                                <i class="ti ti-calendar-plus me-1"></i>Book New Scheduling
                                             </button>
                                         </div>
                                         <div class="card-body">
@@ -622,15 +622,15 @@
                                                             <tr>
                                                                 <td>{{ $index + 1 }}</td>
                                                                 <td><span
-                                                                        class="badge bg-light-primary">{{ $appt->LOCATION ?? '—' }}</span>
+                                                                        class="bg-light-primary">{{ $appt->LOCATION ?? '—' }}</span>
                                                                 </td>
                                                                 <td>{{ optional($appt->Sch_Datetime)->format('d-M-Y') ?? '—' }}
                                                                 </td>
                                                                 <td>{{ $appt->Sch_Time ?? (optional($appt->Sch_Datetime)->format('g:i A') ?? '—') }}
                                                                 </td>
-                                                                <td>{{ $appt->Sch_Treatmenttype ?? ($appt->Sch_AppointFor ?? '—') }}
+                                                                <td>{{ $appt->appointmentFor->AppointName ?? '—' }}
                                                                 </td>
-                                                                <td>{{ $appt->Sch_Doctname ?? '—' }}</td>
+                                                                 <td>{{ $appt->doctor->userMaster->FullName ?? ($appt->doctor->DoctorName ?? ($appt->Sch_Doctname ?? '—')) }}</td>
                                                                 <td>
                                                                     @php $apptStatus = strtoupper($appt->Sch_Status ?? 'SCHEDULED'); @endphp
                                                                     @if ($apptStatus === 'COMPLETED')
@@ -648,7 +648,7 @@
                                                                     <button class="btn btn-sm btn-light border"
                                                                         data-bs-toggle="modal"
                                                                         data-bs-target="#emailTemplateModal">
-                                                                        <i class="ti ti-mail me-1"></i>Send Email
+                                                                        {{-- <i class="ti ti-mail me-1"></i>Send Email --}}
                                                                     </button>
                                                                 </td>
                                                             </tr>
@@ -1061,7 +1061,7 @@
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="text-dark modal-title fw-bold">Book Appointment for {{ $patient->FirstName ?? 'Patient' }}
+                    <h5 class="text-dark modal-title fw-bold">Book Scheduling for {{ $patient->FirstName ?? 'Patient' }}
                     </h5>
                     <button type="button" class="btn-close btn-close-modal custom-btn-close" data-bs-dismiss="modal"
                         aria-label="Close">
@@ -1071,13 +1071,12 @@
                 <form id="bookAppointmentForm">
                     <div class="modal-body">
                         <div class="mb-3">
-                            <label class="form-label">Appointment For<span class="text-danger ms-1">*</span></label>
+                            <label class="form-label">Scheduling For<span class="text-danger ms-1">*</span></label>
                             <select class="form-select" name="appointment_for" required>
                                 <option value="" selected disabled>Select any one</option>
-                                <option value="Consultation">Consultation</option>
-                                <option value="Treatment">Treatment</option>
-                                <option value="Follow-up">Follow-up</option>
-                                <option value="Review">Review</option>
+                                @foreach ($appointment_for_options as $option)
+                                    <option value="{{ $option->AppointtCode }}">{{ $option->AppointName }}</option>
+                                @endforeach
                             </select>
                         </div>
                         <div class="mb-3">
