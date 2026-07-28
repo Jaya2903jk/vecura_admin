@@ -12,7 +12,20 @@ class MachineIssuesController extends Controller
     public function index(Request $request)
     {
         $perPage = $request->get('per_page', 10);
-        $MachineIssues = MachineIssues::orderBy('machineIssueId', 'asc')->paginate($perPage);
+        $search = $request->get('search');
+        $status = $request->get('status');
+
+        $query = MachineIssues::with('Machine')->orderBy('machineIssueId', 'asc');
+
+        if ($search) {
+            $query->where('IssuesName', 'like', "%{$search}%");
+        }
+
+        if ($status) {
+            $query->where('Status', $status);
+        }
+
+        $MachineIssues = $query->paginate($perPage);
         $machines = Machine::all();
 
         return view('machine-issues.index', compact('MachineIssues', 'perPage', 'machines'));

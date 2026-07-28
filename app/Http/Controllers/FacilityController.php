@@ -38,7 +38,7 @@ class FacilityController extends Controller
             ->first();
 
         if (! $facility) {
-            return redirect()->back()->with('error', 'Facility request not found.');
+            return redirect()->route('ticket.view', $ticketId);
         }
 
         // ── 3. Determine request type flags ───────────────────────────────

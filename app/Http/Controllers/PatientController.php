@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\AppointmentFor;
 use App\Models\City;
 use App\Models\Country;
 use App\Models\KnownByMaster;
@@ -10,7 +9,6 @@ use App\Models\NewBranch;
 use App\Models\OccupationMaster;
 use App\Models\PatientPersonalDetail;
 use App\Models\RegTypeMaster;
-use App\Models\ScheduleConsultant;
 use App\Models\State;
 use App\Models\UserMaster;
 use App\Models\Zone;
@@ -58,29 +56,26 @@ class PatientController extends Controller
     public function show($id)
     {
         $patient = $this->patientRepository->getById($id);
-        // Get patient appointments from ScheduleConsultant table
-        $appointments = ScheduleConsultant::byPatient($patient->RegistrationNo)
-            ->with('doctor.userMaster')
-            ->orderBy('Sch_Datetime', 'desc')
-            ->get();
-        $bookedAppointmentFor = $appointments
-            ->pluck('Sch_AppointFor')
-            ->filter()
-            ->unique()
-            ->toArray();
-        // dd($bookedAppointmentFor);
-        // $appointment_for_options = AppointmentFor::orderBy('AppointName')->get();
-        $appointment_for_options = AppointmentFor::whereNotIn(
-            'AppointtCode',
-            $bookedAppointmentFor
-        )
-            ->orderBy('AppointName')
+        $appointmentForOptions = \App\Models\AppointmentFor::orderBy('AppointName')->get();
+        $consultants = $this->getConsultants();
+
+        $appointments = \App\Models\ScheduleConsultant::where(function ($q) use ($patient) {
+                if (!empty($patient->RegistrationNo)) {
+                    $q->where('Sch_Custid', $patient->RegistrationNo);
+                }
+                if (!empty($patient->FirstName)) {
+                    $q->orWhere('Sch_Custname', $patient->FirstName);
+                }
+            })
+            ->with(['appointmentFor', 'doctor.userMaster'])
+            ->orderBy('Sch_Datetime', 'DESC')
             ->get();
 
         return view('patient.view', [
             'patient' => $patient,
+            'appointment_for_options' => $appointmentForOptions,
+            'consultants' => $consultants,
             'appointments' => $appointments,
-            'appointment_for_options' => $appointment_for_options,
         ]);
     }
 
@@ -250,7 +245,8 @@ class PatientController extends Controller
                 ? strtoupper($validated['Marital_Status'])                                     // SINGLE, MARRIED
                 : null;
             // System fields
-            $validated['CreatedBy'] = session('user_id');
+            $userCode = session('user_code') ?? optional(\App\Models\UserMaster::find(session('user_id')))->UserCode ?? 'USE-0209';
+            $validated['CreatedBy'] = $userCode;
             $validated['CreatedDate'] = now();
             $validated['RegistrationDate'] = $validated['RegistrationDate'] ?? now();
             $validated['CustomerStatus'] = 'Active';
@@ -304,7 +300,7 @@ class PatientController extends Controller
             ->join('roles', 'employee_roles.role_id', '=', 'roles.id')
             ->where('roles.id', 8)
             ->where('employee_roles.is_active', 1)
-            ->select('User_Master.UserID', 'User_Master.FullName', 'User_Master.EmailId', 'roles.name as role_name')
+            ->select('User_Master.UserID', 'User_Master.UserCode', 'User_Master.FullName', 'User_Master.EmailId', 'roles.name as role_name')
             ->distinct()
             ->orderBy('User_Master.FullName')
             ->get();
@@ -320,7 +316,7 @@ class PatientController extends Controller
             ->join('roles', 'employee_roles.role_id', '=', 'roles.id')
             ->where('roles.id', 8)
             ->where('employee_roles.is_active', 1)
-            ->select('User_Master.UserID', 'User_Master.FullName', 'User_Master.EmailId', 'roles.name as role_name')
+            ->select('User_Master.UserID', 'User_Master.UserCode', 'User_Master.FullName', 'User_Master.EmailId', 'roles.name as role_name')
             ->distinct()
             ->orderBy('User_Master.FullName')
             ->get();
@@ -392,7 +388,8 @@ class PatientController extends Controller
             'TreatmentJoined' => 'nullable|in:Yes,No',
         ]);
 
-        $validated['ModifiedBy'] = session('user_id');
+        $userCode = session('user_code') ?? optional(\App\Models\UserMaster::find(session('user_id')))->UserCode ?? 'USE-0209';
+        $validated['ModifiedBy'] = $userCode;
         $validated['ModifiedDate'] = now();
 
         $this->patientRepository->update($id, $validated);

@@ -1,275 +1,198 @@
 <?php $page = 'staff'; ?>
 @extends('layout.mainlayout')
+
 @section('content')
     <div class="page-wrapper">
-        <div class="content">
+        <div class="content px-4 py-3">
 
-            <div class="d-flex align-items-sm-center flex-sm-row flex-column gap-2 mb-3 pb-3 border-bottom">
-                <div class="flex-grow-1">
-                    <h4 class="fw-bold mb-0">Expense Type<span
-                            class="badge badge-soft-primary border border-primary page-header-badge ms-2">Total Expense :
-                            {{ $totalCount }}</span></h4>
+            <!-- PAGE HEADER -->
+            <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-4 pb-3 border-bottom">
+                <div>
+                    <h4 class="fw-bold text-dark mb-1 d-flex align-items-center gap-2">
+                        <i class="ti ti-receipt-tax text-primary fs-24"></i>Expense Master
+                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle fs-12 ms-2 px-2.5 py-1 rounded-pill">
+                            Total Expenses: {{ $totalCount }}
+                        </span>
+                    </h4>
+                    <p class="text-muted fs-13 mb-0">Manage financial expense types, descriptions, and active status configurations.</p>
                 </div>
-                <div class="text-end d-flex">
-                    <div class="dropdown me-1">
-                        <a href="javascript:void(0);"
-                            class="btn btn-md fs-14 fw-normal border bg-white rounded text-dark d-inline-flex align-items-center"
-                            data-bs-toggle="dropdown">
-                            Export<i class="ti ti-chevron-down ms-2"></i>
-                        </a>
-                        <ul class="dropdown-menu p-2">
-                            <li><a class="dropdown-item" href="#">Download as PDF</a></li>
-                            <li><a class="dropdown-item" href="#">Download as Excel</a></li>
-                        </ul>
-                    </div>
+                <div class="d-flex align-items-center gap-2">
                     @if(session('is_admin') || \App\Helpers\RbacHelper::canPerformAction('create', 'expense'))
-                        <a href="javascript:void(0);" class="btn btn-primary ms-2 fs-13 btn-md" data-bs-toggle="modal"
-                            data-bs-target="#add_modal"><i class="ti ti-plus me-1"></i>Add New Expense</a>
+                        <button type="button" class="btn btn-primary btn-sm fw-bold px-3 shadow-xs" data-bs-toggle="modal" data-bs-target="#add_modal">
+                            <i class="ti ti-plus me-1"></i>New Expense Type
+                        </button>
                     @endif
                 </div>
             </div>
 
-            <div class="d-flex align-items-center justify-content-between flex-wrap row-gap-3 mb-3">
-                <div class="search-set">
-                    <div class="d-flex align-items-center flex-wrap gap-2">
-                        <div class="table-search d-flex align-items-center mb-0">
-                            <div class="search-input">
-                                <a href="javascript:void(0);" class="btn-searchset"></a>
+            <!-- FILTER BAR -->
+            <div class="card border-0 shadow-xs mb-4 rounded-3">
+                <div class="card-body p-3 bg-light-subtle rounded-3">
+                    <form method="GET" action="{{ route('expanse.index') }}" id="expenseFilterForm">
+                        <div class="row g-2 align-items-center">
+                            {{-- Search Input --}}
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold fs-13 text-dark mb-1">Search Expense</label>
+                                <div class="input-group input-group-sm">
+                                    <span class="input-group-text bg-white border-end-0"><i class="ti ti-search text-muted"></i></span>
+                                    <input type="text" name="search" class="form-control border-start-0 fs-13 text-dark"
+                                        placeholder="Expense Name..." value="{{ request('search') }}">
+                                </div>
                             </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="d-flex table-dropdown pb-1 right-content align-items-center flex-wrap row-gap-3">
-                    <div class="dropdown me-2">
-                        <a href="javascript:void(0);"
-                            class="btn btn-white bg-white fs-14 py-1 border d-inline-flex text-dark align-items-center"
-                            data-bs-toggle="dropdown">
-                            <i class="ti ti-filter text-gray-5 me-1"></i>Filters
-                        </a>
-                        <div class="dropdown-menu dropdown-menu-end p-3" style="min-width:280px;">
-                            <div class="mb-3">
-                                <label class="form-label">Expense</label>
-                                <select class="select">
-                                    <option>Select</option>
-                                    <option>Active</option>
-                                    <option>Inactive</option>
+
+                            {{-- Status Filter --}}
+                            <div class="col-md-3">
+                                <label class="form-label fw-semibold fs-13 text-dark mb-1">Status</label>
+                                <select name="status" class="form-select form-select-sm fs-13 text-dark" onchange="document.getElementById('expenseFilterForm').submit()">
+                                    <option value="">All Status</option>
+                                    <option value="Active" {{ request('status') === 'Active' ? 'selected' : '' }}>Active</option>
+                                    <option value="Inactive" {{ request('status') === 'Inactive' ? 'selected' : '' }}>Inactive</option>
                                 </select>
                             </div>
-                            <div class="mb-0 d-flex justify-content-end gap-2">
-                                <button type="button" class="btn btn-light btn-sm">Reset</button>
-                                <button type="button" class="btn btn-primary btn-sm">Apply</button>
+
+                            {{-- Action Controls --}}
+                            <div class="col-md-3 d-flex align-items-end gap-1 pt-3">
+                                <button type="submit" class="btn btn-primary btn-sm fw-semibold fs-13 flex-fill">
+                                    <i class="ti ti-filter me-1"></i>Filter
+                                </button>
+                                <a href="{{ route('expanse.index') }}" class="btn btn-light border btn-sm fw-semibold fs-13 text-secondary" title="Reset Filters">
+                                    <i class="ti ti-refresh"></i>
+                                </a>
                             </div>
                         </div>
-                    </div>
+                    </form>
                 </div>
             </div>
 
-            <div class="card border-0">
+            <!-- EXPENSE TABLE CARD -->
+            <div class="card border-0 shadow-xs rounded-3">
                 <div class="card-body p-0">
-
-                    <div class="table-responsive">
-                        <table class="table datatable mb-0">
-                            <thead>
+                    <div class="table-responsive" style="overflow-x: auto;">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="bg-light border-bottom">
                                 <tr>
-                                    <th>Expense Name</th>
-                                    <th>Description</th>
-                                    <th>Status</th>
-                                    <th>Action</th>
+                                    <th class="fs-12 text-uppercase fw-bold text-slate-700 py-3 ps-4">Expense Name</th>
+                                    <th class="fs-12 text-uppercase fw-bold text-slate-700 py-3">Description</th>
+                                    <th class="fs-12 text-uppercase fw-bold text-slate-700 py-3">Status</th>
                                 </tr>
                             </thead>
-                            <tbody>
+                            <tbody class="divide-y divide-gray-100">
                                 @forelse($ExpenseMaster as $expense)
                                     <tr>
-                                        <td>{{ $expense->ExpenseName }}</td>
-
-                                        <td>{{ $expense->Description ?? '-' }}</td>
-
+                                        <td class="ps-4">
+                                            <div class="d-flex align-items-center gap-2">
+                                                <div class="patient-avatar-circle flex-shrink-0 text-decoration-none">
+                                                    <i class="ti ti-receipt-tax fs-16 text-primary"></i>
+                                                </div>
+                                                <div>
+                                                    <span class="fw-bold text-dark fs-13">{{ $expense->ExpenseName }}</span>
+                                                    <div class="fs-11 text-muted">ID: #{{ $expense->ExpenseId }}</div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="fs-13 text-secondary">
+                                            {{ $expense->Description ?? '-' }}
+                                        </td>
                                         <td>
                                             @if ($expense->Status == 1)
-                                                <span class="badge badge-soft-success border border-success">Active</span>
+                                                <span class="badge bg-success-subtle text-success border border-success-subtle px-2.5 py-1 fs-11 fw-bold rounded-pill">
+                                                    <i class="ti ti-point-filled me-1"></i>Active
+                                                </span>
                                             @else
-                                                <span class="badge badge-soft-danger border border-danger">Inactive</span>
+                                                <span class="badge bg-warning-subtle text-warning border border-warning-subtle px-2.5 py-1 fs-11 fw-bold rounded-pill">
+                                                    <i class="ti ti-point-filled me-1"></i>Inactive
+                                                </span>
                                             @endif
-                                        </td>
-
-                                        <td>
-                                            <div class="action-item">
-                                                @if(session('is_admin') || \App\Helpers\RbacHelper::canPerformAction('edit', 'expense') || \App\Helpers\RbacHelper::canPerformAction('delete', 'expense'))
-                                                    <a href="javascript:void(0);" data-bs-toggle="dropdown">
-                                                        <i class="ti ti-dots-vertical"></i>
-                                                    </a>
-                                                    <ul class="dropdown-menu p-2">
-                                                        @if(session('is_admin') || \App\Helpers\RbacHelper::canPerformAction('edit', 'expense'))
-                                                            <li>
-                                                                <a href="#" class="dropdown-item" data-bs-toggle="modal"
-                                                                    data-bs-target="#edit_modal">
-                                                                    Edit
-                                                                </a>
-                                                            </li>
-                                                        @endif
-                                                        @if(session('is_admin') || \App\Helpers\RbacHelper::canPerformAction('delete', 'expense'))
-                                                            <li>
-                                                                <a href="#" class="dropdown-item" data-bs-toggle="modal"
-                                                                    data-bs-target="#delete_modal">
-                                                                    Delete
-                                                                </a>
-                                                            </li>
-                                                        @endif
-                                                    </ul>
-                                                @endif
-                                            </div>
                                         </td>
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="4" class="text-center">No data found</td>
+                                        <td colspan="3" class="text-center text-muted py-5 fs-13">
+                                            <i class="ti ti-receipt-off fs-36 text-muted mb-2 d-block"></i>
+                                            No expenses found matching criteria.
+                                        </td>
                                     </tr>
                                 @endforelse
                             </tbody>
                         </table>
                     </div>
-
                 </div>
             </div>
-            <div class="table-footer-bar d-flex justify-content-between align-items-center">
-                <div class="d-flex align-items-center gap-3">
 
+            <!-- TABLE FOOTER / PAGINATION BAR -->
+            <div class="table-footer-bar d-flex flex-column flex-md-row justify-content-between align-items-center mt-3 fs-13 bg-white p-3 rounded-3 shadow-xs border gap-3">
+                <div class="d-flex align-items-center gap-3">
                     <div>
-                        Row Per Page
-                        <select id="perPageDept" class="form-select form-select-sm d-inline-block" style="width:70px;">
+                        <span class="text-muted fw-medium">Rows per page:</span>
+                        <select id="perPageDept" class="form-select form-select-sm d-inline-block border ms-1 fw-bold text-dark" style="width:75px;">
                             <option value="10" {{ $perPage == 10 ? 'selected' : '' }}>10</option>
                             <option value="25" {{ $perPage == 25 ? 'selected' : '' }}>25</option>
                             <option value="50" {{ $perPage == 50 ? 'selected' : '' }}>50</option>
                         </select>
                     </div>
-
-                    <div>
-                        Showing {{ $ExpenseMaster->firstItem() }} to {{ $ExpenseMaster->lastItem() }}
-                        of {{ $ExpenseMaster->total() }} entries
+                    <div class="text-muted border-start ps-3">
+                        Showing <span class="fw-semibold text-dark">{{ $ExpenseMaster->firstItem() ?? 0 }}</span> to <span class="fw-semibold text-dark">{{ $ExpenseMaster->lastItem() ?? 0 }}</span> of <span class="fw-semibold text-dark">{{ $ExpenseMaster->total() }}</span> entries
                     </div>
-
                 </div>
-                <div class="pagination-box">
-                    {{ $ExpenseMaster->appends(['per_page' => $perPage])->links('pagination::bootstrap-5') }}
-                </div>
-
-            </div>
-            <script>
-                document.getElementById('perPageDept').addEventListener('change', function() {
-                    let perPage = this.value;
-                    let url = new URL(window.location.href);
-                    url.searchParams.set('per_page', perPage);
-                    window.location.href = url.toString();
-                });
-            </script>
-            <div id="add_modal" class="modal fade">
-                <div class="modal-dialog modal-dialog-centered">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h4 class="text-dark modal-title fw-bold">Add New Expense</h4>
-                            <button type="button" class="btn-close btn-close-modal custom-btn-close"
-                                data-bs-dismiss="modal" aria-label="Close"><i class="ti ti-x"></i></button>
-                        </div>
-                        <form id="expenseForm" class="needs-validation" novalidate>
-                            @csrf
-                            <div class="modal-body">
-
-                                <div class="mb-3">
-                                    <label class="form-label">Expense Name<span class="text-danger ms-1">*</span></label>
-                                    <input type="text" name="expense_name" id="expense_name" class="form-control"
-                                        placeholder="Enter expense name">
-                                </div>
-                                {{-- <div class="mb-3">
-                                    <label class="form-label">Description<span class="text-danger ms-1">*</span></label>
-                                    <textarea class="form-control" rows="3" placeholder="Enter description"></textarea>
-                                </div> --}}
-                                <div class="mb-3">
-                                    <label class="form-label">Status</label>
-                                    <select name="status" class="form-control">
-                                        <option value="Active">Active</option>
-                                        <option value="Inactive">Inactive</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="modal-footer d-flex align-items-center gap-1">
-                                <button type="button" class="btn btn-white border"
-                                    data-bs-dismiss="modal">Cancel</button>
-                                <button type="submit" id="submitBtn" class="btn btn-primary">Add New Expense</button>
-                            </div>
-                        </form>
-                    </div>
+                <div>
+                    <x-pagination :paginator="$ExpenseMaster" :append="['per_page' => $perPage, 'search' => request('search'), 'status' => request('status')]" />
                 </div>
             </div>
 
-            <div id="edit_modal" class="modal fade">
-                <div class="modal-dialog modal-dialog-centered">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h4 class="text-dark modal-title fw-bold">Edit Expense</h4>
-                            <button type="button" class="btn-close btn-close-modal custom-btn-close"
-                                data-bs-dismiss="modal" aria-label="Close"><i class="ti ti-x"></i></button>
-                        </div>
-                        <form action="department.html">
-                            <div class="modal-body">
-
-                                <div class="mb-3">
-                                    <label class="form-label">Department Name<span
-                                            class="text-danger ms-1">*</span></label>
-                                    <input type="text" class="form-control" placeholder="Enter department name">
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label">Description<span class="text-danger ms-1">*</span></label>
-                                    <textarea class="form-control" rows="3" placeholder="Enter description"></textarea>
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label">Status<span class="text-danger ms-1">*</span></label>
-                                    <select class="select">
-                                        <option>Active</option>
-                                        <option>Inactive</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="modal-footer d-flex align-items-center gap-1">
-                                <button type="button" class="btn btn-white border"
-                                    data-bs-dismiss="modal">Cancel</button>
-                                <button type="submit" class="btn btn-primary">Save Changes</button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            </div>
-
-            <div class="modal fade" id="delete_modal">
-                <div class="modal-dialog modal-dialog-centered modal-sm">
-                    <div class="modal-content">
-                        <div class="modal-body text-center">
-                            <div class="mb-3">
-                                <span class="avatar avatar-xl bg-danger-transparent rounded-circle text-danger">
-                                    <i class="ti ti-trash fs-24"></i>
-                                </span>
-                            </div>
-                            <h5 class="mb-2">Delete Department</h5>
-                            <p class="mb-3">Are you sure you want to delete this department record?</p>
-                            <div class="d-flex justify-content-center gap-2">
-                                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
-                                <button type="button" class="btn btn-danger">Delete</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-        </div>
-        <div class="footer text-center bg-white p-2 border-top">
-            <p class="text-dark mb-0">Copyright &copy; 2026 - Vecura.</p>
         </div>
     </div>
+
+    <!-- ADD MODAL -->
+    <div id="add_modal" class="modal fade" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header border-bottom px-4 py-3 bg-light">
+                    <h5 class="modal-title fw-bold text-dark d-flex align-items-center gap-2">
+                        <i class="ti ti-receipt-tax text-primary fs-20"></i>Add New Expense
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+
+                <form id="expenseForm" class="needs-validation" novalidate>
+                    @csrf
+                    <div class="modal-body p-4">
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold fs-13 text-dark">Expense Name <span class="text-danger">*</span></label>
+                            <input type="text" name="expense_name" id="expense_name" class="form-control fs-13"
+                                placeholder="Enter expense name" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold fs-13 text-dark">Status <span class="text-danger">*</span></label>
+                            <select name="status" class="form-select fs-13" required>
+                                <option value="Active">Active</option>
+                                <option value="Inactive">Inactive</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="modal-footer px-4 py-3 bg-light border-top gap-2">
+                        <button type="button" class="btn btn-light border btn-sm fw-semibold" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" id="submitBtn" class="btn btn-primary btn-sm fw-bold px-3">
+                            <i class="ti ti-plus me-1"></i>Add New Expense
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <script src="{{ asset('build/plugins/sweetalert2/sweetalert2.min.js') }}"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    {{-- <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script> --}}
-    <script>
-        $(document).ready(function() {
 
+    <script>
+        document.getElementById('perPageDept').addEventListener('change', function() {
+            let perPage = this.value;
+            let url = new URL(window.location.href);
+            url.searchParams.set('per_page', perPage);
+            window.location.href = url.toString();
+        });
+
+        $(document).ready(function() {
             $('#expenseForm').on('submit', function(e) {
                 e.preventDefault();
 
@@ -277,13 +200,13 @@
                 let formData = new FormData(form);
                 let submitBtn = $('#submitBtn');
 
-                submitBtn.prop('disabled', true).text('Processing...');
+                submitBtn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span> Processing...');
 
                 $('.is-invalid').removeClass('is-invalid');
                 $('.invalid-feedback.dynamic').remove();
 
                 $.ajax({
-                    url: "{{ route('expanse.store') }}",
+                    url: "{{ url('expanse/store') }}",
                     type: "POST",
                     data: formData,
                     processData: false,
@@ -291,26 +214,33 @@
                     headers: {
                         'X-CSRF-TOKEN': $('input[name="_token"]').val()
                     },
+
                     success: function(response) {
-                        submitBtn.prop('disabled', false).text('Add New Expense');
+                        submitBtn.prop('disabled', false).html('<i class="ti ti-plus me-1"></i>Add New Expense');
+
                         if (response.status) {
                             $('#add_modal').modal('hide');
                             form.reset();
+
                             Swal.fire({
                                 icon: "success",
                                 title: "Expense Created Successfully",
                                 showConfirmButton: false,
                                 timer: 1500
                             });
+
                             setTimeout(function() {
                                 location.reload();
                             }, 1500);
                         }
                     },
+
                     error: function(xhr) {
-                        submitBtn.prop('disabled', false).text('Add New Expense');
+                        submitBtn.prop('disabled', false).html('<i class="ti ti-plus me-1"></i>Add New Expense');
+
                         if (xhr.status === 422) {
                             let errors = xhr.responseJSON.errors;
+
                             $.each(errors, function(key, value) {
                                 let input = $('[name="' + key + '"]');
                                 input.addClass('is-invalid');
@@ -330,19 +260,15 @@
                             }, 500);
 
                         } else {
-
                             Swal.fire({
                                 icon: "error",
                                 title: "Error",
                                 text: "Something went wrong!",
                             });
-
-                            console.log(xhr.responseText);
                         }
                     }
                 });
             });
-
         });
     </script>
 @endsection

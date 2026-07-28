@@ -624,11 +624,25 @@
                                                                 <td><span
                                                                         class="bg-light-primary">{{ $appt->LOCATION ?? '—' }}</span>
                                                                 </td>
-                                                                <td>{{ optional($appt->Sch_Datetime)->format('d-M-Y') ?? '—' }}
+                                                                <td>
+                                                                    @if ($appt->Sch_Datetime)
+                                                                        {{ \Carbon\Carbon::parse($appt->Sch_Datetime)->format('d-M-Y') }}
+                                                                    @elseif ($appt->FreeScheduleFrm)
+                                                                        {{ \Carbon\Carbon::parse($appt->FreeScheduleFrm)->format('d-M-Y') }}
+                                                                    @else
+                                                                        —
+                                                                    @endif
                                                                 </td>
-                                                                <td>{{ $appt->Sch_Time ?? (optional($appt->Sch_Datetime)->format('g:i A') ?? '—') }}
+                                                                <td>
+                                                                    @if (!empty($appt->Sch_Time))
+                                                                        {{ trim($appt->Sch_Time) }} {{ !empty($appt->ampm) ? strtoupper(trim($appt->ampm)) : '' }}
+                                                                    @elseif ($appt->Sch_Datetime)
+                                                                        {{ \Carbon\Carbon::parse($appt->Sch_Datetime)->format('g:i A') }}
+                                                                    @else
+                                                                        —
+                                                                    @endif
                                                                 </td>
-                                                                <td>{{ $appt->appointmentFor->AppointName ?? '—' }}
+                                                                <td>{{ $appt->appointmentFor->AppointName ?? ($appt->Sch_AppointFor ?? '—') }}
                                                                 </td>
                                                                  <td>{{ $appt->doctor->userMaster->FullName ?? ($appt->doctor->DoctorName ?? ($appt->Sch_Doctname ?? '—')) }}</td>
                                                                 <td>
@@ -645,10 +659,12 @@
                                                                     @endif
                                                                 </td>
                                                                 <td>
-                                                                    <button class="btn btn-sm btn-light border"
-                                                                        data-bs-toggle="modal"
-                                                                        data-bs-target="#emailTemplateModal">
-                                                                        {{-- <i class="ti ti-mail me-1"></i>Send Email --}}
+                                                                    @php
+                                                                        $secureToken = \Illuminate\Support\Facades\Crypt::encryptString($patient->PatientID . ':' . $appt->ScheduleId);
+                                                                    @endphp
+                                                                    <button type="button" class="btn btn-sm btn-primary border shadow-xs px-3"
+                                                                            onclick="openConsultationWindow('{{ $secureToken }}')">
+                                                                        <i class="ti ti-file-text me-1"></i>
                                                                     </button>
                                                                 </td>
                                                             </tr>
@@ -1056,143 +1072,8 @@
     </div>
     {{-- End Email Template Modal --}}
 
-    {{-- Book Appointment Modal --}}
-    <div id="bookAppointmentModal" class="modal fade">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="text-dark modal-title fw-bold">Book Scheduling for {{ $patient->FirstName ?? 'Patient' }}
-                    </h5>
-                    <button type="button" class="btn-close btn-close-modal custom-btn-close" data-bs-dismiss="modal"
-                        aria-label="Close">
-                        <i class="ti ti-x"></i>
-                    </button>
-                </div>
-                <form id="bookAppointmentForm">
-                    <div class="modal-body">
-                        <div class="mb-3">
-                            <label class="form-label">Scheduling For<span class="text-danger ms-1">*</span></label>
-                            <select class="form-select" name="appointment_for" required>
-                                <option value="" selected disabled>Select any one</option>
-                                @foreach ($appointment_for_options as $option)
-                                    <option value="{{ $option->AppointtCode }}">{{ $option->AppointName }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Customer Name<span class="text-danger ms-1">*</span></label>
-                            <input type="text" class="form-control" value="{{ $patient->FirstName ?? '' }}" readonly>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Registration No<span class="text-danger ms-1">*</span></label>
-                            <input type="text" class="form-control" value="{{ $patient->RegistrationNo ?? '' }}"
-                                readonly>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Wellness Expert / Consultant<span
-                                    class="text-danger ms-1">*</span></label>
-                            <select class="form-select" name="consultant" required>
-                                <option value="" selected disabled>Select any one</option>
-                                @forelse ($consultants ?? [] as $consultant)
-                                    <option value="{{ $consultant->UserID ?? $consultant->id }}">
-                                        {{ $consultant->FullName ?? $consultant->name }}</option>
-                                @empty
-                                    <option value="V1864">V1864 - Rebeka | Wellness Expert</option>
-                                @endforelse
-                            </select>
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label">Schedule Time<span class="text-danger ms-1">*</span></label>
-                            <div class="d-flex align-items-center gap-2 position-relative" id="scheduleTimeRow">
-                                <input type="text" class="form-control form-control-sm" id="scheduleTimeFrom"
-                                    name="schedule_time_from" placeholder="From" readonly required
-                                    style="max-width: 100px;">
-                                <span class="text-muted fs-13">To</span>
-                                <input type="text" class="form-control form-control-sm" id="scheduleTimeTo"
-                                    name="schedule_time_to" placeholder="To" readonly required style="max-width: 100px;">
-                                <a href="javascript:void(0);" id="getDateTimeLink"
-                                    class="fs-13 text-decoration-underline">Get Date Time</a>
-
-                                {{-- Clickable time-slot popover, 10-min intervals, 9:00 AM to 7:00 PM --}}
-                                <div id="timeSlotPopover" class="time-slot-popover d-none">
-                                    <div class="time-slot-popover-header">Select a time slot</div>
-                                    <div class="time-slot-grid" id="timeSlotGrid"></div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label">Date<span class="text-danger ms-1">*</span></label>
-                            <input type="date" class="form-control" name="schedule_date" id="scheduleDate" required>
-                        </div>
-                    </div>
-                    <div class="modal-footer d-flex align-items-center gap-1">
-                        <button type="button" class="btn btn-light border" data-bs-dismiss="modal">Back</button>
-                        <button type="submit" class="btn btn-primary">Save</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-    {{-- End Book Appointment Modal --}}
-
-    <style>
-        /* Time slot popover for the Book Appointment modal */
-        .time-slot-popover {
-            position: absolute;
-            top: calc(100% + 6px);
-            left: 0;
-            z-index: 1060;
-            width: 260px;
-            max-height: 220px;
-            overflow-y: auto;
-            background: #fff;
-            border: 1px solid #d9d9e3;
-            border-radius: 6px;
-            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
-            padding: 8px;
-        }
-
-        .time-slot-popover-header {
-            font-size: 12px;
-            font-weight: 600;
-            color: #6c757d;
-            text-transform: uppercase;
-            letter-spacing: 0.3px;
-            padding: 2px 4px 8px;
-            border-bottom: 1px solid #eee;
-            margin-bottom: 6px;
-        }
-
-        .time-slot-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 6px;
-        }
-
-        .time-slot-btn {
-            border: 1px solid #d9d9e3;
-            background: #fff;
-            border-radius: 4px;
-            font-size: 12px;
-            padding: 5px 4px;
-            cursor: pointer;
-            color: #333;
-        }
-
-        .time-slot-btn:hover {
-            border-color: var(--bs-primary, #4a4a68);
-            color: var(--bs-primary, #4a4a68);
-            background: var(--bs-primary-bg-subtle, #eef2ff);
-        }
-
-        .time-slot-btn.selected {
-            background: var(--bs-primary, #4a4a68);
-            border-color: var(--bs-primary, #4a4a68);
-            color: #fff;
-        }
-    </style>
+    @include('patient.modals.book_appointment_modal')
+    @include('patient.partials.appointment_styles')
 
     <style>
         /* Compact patient sidebar: main + child menu, tighter spacing, no scroll needed */
@@ -1451,94 +1332,13 @@
                     delete adminSection.dataset.wasCollapsedBeforePrint;
                 }
             });
-
-            // ===== Book Appointment: time-slot picker =====
-            // Generates clickable 10-minute interval slots from 9:00 AM to 7:00 PM.
-            // Clicking a slot fills "From" and sets "To" to From + 20 minutes (default appointment length).
-            var SLOT_START_MIN = 9 * 60; // 9:00 AM in minutes-from-midnight
-            var SLOT_END_MIN = 19 * 60; // 7:00 PM
-            var SLOT_INTERVAL_MIN = 10; // 10-minute increments
-            var SLOT_DURATION_MIN = 20; // default appointment length once a slot is picked
-
-            function formatMinutesToAmPm(totalMinutes) {
-                var h = Math.floor(totalMinutes / 60);
-                var m = totalMinutes % 60;
-                var period = h >= 12 ? 'PM' : 'AM';
-                var h12 = h % 12;
-                if (h12 === 0) h12 = 12;
-                return h12 + ':' + String(m).padStart(2, '0') + ' ' + period;
-            }
-
-            function buildTimeSlotGrid() {
-                var grid = document.getElementById('timeSlotGrid');
-                if (!grid) return;
-                grid.innerHTML = '';
-                for (var t = SLOT_START_MIN; t <= SLOT_END_MIN; t += SLOT_INTERVAL_MIN) {
-                    var btn = document.createElement('button');
-                    btn.type = 'button';
-                    btn.className = 'time-slot-btn';
-                    btn.textContent = formatMinutesToAmPm(t);
-                    btn.dataset.minutes = t;
-                    grid.appendChild(btn);
-                }
-            }
-
-            var timeSlotPopover = document.getElementById('timeSlotPopover');
-            var getDateTimeLink = document.getElementById('getDateTimeLink');
-            var scheduleTimeFrom = document.getElementById('scheduleTimeFrom');
-            var scheduleTimeTo = document.getElementById('scheduleTimeTo');
-
-            if (getDateTimeLink && timeSlotPopover) {
-                buildTimeSlotGrid();
-
-                getDateTimeLink.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    timeSlotPopover.classList.toggle('d-none');
-                });
-
-                timeSlotPopover.addEventListener('click', function(e) {
-                    var btn = e.target.closest('.time-slot-btn');
-                    if (!btn) return;
-
-                    // Highlight selection
-                    timeSlotPopover.querySelectorAll('.time-slot-btn.selected').forEach(function(el) {
-                        el.classList.remove('selected');
-                    });
-                    btn.classList.add('selected');
-
-                    var startMin = parseInt(btn.dataset.minutes, 10);
-                    var endMin = Math.min(startMin + SLOT_DURATION_MIN, SLOT_END_MIN);
-
-                    scheduleTimeFrom.value = formatMinutesToAmPm(startMin);
-                    scheduleTimeTo.value = formatMinutesToAmPm(endMin);
-
-                    timeSlotPopover.classList.add('d-none');
-                });
-
-                // Close the popover when clicking outside it
-                document.addEventListener('click', function(e) {
-                    if (!timeSlotPopover.classList.contains('d-none') &&
-                        !timeSlotPopover.contains(e.target) &&
-                        e.target !== getDateTimeLink) {
-                        timeSlotPopover.classList.add('d-none');
-                    }
-                });
-            }
-
-            // Default the Date field to today when the modal opens, if not already set
-            var bookAppointmentModalEl = document.getElementById('bookAppointmentModal');
-            if (bookAppointmentModalEl) {
-                bookAppointmentModalEl.addEventListener('show.bs.modal', function() {
-                    var dateInput = document.getElementById('scheduleDate');
-                    if (dateInput && !dateInput.value) {
-                        var today = new Date();
-                        var yyyy = today.getFullYear();
-                        var mm = String(today.getMonth() + 1).padStart(2, '0');
-                        var dd = String(today.getDate()).padStart(2, '0');
-                        dateInput.value = yyyy + '-' + mm + '-' + dd;
-                    }
-                });
-            }
         });
+
+        function openConsultationWindow(token) {
+            var url = "{{ route('patient.appointments.consultation-form-secure') }}?token=" + encodeURIComponent(token);
+            window.open(url, '_blank');
+        }
     </script>
+
+    @include('patient.partials.appointment_scripts')
 @endsection

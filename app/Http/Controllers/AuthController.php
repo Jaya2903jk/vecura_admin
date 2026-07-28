@@ -79,6 +79,7 @@ class AuthController extends Controller
 
         session([
             'user_id' => $user->UserID,
+            'user_code' => $user->UserCode ?? $user->employee_code,
             'user_name' => $user->FullName ?? $user->UserName,
             'role_id' => $user->userGroup->UserGroupID ?? null,
             'role_name' => $user->userGroup->UserGroupName ?? null,

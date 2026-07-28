@@ -13,8 +13,23 @@ class ExpenseController extends Controller
     public function index(Request $request)
     {
         $perPage = $request->get('per_page', 10);
-        $ExpenseMaster = ExpenseMaster::orderBy('ExpenseId', 'asc')->paginate($perPage);
-$totalCount = ExpenseMaster::count();
+        $search = $request->get('search');
+        $status = $request->get('status');
+
+        $query = ExpenseMaster::orderBy('ExpenseId', 'asc');
+
+        if ($search) {
+            $query->where('ExpenseName', 'like', "%{$search}%");
+        }
+
+        if ($status !== null && $status !== '') {
+            $statusVal = strtolower($status) === 'active' ? 1 : 0;
+            $query->where('Status', $statusVal);
+        }
+
+        $ExpenseMaster = $query->paginate($perPage);
+        $totalCount = $ExpenseMaster->total();
+
         return view('expense.index', compact('ExpenseMaster', 'perPage', 'totalCount'));
     }
 

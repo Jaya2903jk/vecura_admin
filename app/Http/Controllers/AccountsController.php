@@ -18,19 +18,26 @@ class AccountsController extends Controller
     {
         $ticket = IssueTicket::with(['department', 'location', 'customer'])
             ->where('ticketId', $ticketId)
-            ->firstOrFail();
-        if ($ticket->type == 'Settlement') {
+            ->first();
 
-            $ticket = IssueTicket::where('ticketId', $ticketId)->firstOrFail();
+        if (! $ticket) {
+            return redirect()->route('tickets')->with('error', 'Ticket not found.');
+        }
+
+        if ($ticket->type == 'Settlement') {
             $settlement = IouSettlement::with(['employee', 'items', 'approver', 'creator'])
                 ->where('ticket_id', $ticketId)
-                ->firstOrFail();
+                ->first();
 
-$paymentTransactions = MoneyTransaction::where('reference_id', $settlement->settlement_id)
-    ->whereIn('type', ['claim_transfer', 'cash_returned'])
-    ->with('creator')
-    ->orderByDesc('created_at')
-    ->get();
+            if (! $settlement) {
+                return redirect()->route('ticket.view', $ticketId);
+            }
+
+            $paymentTransactions = MoneyTransaction::where('reference_id', $settlement->settlement_id)
+                ->whereIn('type', ['claim_transfer', 'cash_returned'])
+                ->with('creator')
+                ->orderByDesc('created_at')
+                ->get();
             $balance = EmployeeBalance::where('employee_id', $settlement->employee_id)->first();
 
             $transactions = MoneyTransaction::with('creator')
@@ -74,7 +81,6 @@ $paymentTransactions = MoneyTransaction::where('reference_id', $settlement->sett
         } else {
             $iou = IouRequest::with([
                 'transactions',
-                // 'settlements',
                 'claims',
                 'employee',
                 'department',
@@ -82,7 +88,11 @@ $paymentTransactions = MoneyTransaction::where('reference_id', $settlement->sett
                 'issue',
             ])
                 ->where('ticket_id', $ticketId)
-                ->firstOrFail();
+                ->first();
+
+            if (! $iou) {
+                return redirect()->route('ticket.view', $ticketId);
+            }
 
             $balance = EmployeeBalance::where('employee_id', $iou->employee_id)->first();
             $metaData = $iou->meta_data ?? [];
@@ -109,7 +119,6 @@ $paymentTransactions = MoneyTransaction::where('reference_id', $settlement->sett
                 });
             return view('ticket.view_accounts', compact('iou', 'balance', 'ticket', 'actionHistory'));
         }
-
     }
 
     public function approve(Request $request, $iouId)

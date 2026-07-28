@@ -26,9 +26,12 @@ class PcBillController extends Controller
             'raisedBy.designation',
             'items',
             'items.expense',   // ← expense name load
-        ])
         ->where('ticket_id', $ticketId)
-        ->firstOrFail();
+        ->first();
+
+        if (! $submission) {
+            return redirect()->route('ticket.view', $ticketId);
+        }
 
         $ticket = DB::connection('sqlsrv')
             ->table('issueTicket')

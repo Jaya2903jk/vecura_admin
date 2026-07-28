@@ -10,8 +10,25 @@ class FacilityIssueCategoryController extends Controller
     public function index(Request $request)
     {
         $perPage    = $request->get('per_page', 10);
-        $categories = FacilityIssueCategory::orderBy('id', 'asc')->paginate($perPage);
-        $totalCount = FacilityIssueCategory::count();
+        $search     = $request->get('search');
+        $status     = $request->get('status');
+
+        $query = FacilityIssueCategory::orderBy('id', 'asc');
+
+        if ($search) {
+            $query->where(function($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('description', 'like', "%{$search}%");
+            });
+        }
+
+        if ($status !== null && $status !== '') {
+            $statusVal = strtolower($status) === 'active' ? 1 : 0;
+            $query->where('status', $statusVal);
+        }
+
+        $categories = $query->paginate($perPage);
+        $totalCount = $categories->total();
 
         return view('ticket.facility.index', compact('categories', 'perPage', 'totalCount'));
     }

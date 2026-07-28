@@ -295,3 +295,104 @@
     <script src="{{URL::asset('build/js/script.js')}}"></script>
 @endif
 
+<!-- SweetAlert2 Global Helper & Session Listener -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    // Global ERP SweetAlert Utility Engine
+    window.ERPAlert = {
+        toast: function(title, icon = 'success', timer = 2200) {
+            if (typeof Swal === 'undefined') { alert(title); return; }
+            Swal.fire({
+                toast: true,
+                position: 'top-end',
+                icon: icon,
+                title: title,
+                showConfirmButton: false,
+                timer: timer,
+                timerProgressBar: true,
+                didOpen: (toast) => {
+                    toast.addEventListener('mouseenter', Swal.stopTimer);
+                    toast.addEventListener('mouseleave', Swal.resumeTimer);
+                }
+            });
+        },
+        success: function(title = 'Success!', text = 'Action completed successfully.', cb = null) {
+            if (typeof Swal === 'undefined') { alert(title + ': ' + text); if (cb) cb(); return; }
+            Swal.fire({
+                icon: 'success',
+                title: title,
+                text: text,
+                confirmButtonColor: '#2563eb',
+                timer: 2200,
+                showConfirmButton: true
+            }).then((result) => {
+                if (cb && typeof cb === 'function') cb(result);
+            });
+        },
+        error: function(title = 'Error!', text = 'Something went wrong. Please try again.') {
+            if (typeof Swal === 'undefined') { alert(title + ': ' + text); return; }
+            Swal.fire({
+                icon: 'error',
+                title: title,
+                text: text,
+                confirmButtonColor: '#ef4444'
+            });
+        },
+        warning: function(title = 'Warning!', text = '') {
+            if (typeof Swal === 'undefined') { alert(title + ': ' + text); return; }
+            Swal.fire({
+                icon: 'warning',
+                title: title,
+                text: text,
+                confirmButtonColor: '#f59e0b'
+            });
+        },
+        confirm: function(options = {}) {
+            if (typeof Swal === 'undefined') { return Promise.resolve({ isConfirmed: confirm(options.title || 'Are you sure?') }); }
+            return Swal.fire({
+                title: options.title || 'Are you sure?',
+                text: options.text || "You won't be able to revert this!",
+                icon: options.icon || 'warning',
+                showCancelButton: true,
+                confirmButtonColor: options.confirmButtonColor || '#2563eb',
+                cancelButtonColor: options.cancelButtonColor || '#64748b',
+                confirmButtonText: options.confirmText || 'Yes, proceed!',
+                cancelButtonText: options.cancelText || 'Cancel'
+            });
+        }
+    };
+
+    // Global Alias Shortcuts for reuse across all Blade views
+    window.showSuccess = window.ERPAlert.success;
+    window.showError = window.ERPAlert.error;
+    window.showWarn = window.ERPAlert.warning;
+    window.showToast = window.ERPAlert.toast;
+    window.showConfirm = window.ERPAlert.confirm;
+</script>
+
+<!-- Auto-Trigger Session Flash Messages -->
+@if(session('success'))
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            ERPAlert.success("Success", @json(session('success')));
+        });
+    </script>
+@endif
+
+@if(session('error'))
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            ERPAlert.error("Error", @json(session('error')));
+        });
+    </script>
+@endif
+
+@if(session('status'))
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            ERPAlert.toast(@json(session('status')), "info");
+        });
+    </script>
+@endif
+
+

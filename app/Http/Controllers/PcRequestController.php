@@ -28,7 +28,9 @@ class PcRequestController extends Controller
     ->where('ticket_id', $ticketId)
     ->first();
 
-    abort_if(!$pcRequest, 404, 'PC Request not found');
+    if (! $pcRequest) {
+        return redirect()->route('ticket.view', $ticketId);
+    }
 
     // ── Ticket from SQL Server ────────────────────────────────────────
     $ticket = DB::connection('sqlsrv')

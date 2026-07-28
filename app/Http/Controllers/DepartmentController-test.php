@@ -11,7 +11,22 @@ class DepartmentController extends Controller {
 
     public function index( Request $request ) {
         $perPage = $request->get( 'per_page', 10 );
-        $IssueDepartment = IssueDepartment::orderBy( 'Departmentid', 'asc' )->paginate( $perPage );
+        $search = $request->get( 'search' );
+        $status = $request->get( 'status' );
+
+        $query = IssueDepartment::orderBy( 'Departmentid', 'asc' );
+
+        if ( $search ) {
+            $query->where( 'DepartmentName', 'like', "%{$search}%" );
+        }
+
+        if ( $status !== null && $status !== '' ) {
+            $statusVal = strtolower($status) === 'active' ? 1 : 0;
+            $query->where( 'Status', $statusVal );
+        }
+
+        $IssueDepartment = $query->paginate( $perPage );
+
         return view( 'department.index', compact( 'IssueDepartment', 'perPage' ) );
     }
 

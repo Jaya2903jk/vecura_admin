@@ -17,14 +17,24 @@ class IssuesMasterController extends Controller {
 
     public function index( Request $request ) {
         $perPage = $request->get( 'per_page', 10 );
+        $search = $request->get( 'search' );
+        $status = $request->get( 'status' );
 
-        $issues = IssueMaster::with( [ 'department', 'category' ] )
-        ->orderBy( 'IssueId', 'desc' )
-        ->paginate( $perPage );
+        $query = IssueMaster::with( [ 'department', 'category' ] )->orderBy( 'IssueId', 'desc' );
+
+        if ( $search ) {
+            $query->where( 'IssueName', 'like', "%{$search}%" );
+        }
+
+        if ( $status !== null && $status !== '' ) {
+            $query->where( 'Status', $status );
+        }
+
+        $issues = $query->paginate( $perPage );
 
         $departments = IssueDepartment::all();
         $categories = IssueCategory::all();
-        // IMPORTANT
+
         return view( 'issues-master.index', compact( 'issues', 'perPage', 'departments', 'categories' ) );
     }
     /**

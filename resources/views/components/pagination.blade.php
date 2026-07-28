@@ -1,31 +1,76 @@
 @if ($paginator->hasPages())
-<nav aria-label="Page navigation">
-    <ul class="pagination mb-0">
+@php
+    $currentPage = $paginator->currentPage();
+    $lastPage = $paginator->lastPage();
+    $appendQuery = !empty($append) ? '&' . http_build_query($append) : '';
+    $delta = 2;
 
+    $start = max(1, $currentPage - $delta);
+    $end = min($lastPage, $currentPage + $delta);
+
+    if ($currentPage - $delta <= 1) {
+        $end = min($lastPage, 1 + ($delta * 2));
+    }
+    if ($currentPage + $delta >= $lastPage) {
+        $start = max(1, $lastPage - ($delta * 2));
+    }
+@endphp
+
+<nav aria-label="Page navigation">
+    <ul class="pagination pagination-sm mb-0">
+
+        {{-- Previous Page Link --}}
         @if ($paginator->onFirstPage())
-            <li class="page-item disabled">
-                <a class="page-link" href="#" tabindex="-1">Previous</a>
+            <li class="page-item disabled" aria-disabled="true">
+                <span class="page-link"><i class="ti ti-chevron-left fs-12"></i></span>
             </li>
         @else
             <li class="page-item">
-                <a class="page-link" href="{{ $paginator->previousPageUrl() }}&{{ http_build_query($append ?? []) }}">Previous</a>
+                <a class="page-link" href="{{ $paginator->previousPageUrl() }}{{ $appendQuery }}" rel="prev"><i class="ti ti-chevron-left fs-12"></i></a>
             </li>
         @endif
 
-        @foreach ($paginator->getUrlRange(1, $paginator->lastPage()) as $page => $url)
-            <li class="page-item {{ $page == $paginator->currentPage() ? 'active' : '' }}"
-                @if($page == $paginator->currentPage()) aria-current="page" @endif>
-                <a class="page-link" href="{{ $url }}&{{ http_build_query($append ?? []) }}">{{ $page }}</a>
+        {{-- First Page --}}
+        @if ($start > 1)
+            <li class="page-item">
+                <a class="page-link" href="{{ $paginator->url(1) }}{{ $appendQuery }}">1</a>
             </li>
-        @endforeach
+            @if ($start > 2)
+                <li class="page-item disabled" aria-disabled="true"><span class="page-link">&hellip;</span></li>
+            @endif
+        @endif
 
+        {{-- Page Numbers --}}
+        @for ($page = $start; $page <= $end; $page++)
+            @if ($page == $currentPage)
+                <li class="page-item active" aria-current="page">
+                    <span class="page-link">{{ $page }}</span>
+                </li>
+            @else
+                <li class="page-item">
+                    <a class="page-link" href="{{ $paginator->url($page) }}{{ $appendQuery }}">{{ $page }}</a>
+                </li>
+            @endif
+        @endfor
+
+        {{-- Last Page --}}
+        @if ($end < $lastPage)
+            @if ($end < $lastPage - 1)
+                <li class="page-item disabled" aria-disabled="true"><span class="page-link">&hellip;</span></li>
+            @endif
+            <li class="page-item">
+                <a class="page-link" href="{{ $paginator->url($lastPage) }}{{ $appendQuery }}">{{ $lastPage }}</a>
+            </li>
+        @endif
+
+        {{-- Next Page Link --}}
         @if ($paginator->hasMorePages())
             <li class="page-item">
-                <a class="page-link" href="{{ $paginator->nextPageUrl() }}&{{ http_build_query($append ?? []) }}">Next</a>
+                <a class="page-link" href="{{ $paginator->nextPageUrl() }}{{ $appendQuery }}" rel="next"><i class="ti ti-chevron-right fs-12"></i></a>
             </li>
         @else
-            <li class="page-item disabled">
-                <a class="page-link" href="#">Next</a>
+            <li class="page-item disabled" aria-disabled="true">
+                <span class="page-link"><i class="ti ti-chevron-right fs-12"></i></span>
             </li>
         @endif
 

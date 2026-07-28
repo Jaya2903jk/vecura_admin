@@ -724,7 +724,7 @@ $(document).ready(function() {
         $form.find(':input').not($submitBtn).prop('disabled', true);
 
         $.ajax({
-            url: '{{ route('patient.update', '') }}/' + patientID,
+            url: '{{ route('patient.update', $patient->PatientID) }}',
             type: 'POST',
             data: formData,
             headers: {

@@ -95,6 +95,16 @@ class UserMaster extends Model
         return $this->belongsTo(NewBranch::class, 'branch_id', 'branch_id');
     }
 
+    public function creator()
+    {
+        return $this->belongsTo(UserMaster::class, 'CreatedBy', 'UserCode');
+    }
+
+    public function modifier()
+    {
+        return $this->belongsTo(UserMaster::class, 'ModifiedBy', 'UserCode');
+    }
+
     // RBAC Relationships
     public function roles()
     {

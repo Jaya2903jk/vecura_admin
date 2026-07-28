@@ -8,6 +8,7 @@ use App\Models\Designation;
 use App\Models\IssueDepartment;
 use App\Models\Role;
 use App\Models\EmployeeRole;
+use App\Models\DoctorMaster;
 use App\Models\EmployeeOnboarding;
 use App\Models\EmployeeOffboarding;
 use App\Mail\EmployeeWelcomeMail;
@@ -135,7 +136,7 @@ class StaffController extends Controller
     {
         // Ensure JSON response for JSON requests
         $request->headers->set('Accept', 'application/json');
-
+        // dd($request->all());
         $validated = $request->validate([
             // Basic Info
             'first_name' => 'required|string|max:100',
@@ -193,25 +194,27 @@ class StaffController extends Controller
             $empCode = $validated['employee_code'] ?? 'EMP-' . time();
             $username = strtolower(str_replace(' ', '.', $validated['first_name'] . '.' . $validated['last_name']));
 
+            $currentUserCode = $this->getCurrentUserCode();
+
             $employee = UserMaster::create([
                 'first_name' => $validated['first_name'],
                 'last_name' => $validated['last_name'],
                 'employee_code' => $empCode,
                 'UserName' => $username,
                 'Password' => bcrypt('Vecura@123'), // Default temporary password
-                'EmailId' => $validated['email'],
-                'date_of_birth' => $validated['date_of_birth'],
+                'EmailId' => $validated['email'] ?? null,
+                'date_of_birth' => $validated['date_of_birth'] ?? null,
                 'department_id' => $validated['department_id'],
                 'designation_code' => $validated['designation_code'],
                 'Designation' => $validated['designation_code'],
                 'office_type' => $validated['office_type'],
-                'branch_id' => $validated['branch_id'] ?? null,
+                'branch_id' => $validated['branch_id'] ?? null, 
                 'manager_id' => $validated['manager_id'] ?? null,
                 'employee_status' => $validated['employee_status'],
                 'UserStatus' => $validated['employee_status'] === 'Active' ? 'Active' : 'InActive',
                 'FullName' => $validated['first_name'] . ' ' . $validated['last_name'],
                 'UserCode' => $empCode,
-                'CreatedBy' => session('user_id'),
+                'CreatedBy' => $currentUserCode,
                 'CreatedDate' => now(),
             ]);
 
@@ -219,23 +222,23 @@ class StaffController extends Controller
             DB::table('employee_profiles')->insert([
                 'user_id' => $employee->UserID,
                 'employee_category' => $validated['employee_category'] ?? 'White Collar',
-                'date_of_birth' => $validated['date_of_birth'],
-                'gender' => $validated['gender'],
-                'phone_number' => $validated['phone'],
-                'alternate_phone' => $validated['alternate_phone'],
-                'address' => $validated['address'],
-                'city' => $validated['city'],
-                'state' => $validated['state'],
-                'postal_code' => $validated['postal_code'],
-                'emergency_contact_name' => $validated['emergency_contact_name'],
-                'emergency_contact_phone' => $validated['emergency_contact_phone'],
+                'date_of_birth' => $validated['date_of_birth'] ?? null,
+                'gender' => $validated['gender'] ?? null,
+                'phone_number' => $validated['phone'] ?? null,
+                'alternate_phone' => $validated['alternate_phone'] ?? null,
+                'address' => $validated['address'] ?? null,
+                'city' => $validated['city'] ?? null,
+                'state' => $validated['state'] ?? null,
+                'postal_code' => $validated['postal_code'] ?? null,
+                'emergency_contact_name' => $validated['emergency_contact_name'] ?? null,
+                'emergency_contact_phone' => $validated['emergency_contact_phone'] ?? null,
                 'employee_type' => $validated['employee_type'] ?? 'Permanent',
-                'date_of_joining' => $validated['date_of_joining'],
-                'blood_group' => $validated['blood_group'],
-                'aadhar_number' => $validated['aadhar_number'],
-                'pan_number' => $validated['pan_number'],
-                'bank_account_number' => $validated['bank_account'],
-                'ifsc_code' => $validated['ifsc_code'],
+                'date_of_joining' => $validated['date_of_joining'] ?? null,
+                'blood_group' => $validated['blood_group'] ?? null,
+                'aadhar_number' => $validated['aadhar_number'] ?? null,
+                'pan_number' => $validated['pan_number'] ?? null,
+                'bank_account_number' => $validated['bank_account'] ?? null,
+                'ifsc_code' => $validated['ifsc_code'] ?? null,
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
@@ -243,14 +246,56 @@ class StaffController extends Controller
             // Create Employee Medical
             DB::table('employee_medical')->insert([
                 'user_id' => $employee->UserID,
-                'blood_group' => $validated['blood_group'],
-                'medical_conditions' => $validated['medical_conditions'],
-                'allergies' => $validated['allergies'],
-                'emergency_contact_name' => $validated['emergency_contact_name'],
-                'emergency_contact_phone' => $validated['emergency_contact_phone'],
+                'blood_group' => $validated['blood_group'] ?? null,
+                'medical_conditions' => $validated['medical_conditions'] ?? null,
+                'allergies' => $validated['allergies'] ?? null,
+                'emergency_contact_name' => $validated['emergency_contact_name'] ?? null,
+                'emergency_contact_phone' => $validated['emergency_contact_phone'] ?? null,
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
+
+            // Assign roles if provided
+            if (!empty($request->input('role_ids'))) {
+                $roleIds = is_array($request->input('role_ids')) ? $request->input('role_ids') : [$request->input('role_ids')];
+                foreach ($roleIds as $rId) {
+                    if ($rId) {
+                        $employee->roles()->attach($rId, ['is_active' => 1]);
+                    }
+                }
+            }
+
+            // Create Doctor_Master entry if Consultant/Doctor/Wellness Expert designation or role is assigned
+            $designationObj = Designation::where('DesignationCode', $validated['designation_code'])->first();
+            $desigName = strtolower($designationObj->Designation ?? $validated['designation_code']);
+            $assignedRoleIds = array_map('intval', (array) ($request->input('role_ids') ?? []));
+            $isDoctor = str_contains($desigName, 'doctor')
+                || str_contains($desigName, 'Consultant')
+                || str_contains($desigName, 'wellness')
+                || str_contains($desigName, 'dietitian')
+                || in_array(8, $assignedRoleIds);
+            if ($isDoctor) {
+                $branchObj = NewBranch::where('branch_id', $validated['branch_id'] ?? null)
+                    ->orWhere('branch_id', $validated['branch_id'] ?? null)
+                    ->first();
+
+                $locationCode = $branchObj->branch_code ?? $branchObj->branch_code ?? 'ANR';
+                $doctorId = $this->generateDoctorId();
+                $creatorUserCode = optional(UserMaster::find(session('user_id')))->UserCode ?? 'USE-0209';
+
+                DoctorMaster::create([
+                    'Doctor_Id' => $doctorId,
+                    'DoctorName' => $employee->FullName,
+                    'Locations' => $locationCode,
+                    'CreatedBy' => $creatorUserCode,
+                    'CreatedDate' => now(),
+                    'ModifiedBy' => $creatorUserCode,
+                    'ModifiedDate' => now(),
+                    'Status' => $employee->UserStatus === 'Active' ? 'Active' : 'Inactive',
+                    'UserCode' => $empCode,
+                    'CommonCode' => 'VEC-' . rand(1000, 9999),
+                ]);
+            }
 
             DB::commit();
 
@@ -407,43 +452,40 @@ class StaffController extends Controller
 
         // Full update validation
         $validated = $request->validate([
-            // Basic Info
-            'first_name' => 'required|string|max:100',
-            'last_name' => 'required|string|max:100',
+            'first_name' => 'nullable|string|max:100',
+            'last_name' => 'nullable|string|max:100',
+            'full_name' => 'nullable|string|max:200',
             'email' => 'nullable|email|max:255',
             'date_of_birth' => 'nullable|date',
-            'department_id' => 'required|exists:issueDepartmentMaster,Departmentid',
-            'designation_code' => 'required|exists:DesignationMaster,DesignationCode',
-            'office_type' => 'required|in:Branch Location,Corporate Office,Head Office,Regional Office',
-            'user_status' => 'required|in:Active,InActive,On Probation,Confirmed,Notice Period,Resigned,Terminated,Absconding,On Leave,Relieved',
-            'manager_id' => 'nullable|exists:User_Master,UserID',
+            'department_id' => 'nullable',
+            'designation_code' => 'nullable',
+            'designation' => 'nullable',
+            'office_type' => 'nullable',
+            'branch_id' => 'nullable',
+            'user_status' => 'nullable',
+            'manager_id' => 'nullable',
+            'role_ids' => 'nullable|array',
 
-            // Personal Details
-            'gender' => 'nullable|in:Male,Female,Other',
-            'employee_category' => 'nullable|in:White Collar,Blue Collar',
-            'phone' => 'nullable|string|max:20',
-            'alternate_phone' => 'nullable|string|max:20',
-            'address' => 'nullable|string',
-            'city' => 'nullable|string|max:100',
-            'state' => 'nullable|string|max:100',
-            'postal_code' => 'nullable|string|max:10',
-            'emergency_contact_name' => 'nullable|string|max:100',
-            'emergency_contact_phone' => 'nullable|string|max:20',
-
-            // Employment Details
-            'date_of_joining' => 'nullable|date',
-            'employee_type' => 'nullable|in:Permanent,Temporary,Contract',
-
-            // Financial/ID Info
-            'aadhar_number' => 'nullable|string|max:20',
-            'pan_number' => 'nullable|string|max:20',
-            'bank_account' => 'nullable|string|max:20',
-            'ifsc_code' => 'nullable|string|max:20',
-            'blood_group' => 'nullable|string|max:5',
-
-            // Medical
-            'medical_conditions' => 'nullable|string',
-            'allergies' => 'nullable|string',
+            // Personal/Other Details
+            'gender' => 'nullable',
+            'employee_category' => 'nullable',
+            'phone' => 'nullable',
+            'alternate_phone' => 'nullable',
+            'address' => 'nullable',
+            'city' => 'nullable',
+            'state' => 'nullable',
+            'postal_code' => 'nullable',
+            'emergency_contact_name' => 'nullable',
+            'emergency_contact_phone' => 'nullable',
+            'date_of_joining' => 'nullable',
+            'employee_type' => 'nullable',
+            'aadhar_number' => 'nullable',
+            'pan_number' => 'nullable',
+            'bank_account' => 'nullable',
+            'ifsc_code' => 'nullable',
+            'blood_group' => 'nullable',
+            'medical_conditions' => 'nullable',
+            'allergies' => 'nullable',
         ]);
 
         try {
@@ -451,55 +493,106 @@ class StaffController extends Controller
 
             $employee = UserMaster::findOrFail($id);
 
-            // Update User_Master
+            $fullName = $validated['full_name'] ?? trim(($validated['first_name'] ?? '') . ' ' . ($validated['last_name'] ?? ''));
+            if (!$fullName) {
+                $fullName = $employee->FullName;
+            }
+            $firstName = $validated['first_name'] ?? (explode(' ', $fullName)[0] ?? $employee->first_name);
+            $lastName = $validated['last_name'] ?? (implode(' ', array_slice(explode(' ', $fullName), 1)) ?? $employee->last_name);
+            $designationCode = $validated['designation_code'] ?? $validated['designation'] ?? $employee->designation_code;
+
+            $currentUserCode = $this->getCurrentUserCode();
+
             $employee->update([
-                'first_name' => $validated['first_name'],
-                'last_name' => $validated['last_name'],
-                'FullName' => $validated['first_name'] . ' ' . $validated['last_name'],
-                'EmailId' => $validated['email'],
-                'date_of_birth' => $validated['date_of_birth'],
-                'department_id' => $validated['department_id'],
-                'designation_code' => $validated['designation_code'],
-                'office_type' => $validated['office_type'],
-                'manager_id' => $validated['manager_id'] ?? null,
-                'UserStatus' => $validated['user_status'],
-                'ModifiedBy' => session('user_id'),
+                'first_name' => $firstName,
+                'last_name' => $lastName,
+                'FullName' => $fullName,
+                'EmailId' => $validated['email'] ?? $employee->EmailId,
+                'date_of_birth' => $validated['date_of_birth'] ?? $employee->date_of_birth,
+                'department_id' => $validated['department_id'] ?? $employee->department_id,
+                'designation_code' => $designationCode,
+                'Designation' => $designationCode,
+                'office_type' => $validated['office_type'] ?? $employee->office_type,
+                'branch_id' => $validated['branch_id'] ?? $employee->branch_id,
+                'manager_id' => $validated['manager_id'] ?? $employee->manager_id,
+                'UserStatus' => $validated['user_status'] ?? $employee->UserStatus,
+                'ModifiedBy' => $currentUserCode,
                 'ModifiedDate' => now(),
             ]);
 
-            // Update employee_profiles
-            if ($employee->profile) {
-                $employee->profile->update([
-                    'gender' => $validated['gender'],
-                    'employee_category' => $validated['employee_category'],
-                    'phone_number' => $validated['phone'],
-                    'alternate_phone' => $validated['alternate_phone'],
-                    'address' => $validated['address'],
-                    'city' => $validated['city'],
-                    'state' => $validated['state'],
-                    'postal_code' => $validated['postal_code'],
-                    'emergency_contact_name' => $validated['emergency_contact_name'],
-                    'emergency_contact_phone' => $validated['emergency_contact_phone'],
-                    'date_of_joining' => $validated['date_of_joining'],
-                    'employee_type' => $validated['employee_type'],
-                    'aadhar_number' => $validated['aadhar_number'],
-                    'pan_number' => $validated['pan_number'],
-                    'bank_account_number' => $validated['bank_account'],
-                    'ifsc_code' => $validated['ifsc_code'],
-                    'blood_group' => $validated['blood_group'],
-                ]);
+            // Sync roles if provided
+            if ($request->has('role_ids')) {
+                $roleIds = array_filter((array) $request->input('role_ids'));
+                $syncData = [];
+                foreach ($roleIds as $rId) {
+                    $syncData[$rId] = ['is_active' => 1];
+                }
+                $employee->roles()->sync($syncData);
             }
 
-            // Update employee_medical
-            DB::table('employee_medical')->updateOrInsert(
-                ['user_id' => $employee->UserID],
-                [
-                    'blood_group' => $validated['blood_group'],
-                    'medical_conditions' => $validated['medical_conditions'],
-                    'allergies' => $validated['allergies'],
-                    'updated_at' => now(),
-                ]
-            );
+            // Update employee_profiles if exists
+            if ($employee->profile) {
+                $employee->profile->update(array_filter([
+                    'gender' => $validated['gender'] ?? null,
+                    'employee_category' => $validated['employee_category'] ?? null,
+                    'phone_number' => $validated['phone'] ?? null,
+                    'alternate_phone' => $validated['alternate_phone'] ?? null,
+                    'address' => $validated['address'] ?? null,
+                    'city' => $validated['city'] ?? null,
+                    'state' => $validated['state'] ?? null,
+                    'postal_code' => $validated['postal_code'] ?? null,
+                    'emergency_contact_name' => $validated['emergency_contact_name'] ?? null,
+                    'emergency_contact_phone' => $validated['emergency_contact_phone'] ?? null,
+                    'date_of_joining' => $validated['date_of_joining'] ?? null,
+                    'employee_type' => $validated['employee_type'] ?? null,
+                    'aadhar_number' => $validated['aadhar_number'] ?? null,
+                    'pan_number' => $validated['pan_number'] ?? null,
+                    'bank_account_number' => $validated['bank_account'] ?? null,
+                    'ifsc_code' => $validated['ifsc_code'] ?? null,
+                    'blood_group' => $validated['blood_group'] ?? null,
+                ], fn($val) => $val !== null));
+            }
+
+            // Sync with Doctor_Master if Consultant/Doctor/Wellness Expert
+            $designationObj = Designation::where('DesignationCode', $designationCode)->first();
+            $desigName = strtolower($designationObj->Designation ?? $designationCode ?? '');
+            $assignedRoleIds = $employee->roles()->pluck('roles.id')->toArray();
+
+            $isDoctor = str_contains($desigName, 'doctor')
+                || str_contains($desigName, 'consultant')
+                || str_contains($desigName, 'wellness')
+                || str_contains($desigName, 'dietitian')
+                || in_array(8, $assignedRoleIds);
+
+            if ($isDoctor) {
+                $doctorMaster = DoctorMaster::where('UserCode', $employee->UserCode)->first();
+                $branchObj = NewBranch::where('branch_id', $employee->branch_id)->first();
+                $locationCode = $branchObj->branch_code ?? $branchObj->Branchcode ?? 'ANR';
+                $updaterUserCode = $currentUserCode;
+
+                if ($doctorMaster) {
+                    $doctorMaster->update([
+                        'DoctorName' => $employee->FullName,
+                        'Locations' => $locationCode,
+                        'ModifiedBy' => $updaterUserCode,
+                        'ModifiedDate' => now(),
+                        'Status' => $employee->UserStatus === 'Active' ? 'Active' : 'Inactive',
+                    ]);
+                } else {
+                    DoctorMaster::create([
+                        'Doctor_Id' => $this->generateDoctorId(),
+                        'DoctorName' => $employee->FullName,
+                        'Locations' => $locationCode,
+                        'CreatedBy' => $updaterUserCode,
+                        'CreatedDate' => now(),
+                        'ModifiedBy' => $updaterUserCode,
+                        'ModifiedDate' => now(),
+                        'Status' => $employee->UserStatus === 'Active' ? 'Active' : 'Inactive',
+                        'UserCode' => $employee->UserCode,
+                        'CommonCode' => 'VEC-' . rand(1000, 9999),
+                    ]);
+                }
+            }
 
             DB::commit();
 
@@ -514,6 +607,21 @@ class StaffController extends Controller
                 'message' => 'Error: ' . $e->getMessage()
             ], 500);
         }
+    }
+
+    private function generateDoctorId()
+    {
+        $lastCode = DoctorMaster::where('Doctor_Id', 'like', 'HDC-%')
+            ->orderByRaw('TRY_CAST(SUBSTRING(Doctor_Id, 5, 20) AS INT) DESC')
+            ->value('Doctor_Id');
+
+        if ($lastCode && preg_match('/HDC-(\d+)/', $lastCode, $matches)) {
+            $nextNumber = intval($matches[1]) + 1;
+        } else {
+            $nextNumber = 1;
+        }
+
+        return 'HDC-' . str_pad($nextNumber, 4, '0', STR_PAD_LEFT);
     }
 
     public function assignRole(Request $request, $employeeId)
@@ -864,5 +972,17 @@ class StaffController extends Controller
                 'message' => 'Error: ' . $e->getMessage()
             ], 500);
         }
+    }
+
+    private function getCurrentUserCode()
+    {
+        if (session('user_code')) {
+            return session('user_code');
+        }
+        if (session('user_id')) {
+            $userCode = UserMaster::where('UserID', session('user_id'))->value('UserCode');
+            if ($userCode) return $userCode;
+        }
+        return 'USE-0209';
     }
 }

@@ -22,6 +22,7 @@ use App\Http\Controllers\PcRequestController;
 use App\Http\Controllers\PcBillController;
 use App\Http\Controllers\FacilityController;
 use App\Http\Controllers\FacilityIssueCategoryController;
+use App\Http\Controllers\AppointmentController;
 use App\Http\Controllers\PatientController;
 use App\Models\IssueCategory;
 use Illuminate\Support\Facades\DB;
@@ -108,10 +109,8 @@ Route::middleware(['auth.custom', 'nocache'])->group(function () {
     // ── Master Module ──────────────────────────────────────────────
     require app_path('Modules/Master/routes.php');
 
-    Route::get('/role', [RoleController::class, 'index'])->name('role-permission.index');
-    Route::get('/permission', [PermissionController::class, 'index'])->name('permission.index');
-
-
+    // Service Master Module Routes
+   
     Route::get('/category', [CategoryController::class, 'index'])->middleware('check.permission:read,category')->name('category.index');
     Route::post('/category/store', [CategoryController::class, 'store'])->middleware('check.permission:create,category')->name('category.store');
 
@@ -190,12 +189,20 @@ Route::middleware(['auth.custom', 'nocache'])->group(function () {
     Route::get('/expanse', [ExpenseController::class, 'index'])->middleware('check.permission:read,expense')->name('expanse.index');
     Route::post('/expanse/store', [ExpenseController::class, 'store'])->middleware('check.permission:create,expense')->name('expanse.store');
 
+
+     Route::get('/services', [\App\Http\Controllers\ServiceMasterController::class, 'index'])->name('services.index');
+    Route::get('/services/generate-code', [\App\Http\Controllers\ServiceMasterController::class, 'generateServiceCode'])->name('services.generate-code');
+    Route::post('/services/store', [\App\Http\Controllers\ServiceMasterController::class, 'store'])->name('services.store');
+    Route::get('/services/{id}', [\App\Http\Controllers\ServiceMasterController::class, 'show'])->name('services.show');
+    Route::put('/services/{id}', [\App\Http\Controllers\ServiceMasterController::class, 'update'])->name('services.update');
+    Route::post('/services/{id}/toggle-status', [\App\Http\Controllers\ServiceMasterController::class, 'toggleStatus'])->name('services.toggle-status');
+
+    
     // ════════════════════════════════════════════════════════════════════
     // PATIENT MANAGEMENT ROUTES
     // ════════════════════════════════════════════════════════════════════
     Route::get('/patient', [PatientController::class, 'index'])->middleware('check.permission:read,patient')->name('patient.index');
     Route::get('/patient/create', [PatientController::class, 'create'])->middleware('check.permission:create,patient')->name('patient.create');
-    // Route::get('/patient/generate-patient-id', [PatientController::class, 'generatePatientID'])->middleware('check.permission:create,patient')->name('patient.generate-patient-id');
     Route::get('/patient/generate-registration-number', [PatientController::class, 'generateRegistrationNumber'])->name('patient.generate-registration-number');
     Route::get('/patient/get-states', [PatientController::class, 'getStates'])->name('patient.get-states');
     Route::get('/patient/get-cities', [PatientController::class, 'getCities'])->name('patient.get-cities');
@@ -208,8 +215,20 @@ Route::middleware(['auth.custom', 'nocache'])->group(function () {
     Route::put('/patient/{id}', [PatientController::class, 'update'])->middleware('check.permission:edit,patient')->name('patient.update');
     Route::delete('/patient/{id}', [PatientController::class, 'destroy'])->middleware('check.permission:delete,patient')->name('patient.destroy');
     Route::get('/patient/search', [PatientController::class, 'search'])->name('patient.search');
-    Route::get('/patients/{id}/{tab?}', [PatientController::class, 'details'])
-        ->name('patient.details');
+
+    // ════════════════════════════════════════════════════════════════════
+    // APPOINTMENT / CONSULTATION BOOKING ROUTES (patient page's Appointments tab)
+    // ════════════════════════════════════════════════════════════════════
+    Route::get('/patient/{id}/appointments', [AppointmentController::class, 'forPatient'])->middleware('check.permission:read,patient')->name('patient.appointments.index');
+    Route::post('/patient/{id}/appointments', [AppointmentController::class, 'store'])->middleware('check.permission:create,patient')->name('patient.appointments.store');
+    Route::get('/patient/{id}/appointments/{scheduleId}', [AppointmentController::class, 'show'])->middleware('check.permission:read,patient')->name('patient.appointments.show');
+    // Secure Obfuscated Consultation Form Routes (Encrypted Token - No raw IDs in URL)
+    Route::get('/consultation-form', [AppointmentController::class, 'consultationFormSecure'])->middleware('check.permission:read,patient')->name('patient.appointments.consultation-form-secure');
+    Route::post('/consultation-form/save', [AppointmentController::class, 'saveConsultationFormSecure'])->middleware('check.permission:edit,patient')->name('patient.appointments.save-consultation-form-secure');
+    Route::get('/patient/{id}/appointments/{scheduleId}/consultation-form', [AppointmentController::class, 'consultationForm'])->middleware('check.permission:read,patient')->name('patient.appointments.consultation-form');
+    Route::post('/patient/{id}/appointments/{scheduleId}/consultation-form', [AppointmentController::class, 'saveConsultationForm'])->middleware('check.permission:edit,patient')->name('patient.appointments.save-consultation-form');
+    Route::put('/patient/{id}/appointments/{scheduleId}', [AppointmentController::class, 'update'])->middleware('check.permission:edit,patient')->name('patient.appointments.update');
+    Route::get('/consultants/{consultant}/schedule', [AppointmentController::class, 'consultantSchedule'])->middleware('check.permission:read,patient')->name('consultants.schedule');
     // API endpoints for employees
     Route::prefix('api')->group(function () {
         Route::get('/employees/{id}', [\App\Http\Controllers\Api\EmployeeApiController::class, 'show']);

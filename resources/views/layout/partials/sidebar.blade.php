@@ -69,7 +69,7 @@
             </a>
 
             <a href="{{ url('dashboard') }}" class="logo-small">
-                <img src="{{ URL::asset('build/img/logo-small.png') }}" alt="Logo">
+                <img src="{{ URL::asset('build/img/logo-small.svg') }}" alt="Logo">
             </a>
 
             <a href="{{ url('dashboard') }}" class="dark-logo">
@@ -178,20 +178,7 @@
                 </div>
 
                 <ul>
-                    {{-- @isAdmin
-                        <li class="menu-title"><span>Staff</span></li>
-                        <li>
-                            <ul>
-                                <li class="{{ Request::is('staff', 'staff') ? 'active' : '' }}">
-                                    <a href="{{ route('staff.index') }}">
-                                        <i class="ti ti-users-group"></i><span>Staff</span>
-                                    </a>
-
-                                </li>
-                            </ul>
-                        </li>
-                    @endisAdmin --}}
-
+                    
 
                     <!-- Sidebar modules loaded from cache (1 hour TTL) -->
                     @forelse ($moduleGroups as $parentName => $modules)
@@ -200,6 +187,15 @@
                             $hasAnyMasterPermission =
                                 session('is_admin') ||
                                 \App\Helpers\RbacHelper::hasPermissionForAny('read', $moduleNames);
+
+                            $isGroupActive = false;
+                            foreach ($modules as $mod) {
+                                $prefix = $mod->route_prefix ?? $mod->name;
+                                if ($prefix && (Request::is($prefix) || Request::is($prefix . '/*') || Request::is($prefix . '-*') || Route::is($prefix) || Route::is($prefix . '.*'))) {
+                                    $isGroupActive = true;
+                                    break;
+                                }
+                            }
                         @endphp
                         @if ($hasAnyMasterPermission)
                             {{-- @if ($hasPermission) --}}
@@ -209,7 +205,7 @@
                             <li>
                                 <ul>
                                     <li class="submenu">
-                                        <a href="javascript:void(0);">
+                                        <a href="javascript:void(0);" class="{{ $isGroupActive ? 'active subdrop' : '' }}">
                                             <i class="ti ti-folder"></i>
                                             <span>{{ $parentName }}</span>
                                             <span class="menu-arrow"></span>
@@ -237,10 +233,13 @@
                                                                 }
                                                             }
                                                         }
+
+                                                        $prefix = $module->route_prefix ?? $module->name;
+                                                        $isItemActive = $prefix && (Request::is($prefix) || Request::is($prefix . '/*') || Request::is($prefix . '-*') || Route::is($prefix) || Route::is($prefix . '.*'));
                                                     @endphp
 
                                                     <li>
-                                                        <a href="{{ $href }}">
+                                                        <a href="{{ $href }}" class="{{ $isItemActive ? 'active' : '' }}">
                                                             <i class="{{ $module->icon ?? 'ti ti-app' }}"></i>
                                                             <span>{{ $module->description ?? ucfirst($module->name) }}</span>
                                                         </a>

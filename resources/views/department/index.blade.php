@@ -1,270 +1,198 @@
 <?php $page = 'staff'; ?>
 @extends('layout.mainlayout')
+
 @section('content')
     <div class="page-wrapper">
-        <div class="content">
+        <div class="content px-4 py-3">
 
-            <div class="d-flex align-items-sm-center flex-sm-row flex-column gap-2 mb-3 pb-3 border-bottom">
-                <div class="flex-grow-1">
-                    <h4 class="fw-bold mb-0">Department<span
-                            class="badge badge-soft-primary border border-primary page-header-badge ms-2">Total Department :
-                            8</span></h4>
+            <!-- PAGE HEADER -->
+            <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-4 pb-3 border-bottom">
+                <div>
+                    <h4 class="fw-bold text-dark mb-1 d-flex align-items-center gap-2">
+                        <i class="ti ti-building-store text-primary fs-24"></i>Department Management
+                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle fs-12 ms-2 px-2.5 py-1 rounded-pill">
+                            Total Departments: {{ $IssueDepartment->total() }}
+                        </span>
+                    </h4>
+                    <p class="text-muted fs-13 mb-0">Manage organization departments, operational units, and status settings.</p>
                 </div>
-                <div class="text-end d-flex">
-                    <div class="dropdown me-1">
-                        <a href="javascript:void(0);"
-                            class="btn btn-md fs-14 fw-normal border bg-white rounded text-dark d-inline-flex align-items-center"
-                            data-bs-toggle="dropdown">
-                            Export<i class="ti ti-chevron-down ms-2"></i>
-                        </a>
-                        <ul class="dropdown-menu p-2">
-                            <li><a class="dropdown-item" href="#">Download as PDF</a></li>
-                            <li><a class="dropdown-item" href="#">Download as Excel</a></li>
-                        </ul>
-                    </div>
+                <div class="d-flex align-items-center gap-2">
                     @if(session('is_admin') || \App\Helpers\RbacHelper::canPerformAction('create', 'department'))
-                        <a href="javascript:void(0);" class="btn btn-primary ms-2 fs-13 btn-md" data-bs-toggle="modal"
-                            data-bs-target="#add_modal"><i class="ti ti-plus me-1"></i>Add New Department</a>
+                        <button type="button" class="btn btn-primary btn-sm fw-bold px-3 shadow-xs" data-bs-toggle="modal" data-bs-target="#add_modal">
+                            <i class="ti ti-plus me-1"></i>New Department Registration
+                        </button>
                     @endif
                 </div>
             </div>
 
-            <div class="d-flex align-items-center justify-content-between flex-wrap row-gap-3 mb-3">
-                <div class="search-set">
-                    <div class="d-flex align-items-center flex-wrap gap-2">
-                        <div class="table-search d-flex align-items-center mb-0">
-                            <div class="search-input">
-                                <a href="javascript:void(0);" class="btn-searchset"></a>
+            <!-- FILTER BAR -->
+            <div class="card border-0 shadow-xs mb-4 rounded-3">
+                <div class="card-body p-3 bg-light-subtle rounded-3">
+                    <form method="GET" action="{{ route('department.index') }}" id="departmentFilterForm">
+                        <div class="row g-2 align-items-center">
+                            {{-- Search Input --}}
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold fs-13 text-dark mb-1">Search Department</label>
+                                <div class="input-group input-group-sm">
+                                    <span class="input-group-text bg-white border-end-0"><i class="ti ti-search text-muted"></i></span>
+                                    <input type="text" name="search" class="form-control border-start-0 fs-13 text-dark"
+                                        placeholder="Department Name..." value="{{ request('search') }}">
+                                </div>
                             </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="d-flex table-dropdown pb-1 right-content align-items-center flex-wrap row-gap-3">
-                    <div class="dropdown me-2">
-                        <a href="javascript:void(0);"
-                            class="btn btn-white bg-white fs-14 py-1 border d-inline-flex text-dark align-items-center"
-                            data-bs-toggle="dropdown">
-                            <i class="ti ti-filter text-gray-5 me-1"></i>Filters
-                        </a>
-                        <div class="dropdown-menu dropdown-menu-end p-3" style="min-width:280px;">
-                            <div class="mb-3">
-                                <label class="form-label">Department</label>
-                                <select class="select">
-                                    <option>Select</option>
-                                    <option>Active</option>
-                                    <option>Inactive</option>
+
+                            {{-- Status Filter --}}
+                            <div class="col-md-3">
+                                <label class="form-label fw-semibold fs-13 text-dark mb-1">Status</label>
+                                <select name="status" class="form-select form-select-sm fs-13 text-dark" onchange="document.getElementById('departmentFilterForm').submit()">
+                                    <option value="">All Status</option>
+                                    <option value="Active" {{ request('status') === 'Active' ? 'selected' : '' }}>Active</option>
+                                    <option value="Inactive" {{ request('status') === 'Inactive' ? 'selected' : '' }}>Inactive</option>
                                 </select>
                             </div>
-                            <div class="mb-0 d-flex justify-content-end gap-2">
-                                <button type="button" class="btn btn-light btn-sm">Reset</button>
-                                <button type="button" class="btn btn-primary btn-sm">Apply</button>
+
+                            {{-- Action Controls --}}
+                            <div class="col-md-3 d-flex align-items-end gap-1 pt-3">
+                                <button type="submit" class="btn btn-primary btn-sm fw-semibold fs-13 flex-fill">
+                                    <i class="ti ti-filter me-1"></i>Filter
+                                </button>
+                                <a href="{{ route('department.index') }}" class="btn btn-light border btn-sm fw-semibold fs-13 text-secondary" title="Reset Filters">
+                                    <i class="ti ti-refresh"></i>
+                                </a>
                             </div>
                         </div>
-                    </div>
+                    </form>
                 </div>
             </div>
 
-            <div class="card border-0">
+            <!-- TABLE CARD -->
+            <div class="card border-0 shadow-xs rounded-3">
                 <div class="card-body p-0">
-
-                    <div class="table-responsive">
-                        <table class="table datatable mb-0">
-                            <thead>
+                    <div class="table-responsive" style="overflow-x: auto;">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="bg-light border-bottom">
                                 <tr>
-                                    <th>Department Name</th>
-                                    <th>Description</th>
-                                    <th>Status</th>
-                                    <th>Action</th>
+                                    <th class="fs-12 text-uppercase fw-bold text-slate-700 py-3 ps-4">Department Name</th>
+                                    <th class="fs-12 text-uppercase fw-bold text-slate-700 py-3">Description</th>
+                                    <th class="fs-12 text-uppercase fw-bold text-slate-700 py-3">Status</th>
                                 </tr>
                             </thead>
-                            <tbody>
+                            <tbody class="divide-y divide-gray-100">
                                 @forelse($IssueDepartment as $dept)
                                     <tr>
-                                        <td>{{ $dept->DepartmentName }}</td>
-                                        <td>-</td>
-                                        <td>
-                                            @if ($dept->Status == 1)
-                                                <span class="badge badge-soft-success border border-success">Active</span>
-                                            @else
-                                                <span class="badge badge-soft-danger border border-danger">Inactive</span>
-                                            @endif
+                                        <td class="ps-4">
+                                            <div class="d-flex align-items-center gap-2">
+                                                <div class="patient-avatar-circle flex-shrink-0 text-decoration-none">
+                                                    <i class="ti ti-building-store fs-16 text-primary"></i>
+                                                </div>
+                                                <div>
+                                                    <span class="fw-bold text-dark fs-13">{{ $dept->DepartmentName }}</span>
+                                                    <div class="fs-11 text-muted">ID: #{{ $dept->Departmentid }}</div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="fs-13 text-secondary">
+                                            -
                                         </td>
                                         <td>
-                                            <div class="action-item">
-                                                @if(session('is_admin') || \App\Helpers\RbacHelper::canPerformAction('edit', 'department') || \App\Helpers\RbacHelper::canPerformAction('delete', 'department'))
-                                                    <a href="javascript:void(0);" data-bs-toggle="dropdown">
-                                                        <i class="ti ti-dots-vertical"></i>
-                                                    </a>
-                                                    <ul class="dropdown-menu p-2">
-                                                        @if(session('is_admin') || \App\Helpers\RbacHelper::canPerformAction('edit', 'department'))
-                                                            <li>
-                                                                <a href="#" class="dropdown-item edit-btn" data-bs-toggle="modal"
-                                                                    data-bs-target="#edit_modal" data-id="{{ $dept->Departmentid }}">
-                                                                    Edit
-                                                                </a>
-                                                            </li>
-                                                        @endif
-                                                        @if(session('is_admin') || \App\Helpers\RbacHelper::canPerformAction('delete', 'department'))
-                                                            <li>
-                                                                <a href="#" class="dropdown-item delete-btn" data-bs-toggle="modal"
-                                                                    data-bs-target="#delete_modal" data-id="{{ $dept->Departmentid }}">
-                                                                    Delete
-                                                                </a>
-                                                            </li>
-                                                        @endif
-                                                    </ul>
-                                                @endif
-                                            </div>
+                                            @if ($dept->Status == 1)
+                                                <span class="badge bg-success-subtle text-success border border-success-subtle px-2.5 py-1 fs-11 fw-bold rounded-pill">
+                                                    <i class="ti ti-point-filled me-1"></i>Active
+                                                </span>
+                                            @else
+                                                <span class="badge bg-warning-subtle text-warning border border-warning-subtle px-2.5 py-1 fs-11 fw-bold rounded-pill">
+                                                    <i class="ti ti-point-filled me-1"></i>Inactive
+                                                </span>
+                                            @endif
                                         </td>
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="4" class="text-center">No data found</td>
+                                        <td colspan="3" class="text-center text-muted py-5 fs-13">
+                                            <i class="ti ti-building-community-off fs-36 text-muted mb-2 d-block"></i>
+                                            No departments found matching criteria.
+                                        </td>
                                     </tr>
                                 @endforelse
                             </tbody>
                         </table>
                     </div>
-
                 </div>
             </div>
-            <div class="table-footer-bar d-flex justify-content-between align-items-center">
-                <div class="d-flex align-items-center gap-3">
 
+            <!-- TABLE FOOTER / PAGINATION BAR -->
+            <div class="table-footer-bar d-flex flex-column flex-md-row justify-content-between align-items-center mt-3 fs-13 bg-white p-3 rounded-3 shadow-xs border gap-3">
+                <div class="d-flex align-items-center gap-3">
                     <div>
-                        Row Per Page
-                        <select id="perPageDept" class="form-select form-select-sm d-inline-block" style="width:70px;">
+                        <span class="text-muted fw-medium">Rows per page:</span>
+                        <select id="perPageDept" class="form-select form-select-sm d-inline-block border ms-1 fw-bold text-dark" style="width:75px;">
                             <option value="10" {{ $perPage == 10 ? 'selected' : '' }}>10</option>
                             <option value="25" {{ $perPage == 25 ? 'selected' : '' }}>25</option>
                             <option value="50" {{ $perPage == 50 ? 'selected' : '' }}>50</option>
                         </select>
                     </div>
-
-                    <div>
-                        Showing {{ $IssueDepartment->firstItem() }} to {{ $IssueDepartment->lastItem() }}
-                        of {{ $IssueDepartment->total() }} entries
+                    <div class="text-muted border-start ps-3">
+                        Showing <span class="fw-semibold text-dark">{{ $IssueDepartment->firstItem() ?? 0 }}</span> to <span class="fw-semibold text-dark">{{ $IssueDepartment->lastItem() ?? 0 }}</span> of <span class="fw-semibold text-dark">{{ $IssueDepartment->total() }}</span> entries
                     </div>
-
                 </div>
-                <x-pagination :paginator="$IssueDepartment" :append="['per_page' => $perPage]" />
-
-
-            </div>
-            <script>
-                document.getElementById('perPageDept').addEventListener('change', function() {
-                    let perPage = this.value;
-                    let url = new URL(window.location.href);
-                    url.searchParams.set('per_page', perPage);
-                    window.location.href = url.toString();
-                });
-            </script>
-            <div id="add_modal" class="modal fade">
-                <div class="modal-dialog modal-dialog-centered">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h4 class="text-dark modal-title fw-bold">Add New Department</h4>
-                            <button type="button" class="btn-close btn-close-modal custom-btn-close"
-                                data-bs-dismiss="modal" aria-label="Close"><i class="ti ti-x"></i></button>
-                        </div>
-                        <form id="departmentForm" class="needs-validation" novalidate>
-                            @csrf
-                            <div class="modal-body">
-
-                                <div class="mb-3">
-                                    <label class="form-label">Department Name<span class="text-danger ms-1">*</span></label>
-                                    <input type="text" name="department_name" id="department_name" class="form-control"
-                                        placeholder="Enter department name">
-                                </div>
-                                {{-- <div class="mb-3">
-                                    <label class="form-label">Description<span class="text-danger ms-1">*</span></label>
-                                    <textarea class="form-control" rows="3" placeholder="Enter description"></textarea>
-                                </div> --}}
-                                <div class="mb-3">
-                                    <label class="form-label">Status</label>
-                                    <select name="status" class="form-control">
-                                        <option value="Active">Active</option>
-                                        <option value="Inactive">Inactive</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="modal-footer d-flex align-items-center gap-1">
-                                <button type="button" class="btn btn-white border"
-                                    data-bs-dismiss="modal">Cancel</button>
-                                <button type="submit" id="submitBtn" class="btn btn-primary">Add New Department</button>
-                            </div>
-                        </form>
-                    </div>
+                <div>
+                    <x-pagination :paginator="$IssueDepartment" :append="['per_page' => $perPage, 'search' => request('search'), 'status' => request('status')]" />
                 </div>
             </div>
 
-            <div id="edit_modal" class="modal fade">
-                <div class="modal-dialog modal-dialog-centered">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h4 class="text-dark modal-title fw-bold">Edit Department</h4>
-                            <button type="button" class="btn-close btn-close-modal custom-btn-close"
-                                data-bs-dismiss="modal" aria-label="Close"><i class="ti ti-x"></i></button>
-                        </div>
-                        <form id="editDepartmentForm">
-                            @csrf
-                            @method('PUT')
-                            <input type="hidden" id="edit_id" name="id">
-                            <div class="modal-body">
-                                <div class="mb-3">
-                                    <label class="form-label">Department Name<span
-                                            class="text-danger ms-1">*</span></label>
-                                    <input type="text" id="edit_department_name" name="department_name" class="form-control" placeholder="Enter department name">
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label">Status<span class="text-danger ms-1">*</span></label>
-                                    <select id="edit_status" name="status" class="form-control">
-                                        <option value="1">Active</option>
-                                        <option value="0">Inactive</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="modal-footer d-flex align-items-center gap-1">
-                                <button type="button" class="btn btn-white border"
-                                    data-bs-dismiss="modal">Cancel</button>
-                                <button type="submit" id="editSubmitBtn" class="btn btn-primary">Save Changes</button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            </div>
-
-            <div class="modal fade" id="delete_modal">
-                <div class="modal-dialog modal-dialog-centered modal-sm">
-                    <div class="modal-content">
-                        <div class="modal-body text-center">
-                            <div class="mb-3">
-                                <span class="avatar avatar-xl bg-danger-transparent rounded-circle text-danger">
-                                    <i class="ti ti-trash fs-24"></i>
-                                </span>
-                            </div>
-                            <h5 class="mb-2">Delete Department</h5>
-                            <p class="mb-3">Are you sure you want to delete this department record?</p>
-                            <input type="hidden" id="delete_id" value="">
-                            <div class="d-flex justify-content-center gap-2">
-                                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
-                                <button type="button" id="confirmDeleteBtn" class="btn btn-danger">Delete</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-        </div>
-        <div class="footer text-center bg-white p-2 border-top">
-            <p class="text-dark mb-0">Copyright &copy; 2026 - Vecura.</p>
         </div>
     </div>
+
+    <!-- ADD MODAL -->
+    <div id="add_modal" class="modal fade" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header border-bottom px-4 py-3 bg-light">
+                    <h5 class="modal-title fw-bold text-dark d-flex align-items-center gap-2">
+                        <i class="ti ti-building-store text-primary fs-20"></i>Add New Department
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+
+                <form id="departmentForm" class="needs-validation" novalidate>
+                    @csrf
+                    <div class="modal-body p-4">
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold fs-13 text-dark">Department Name <span class="text-danger">*</span></label>
+                            <input type="text" name="department_name" id="department_name" class="form-control fs-13"
+                                placeholder="Enter department name" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold fs-13 text-dark">Status <span class="text-danger">*</span></label>
+                            <select name="status" class="form-select fs-13" required>
+                                <option value="Active">Active</option>
+                                <option value="Inactive">Inactive</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="modal-footer px-4 py-3 bg-light border-top gap-2">
+                        <button type="button" class="btn btn-light border btn-sm fw-semibold" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" id="submitBtn" class="btn btn-primary btn-sm fw-bold px-3">
+                            <i class="ti ti-plus me-1"></i>Add New Department
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <script src="{{ asset('build/plugins/sweetalert2/sweetalert2.min.js') }}"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script>
-        $(document).ready(function() {
 
+    <script>
+        document.getElementById('perPageDept').addEventListener('change', function() {
+            let perPage = this.value;
+            let url = new URL(window.location.href);
+            url.searchParams.set('per_page', perPage);
+            window.location.href = url.toString();
+        });
+
+        $(document).ready(function() {
             $('#departmentForm').on('submit', function(e) {
                 e.preventDefault();
 
@@ -272,7 +200,7 @@
                 let formData = new FormData(form);
                 let submitBtn = $('#submitBtn');
 
-                submitBtn.prop('disabled', true).text('Processing...');
+                submitBtn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span> Processing...');
 
                 $('.is-invalid').removeClass('is-invalid');
                 $('.invalid-feedback.dynamic').remove();
@@ -286,26 +214,33 @@
                     headers: {
                         'X-CSRF-TOKEN': $('input[name="_token"]').val()
                     },
+
                     success: function(response) {
-                        submitBtn.prop('disabled', false).text('Add New Department');
+                        submitBtn.prop('disabled', false).html('<i class="ti ti-plus me-1"></i>Add New Department');
+
                         if (response.status) {
                             $('#add_modal').modal('hide');
                             form.reset();
+
                             Swal.fire({
                                 icon: "success",
                                 title: "Department Created Successfully",
                                 showConfirmButton: false,
                                 timer: 1500
                             });
+
                             setTimeout(function() {
                                 location.reload();
                             }, 1500);
                         }
                     },
+
                     error: function(xhr) {
-                        submitBtn.prop('disabled', false).text('Add New Department');
+                        submitBtn.prop('disabled', false).html('<i class="ti ti-plus me-1"></i>Add New Department');
+
                         if (xhr.status === 422) {
                             let errors = xhr.responseJSON.errors;
+
                             $.each(errors, function(key, value) {
                                 let input = $('[name="' + key + '"]');
                                 input.addClass('is-invalid');
@@ -325,109 +260,15 @@
                             }, 500);
 
                         } else {
-
                             Swal.fire({
                                 icon: "error",
                                 title: "Error",
                                 text: "Something went wrong!",
                             });
-
-                            console.log(xhr.responseText);
                         }
                     }
                 });
             });
-
-            // Edit Department
-            $(document).on('click', '.edit-btn', function() {
-                let deptId = $(this).data('id');
-                let row = $(this).closest('tr');
-                let deptName = row.find('td:first').text();
-                let status = row.find('.badge').hasClass('badge-soft-success') ? '1' : '0';
-
-                $('#edit_id').val(deptId);
-                $('#edit_department_name').val(deptName);
-                $('#edit_status').val(status);
-            });
-
-            // Submit Edit Form
-            $('#editDepartmentForm').on('submit', function(e) {
-                e.preventDefault();
-                let deptId = $('#edit_id').val();
-                let formData = new FormData(this);
-
-                $.ajax({
-                    url: "{{ url('department') }}/" + deptId,
-                    type: "POST",
-                    data: formData,
-                    processData: false,
-                    contentType: false,
-                    headers: {
-                        'X-CSRF-TOKEN': $('input[name="_token"]').val()
-                    },
-                    success: function(response) {
-                        if (response.status) {
-                            $('#edit_modal').modal('hide');
-                            Swal.fire({
-                                icon: "success",
-                                title: "Department Updated Successfully",
-                                showConfirmButton: false,
-                                timer: 1500
-                            });
-                            setTimeout(function() {
-                                location.reload();
-                            }, 1500);
-                        }
-                    },
-                    error: function(xhr) {
-                        Swal.fire({
-                            icon: "error",
-                            title: "Error",
-                            text: xhr.responseJSON?.message || "Something went wrong!"
-                        });
-                    }
-                });
-            });
-
-            // Delete Department
-            $(document).on('click', '.delete-btn', function() {
-                let deptId = $(this).data('id');
-                $('#delete_id').val(deptId);
-            });
-
-            $('#confirmDeleteBtn').on('click', function() {
-                let deptId = $('#delete_id').val();
-
-                $.ajax({
-                    url: "{{ url('department') }}/" + deptId,
-                    type: "DELETE",
-                    headers: {
-                        'X-CSRF-TOKEN': $('input[name="_token"]').val()
-                    },
-                    success: function(response) {
-                        if (response.status) {
-                            $('#delete_modal').modal('hide');
-                            Swal.fire({
-                                icon: "success",
-                                title: "Department Deleted Successfully",
-                                showConfirmButton: false,
-                                timer: 1500
-                            });
-                            setTimeout(function() {
-                                location.reload();
-                            }, 1500);
-                        }
-                    },
-                    error: function(xhr) {
-                        Swal.fire({
-                            icon: "error",
-                            title: "Error",
-                            text: xhr.responseJSON?.message || "Cannot delete department!"
-                        });
-                    }
-                });
-            });
-
         });
     </script>
 @endsection

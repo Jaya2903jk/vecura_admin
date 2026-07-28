@@ -12,7 +12,20 @@ class CategoryController extends Controller
     public function index(Request $request)
     {
         $perPage = $request->get('per_page', 10);
-        $categories = IssueCategory::orderBy('category_id', 'asc')->paginate($perPage);
+        $search = $request->get('search');
+        $status = $request->get('status');
+
+        $query = IssueCategory::with('department')->orderBy('category_id', 'asc');
+
+        if ($search) {
+            $query->where('category_name', 'like', "%{$search}%");
+        }
+
+        if ($status) {
+            $query->where('status', $status);
+        }
+
+        $categories = $query->paginate($perPage);
         $departments = IssueDepartment::all();
 
         return view('category.index', compact('categories', 'perPage', 'departments'));

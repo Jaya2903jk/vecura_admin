@@ -59,9 +59,6 @@ $title = implode(' ', $title);
     @endif
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="author" content="Dreams Technologies">
-    <link rel="stylesheet" href="assets/plugins/icons/ionic/ionicons.css">
-    <link rel="stylesheet" href="assets/plugins/fontawesome/css/fontawesome.min.css">
-    <link rel="stylesheet" href="assets/plugins/fontawesome/css/all.min.css">
 
     @include('layout.partials.head-css')
     <meta name="csrf-token" content="{{ csrf_token() }}">

@@ -13,7 +13,21 @@ class MachineController extends Controller
     public function index(Request $request)
     {
         $perPage = $request->get('per_page', 10);
-        $Machines = Machine::orderBy('MachineId', 'asc')->paginate($perPage);
+        $search = $request->get('search');
+        $status = $request->get('status');
+
+        $query = Machine::orderBy('MachineId', 'asc');
+
+        if ($search) {
+            $query->where('MachineName', 'like', "%{$search}%");
+        }
+
+        if ($status !== null && $status !== '') {
+            $statusVal = strtolower($status) === 'active' ? 1 : 0;
+            $query->where('Status', $statusVal);
+        }
+
+        $Machines = $query->paginate($perPage);
 
         return view('machine.index', compact('Machines', 'perPage'));
     }

@@ -9,6 +9,26 @@ namespace App\Helpers;
     class RbacHelper
     {
         /**
+         * Per-request memoization: hasPermission() gets called repeatedly for the
+         * same user/action/module (e.g. once per row in a list view), and each call
+         * used to cost 2 uncached queries against a remote SQL Server. Cache both
+         * the role lookup and the permission-exists result for the life of the request.
+         */
+        private static array $roleCache = [];
+        private static array $permissionCache = [];
+
+        private static function rolesForUser($userId)
+        {
+            if (!array_key_exists($userId, self::$roleCache)) {
+                self::$roleCache[$userId] = EmployeeRole::where('employee_id', $userId)
+                    ->where('is_active', 1)
+                    ->pluck('role_id');
+            }
+
+            return self::$roleCache[$userId];
+        }
+
+        /**
          * Check if current user has permission
          */
         public static function hasPermission($permissionName, $module = null)
@@ -16,10 +36,15 @@ namespace App\Helpers;
             $userId = session('user_id');
             if (!$userId) return false;
 
-            $roles = EmployeeRole::where('employee_id', $userId)
-                ->where('is_active', 1)
-                ->pluck('role_id');
-            if ($roles->isEmpty()) return false;
+            $cacheKey = $userId.':'.$permissionName.':'.($module ?? '');
+            if (array_key_exists($cacheKey, self::$permissionCache)) {
+                return self::$permissionCache[$cacheKey];
+            }
+
+            $roles = self::rolesForUser($userId);
+            if ($roles->isEmpty()) {
+                return self::$permissionCache[$cacheKey] = false;
+            }
 
             $query = Permission::whereIn('id', function($q) use ($roles) {
                 $q->select('permission_id')
@@ -30,7 +55,7 @@ namespace App\Helpers;
                 $query->where('module', $module);
             }
 
-            return $query->exists();
+            return self::$permissionCache[$cacheKey] = $query->exists();
         }
 
         /**
@@ -65,9 +90,7 @@ namespace App\Helpers;
             $userId = session('user_id');
             if (!$userId) return [];
 
-            $roles = EmployeeRole::where('employee_id', $userId)
-                ->where('is_active', 1)
-                ->pluck('role_id');
+            $roles = self::rolesForUser($userId);
 
             if ($roles->isEmpty()) return [];
 
@@ -168,9 +191,7 @@ namespace App\Helpers;
             $userId = session('user_id');
             if (!$userId) return [];
 
-            $roles = EmployeeRole::where('employee_id', $userId)
-                ->where('is_active', 1)
-                ->pluck('role_id');
+            $roles = self::rolesForUser($userId);
 
             if ($roles->isEmpty()) return [];
 

@@ -43,7 +43,7 @@ class BiomedicalController extends Controller
             ->where('ticketId', $ticketId)
             ->first();
         if (! $biomedical) {
-            return redirect()->back()->with('error', 'Biomedical request not found.');
+            return redirect()->route('ticket.view', $ticketId);
         }
         $machineIssues = collect();
         if ($biomedical->machineIssueIds) {

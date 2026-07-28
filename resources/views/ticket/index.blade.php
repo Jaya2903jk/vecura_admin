@@ -2,37 +2,63 @@
 @extends('layout.mainlayout')
 @section('content')
     <div class="page-wrapper">
+        <div class="content px-4 py-3">
 
-        <!-- Start Content -->
-        <div class="content">
-
-            <!-- Page Header -->
-            <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 pb-3 mb-3 border-bottom">
-                <div class="d-flex align-items-center">
-                    <h4 class="fw-bold mb-0 me-2">Tickets</h4>
-                    <span class="badge badge-soft-primary border pt-1 px-2 border-primary fw-medium">Total Ticket :
-                        {{ $totalTickets }}</span>
+            <!-- PAGE HEADER -->
+            <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-4 pb-3 border-bottom">
+                <div>
+                    <h4 class="fw-bold text-dark mb-1 d-flex align-items-center gap-2">
+                        <i class="ti ti-ticket text-primary fs-24"></i>Tickets Management
+                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle fs-12 ms-2 px-2.5 py-1 rounded-pill">
+                            Total Tickets: {{ $totalTickets }}
+                        </span>
+                    </h4>
+                    <p class="text-muted fs-13 mb-0">Track and manage customer complaints, internal requests, HR, Biomedical, and Support tickets.</p>
                 </div>
-                <div class="text-end">
-                    <a href="javascript:void(0);" class="btn btn-primary" data-bs-toggle="modal"
-                        data-bs-target="#add_tickets"><i class="ti ti-plus me-1"></i>Raise Ticket</a>
+                <div class="d-flex align-items-center gap-2">
+                    <button type="button" class="btn btn-primary btn-sm fw-bold px-3 shadow-xs" data-bs-toggle="modal" data-bs-target="#add_tickets">
+                        <i class="ti ti-plus me-1"></i>Raise Ticket
+                    </button>
                 </div>
                 @isset($assignList)
                     @component('components.modal-popup', ['assignList' => $assignList, 'tickets' => $tickets])
                     @endcomponent
                 @endisset
             </div>
-            <!-- End Page Header -->
-            <div class="toolbar-card">
-                <div class="ticket-toolbar">
-                    <div class="toolbar-group">
-                        <div class="toolbar-field">
-                            <label for="searchInput">Search</label>
-                            <input id="searchInput" class="form-control" placeholder="Search ticket / reg no / issue">
+
+            <!-- FILTER BAR CARD -->
+            <div class="card border-0 shadow-xs mb-4 rounded-3">
+                <div class="card-body p-3 bg-light-subtle rounded-3">
+                    <div class="row g-2 align-items-center">
+                        {{-- Search Input --}}
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold fs-13 text-dark mb-1">Search Ticket</label>
+                            <div class="input-group input-group-sm">
+                                <span class="input-group-text bg-white border-end-0"><i class="ti ti-search text-muted"></i></span>
+                                <input id="searchInput" class="form-control border-start-0 fs-13 text-dark" placeholder="Search ticket / reg no / issue">
+                            </div>
                         </div>
-                        <div class="toolbar-field">
-                            <label for="statusFilter">Status</label>
-                            <select id="statusFilter" class="form-select">
+
+                        {{-- Type Filter --}}
+                        <div class="col-md-3">
+                            <label class="form-label fw-semibold fs-13 text-dark mb-1">Ticket Type</label>
+                            <select id="typeFilter" class="form-select form-select-sm fs-13 text-dark">
+                                <option value="">All Types</option>
+                                <option value="vsupport" {{ request('type') == 'vsupport' ? 'selected' : '' }}>Vsupport</option>
+                                <option value="hr" {{ request('type') == 'hr' ? 'selected' : '' }}>HR</option>
+                                <option value="biomedical" {{ request('type') == 'biomedical' ? 'selected' : '' }}>Biomedical</option>
+                                <option value="accounts" {{ request('type') == 'accounts' ? 'selected' : '' }}>Accounts</option>
+                                <option value="Settlement" {{ request('type') == 'Settlement' ? 'selected' : '' }}>Settlement</option>
+                                <option value="petty cash" {{ request('type') == 'petty cash' ? 'selected' : '' }}>Petty Cash</option>
+                                <option value="petty bill" {{ request('type') == 'petty bill' ? 'selected' : '' }}>Petty Bill</option>
+                                <option value="facility" {{ request('type') == 'facility' ? 'selected' : '' }}>Facility</option>
+                            </select>
+                        </div>
+
+                        {{-- Status Filter --}}
+                        <div class="col-md-2">
+                            <label class="form-label fw-semibold fs-13 text-dark mb-1">Status</label>
+                            <select id="statusFilter" class="form-select form-select-sm fs-13 text-dark">
                                 <option value="">All Status</option>
                                 <option value="Closed">Closed</option>
                                 <option value="Resolved">Resolved</option>
@@ -40,286 +66,206 @@
                                 <option value="In Progress">In Progress</option>
                             </select>
                         </div>
-                        <div class="toolbar-field">
-                            <label for="typeFilter">Type</label>
-                            {{-- <select id="typeFilter" class="form-select">
-                                <option value="">All Type</option>
-                                <option value="complaint">Complaint</option>
-                                <option value="request">Request</option>
-                            </select> --}}
-                            {{-- <select id="typeFilter" class="form-select">
-                                <option value="">All Type</option>
-                                <option value="vsupport" {{ request('type') == 'vsupport' ? 'selected' : '' }}>
-                                    Vsupport
-                                </option>
-                                <option value="hr" {{ request('type') == 'hr' ? 'selected' : '' }}>
-                                    Hr
-                                </option>
-                                <option value="biomedical" {{ request('type') == 'biomedical' ? 'selected' : '' }}>
-                                    Biomedical
-                                </option>
 
-                            </select> --}}
-                            <select id="typeFilter" class="form-select">
-                                <option value="">All Type</option>
-                                <option value="vsupport" {{ request('type') == 'vsupport' ? 'selected' : '' }}>Vsupport
-                                </option>
-                                <option value="hr" {{ request('type') == 'hr' ? 'selected' : '' }}>HR</option>
-                                <option value="biomedical" {{ request('type') == 'biomedical' ? 'selected' : '' }}>
-                                    Biomedical</option>
-                                <option value="accounts" {{ request('type') == 'accounts' ? 'selected' : '' }}>Accounts
-                                </option>
-                                <option value="Settlement" {{ request('type') == 'Settlement' ? 'selected' : '' }}>
-                                    Settlement</option>
-                                <option value="petty cash" {{ request('type') == 'petty cash' ? 'selected' : '' }}>Petty
-                                    Cash</option>
-                                <option value="petty bill" {{ request('type') == 'petty bill' ? 'selected' : '' }}>Petty
-                                    Bill</option>
-                                <option value="facility" {{ request('type') == 'facility' ? 'selected' : '' }}>Facility
-                                </option>
-                            </select>
+                        {{-- Branch Filter --}}
+                        <div class="col-md-2">
+                            <label class="form-label fw-semibold fs-13 text-dark mb-1">Branch</label>
+                            <select id="branchFilter" class="form-select form-select-sm fs-13 text-dark"></select>
                         </div>
 
-                        <div class="toolbar-field">
-                            <label for="branchFilter">Branch</label>
-                            <select id="branchFilter" class="form-select"></select>
-                        </div>
-                        <div class="toolbar-field">
-                            <label>&nbsp;</label>
-                            <button class="btn toolbar-btn" id="clearFilters">Clear</button>
-                        </div>
-                    </div>
-                    <div class="toolbar-group">
-                        <div class="toolbar-field">
-                            <label for="sortSelect">Sort By</label>
-                            <select id="sortSelect" class="form-select">
-                                <option value="recent">Recent</option>
-                                <option value="oldest">Oldest</option>
-                                <option value="status">Status</option>
-                            </select>
+                        {{-- Reset Button --}}
+                        <div class="col-md-1 d-flex align-items-end pt-3">
+                            <button class="btn btn-light border btn-sm w-100 fw-semibold fs-13 text-secondary" id="clearFilters" title="Clear Filters">
+                                <i class="ti ti-refresh"></i>
+                            </button>
                         </div>
                     </div>
                 </div>
-                {{-- <div class="master-note">
-                    Master data ready in code: Issue Master, Category Master, Branch, Department, Role, Permission,
-                    Designation, Patients, Staff.
-                    Assign To and Follow Up now use the <strong>Staff</strong> master list as a dropdown selection.
-                </div> --}}
             </div>
-            <ul class="nav nav-tabs nav-bordered mb-3">
 
-                <!-- ALL -->
+            <!-- STATUS TABS -->
+            <ul class="nav nav-tabs nav-tabs-bottom border-bottom mb-4">
                 <li class="nav-item">
-                    <a href="{{ route('tickets') }}" class="nav-link {{ request()->has('status') ? '' : 'active' }}">
-                        <span>ALL</span>
-                    </a>
-                </li>
-
-                <!-- Pending -->
-                <li class="nav-item">
-                    <a href="{{ route('tickets', ['status' => 0]) }}"
-                        class="nav-link {{ request('status') === '0' ? 'active' : '' }}">
-                        <span>Pending</span>
-                    </a>
-                </li>
-
-                <!-- Inprogress -->
-                <li class="nav-item">
-                    <a href="{{ route('tickets', ['status' => 1]) }}"
-                        class="nav-link {{ request('status') == 1 ? 'active' : '' }}">
-                        <span>Inprogress</span>
-                    </a>
-                </li>
-
-                <!-- Resolved -->
-                <li class="nav-item">
-                    <a href="{{ route('tickets', ['status' => 2]) }}"
-                        class="nav-link {{ request('status') == 2 ? 'active' : '' }}">
-                        <span>Resolved</span>
-                    </a>
-                </li>
-
-                <!-- Closed -->
-                <li class="nav-item">
-                    <a href="{{ route('tickets', ['status' => 3]) }}"
-                        class="nav-link {{ request('status') == 3 ? 'active' : '' }}">
-                        <span>Closed</span>
+                    <a href="{{ route('tickets') }}" class="nav-link fw-semibold fs-13 {{ request()->has('status') ? '' : 'active' }}">
+                        <i class="ti ti-list me-1"></i>ALL
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a href="{{ route('tickets', ['status' => 4]) }}"
-                        class="nav-link {{ request('status') == 4 ? 'active' : '' }}">
-                        <span>Rejected</span>
+                    <a href="{{ route('tickets', ['status' => 0]) }}" class="nav-link fw-semibold fs-13 {{ request('status') === '0' ? 'active' : '' }}">
+                        <i class="ti ti-clock me-1 text-warning"></i>Pending
                     </a>
                 </li>
-
+                <li class="nav-item">
+                    <a href="{{ route('tickets', ['status' => 1]) }}" class="nav-link fw-semibold fs-13 {{ request('status') == 1 ? 'active' : '' }}">
+                        <i class="ti ti-loader me-1 text-info"></i>In Progress
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="{{ route('tickets', ['status' => 2]) }}" class="nav-link fw-semibold fs-13 {{ request('status') == 2 ? 'active' : '' }}">
+                        <i class="ti ti-circle-check me-1 text-success"></i>Resolved
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="{{ route('tickets', ['status' => 3]) }}" class="nav-link fw-semibold fs-13 {{ request('status') == 3 ? 'active' : '' }}">
+                        <i class="ti ti-lock me-1 text-secondary"></i>Closed
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="{{ route('tickets', ['status' => 4]) }}" class="nav-link fw-semibold fs-13 {{ request('status') == 4 ? 'active' : '' }}">
+                        <i class="ti ti-x me-1 text-danger"></i>Rejected
+                    </a>
+                </li>
             </ul>
 
-            <div class="ticket-card">
-                <div class="table-responsive">
-                    <table class="table ticket-table mb-0">
-                        <thead>
-                            <tr>
-                                <th>Ticket ID</th>
-                                <th>Department</th>
-                                <th>Branch</th>
-                                <th>Reg No</th>
-                                <th>Issues</th>
-                                <th>Type</th>
-                                <th>Status</th>
-                                {{-- <th>Created</th> --}}
-                                <th>Date/Time</th>
-                                {{-- <th>Follow Up</th> --}}
-                                <th>Action</th>
-                            </tr>
-                        </thead>
-
-                        <tbody id="ticketTableBody">
-                            @forelse ($tickets as $t)
-                                <tr data-ticket="#TKT{{ $t->ticketId }}"
-                                    data-department="{{ $t->department->DepartmentName ?? '-' }}"
-                                    data-branch="{{ $t->location->LocationName ?? '-' }}"
-                                    data-reg="{{ $t->customer->RegistrationNo ?? '-' }}"
-                                    data-issue="{{ $t->Subject ?? '' }}" data-type="{{ $t->type ?? 'Ticket' }}"
-                                    data-status="{{ $t->Status }}">
-                                    {{-- Ticket ID --}}
-                                    <td>
-                                        <strong>
-                                            #TKT{{ str_pad($t->ticketId, 3, '0', STR_PAD_LEFT) }}
-                                        </strong>
-                                    </td>
-
-                                    {{-- Department --}}
-                                    <td>{{ $t->department->DepartmentName ?? '-' }}</td>
-
-                                    {{-- Branch --}}
-                                    <td>
-                                        {{ $t->location->LocationName ?? 'Coop' }}
-                                        {{-- {{ $t->customer?->branch_id ? $t->customer?->branch?->branch_name ?? '-' : $t->location?->LocationName ?? '-' }} --}}
-                                    </td>
-
-                                    {{-- Reg No --}}
-                                    <td>
-                                        <strong>
-                                            {{ $t->customer->RegistrationNo ?? ($t->get_employee->UserCode ?? '-') }}
-                                        </strong>
-                                    </td>
-
-                                    {{-- Issue --}}
-                                    <td>{{ $t->Subject ?? '-' }}</td>
-
-                                    {{-- Type --}}
-                                    <td>{{ strtoupper($t->type ?? 'Ticket') }}</td>
-                                    <td>
-                                        @php
-                                            $isLeave = false;
-                                            if ($t->type == 'hr' && isset($t->hr[0])) {
-                                                $isLeave = $t->hr[0]->escalationTypeId == $leaveRequestId;
-                                            }
-                                        @endphp
-
-                                        <span
-                                            class="status-badge
-                                              @if ($t->Status == 0) status-pending
-                                              @elseif ($t->Status == 1) status-progress
-                                              @elseif ($t->Status == 2) status-resolved
-                                              @elseif ($t->Status == 4) status-rejected
-                                              @else status-closed @endif
-                                          ">
-                                            @if ($isLeave)
-                                                @if ($t->Status == 0)
-                                                    Pending
-                                                @elseif ($t->Status == 1)
-                                                    In Progress
-                                                @elseif ($t->Status == 2)
-                                                    Approved
-                                                @elseif ($t->Status == 4)
-                                                    Rejected
-                                                @elseif ($t->Status == 3)
-                                                    Closed
-                                                @endif
-
-                                                {{-- NORMAL FLOW --}}
-                                            @else
-                                                @if ($t->Status == 0)
-                                                    Pending
-                                                @elseif ($t->Status == 1)
-                                                    In Progress
-                                                @elseif ($t->Status == 2)
-                                                    Resolved
-                                                @elseif ($t->Status == 3)
-                                                    Closed
-                                                @endif
-                                            @endif
-
-                                        </span>
-                                    </td>
-
-                                    {{-- Action --}}
-                                    <td>{{ $t->CreatedDate ?? '-' }}</td>
-                                    {{-- <td>
-                                        @php
-                                            $isManpower = strtolower(trim($t->Subject)) === 'manpower';
-                                        @endphp
-
-                                        <div class="d-flex gap-1">
-                                            <a class="action-btn"
-                                                href="{{ $isManpower ? url('/manpower/' . $t->ticketId) : route('ticket.view', $t->ticketId) }}">
-                                                <i class="ti ti-eye"></i>
-                                            </a>
-                                        </div>
-                                    </td> --}}
-                                    <td>
-
-                                        @php
-                                            $ticketType = strtolower(trim($t->type ?? ''));
-                                            $subject = strtolower(trim($t->Subject));
-                                            $isManpower = $subject === 'manpower';
-                                            $isBiomedical = $subject === 'biomedical';
-                                            $isIOURequest = $subject === 'iou request';
-                                            // $isPettyCash = $subject === 'petty cash';
-                                            // $isPCBill = $subject === 'pc_bill';
-                                            $isPCRequest = $ticketType === 'petty cash';
-                                            $isPCBill = $ticketType === 'petty bill';
-                                            $isFacility = $ticketType === 'facility'; // ← add
-
-                                        @endphp
-                                        <div class="d-flex gap-1">
-
-                                            <a class="action-btn"
-                                                href="@if ($isManpower) {{ route('manpower.view', $t->ticketId) }}
-                                                      @elseif($isBiomedical)
-                                                      {{ route('biomedical.view', $t->ticketId) }}
-                                                       @elseif($isIOURequest)
-                                                      {{ route('iou.view', $t->ticketId) }}
-                                                       @elseif($isPCRequest)
-                                                      {{ route('pc.view', $t->ticketId) }}
-                                                        @elseif($isPCBill)
-                                                      {{ route('pc.bill.view', $t->ticketId) }}
-                                                        @elseif($isFacility)  {{ route('facility.view', $t->ticketId) }}
-                                                       @else
-                                                      {{ route('ticket.view', $t->ticketId) }} @endif
-                                                         ">
-                                                <i class="ti ti-eye"></i>
-                                            </a>
-                                        </div>
-                                    </td>
-                                </tr>
-                            @empty
+            <!-- TABLE CARD -->
+            <div class="card border-0 shadow-xs rounded-3">
+                <div class="card-body p-0">
+                    <div class="table-responsive" style="overflow-x: auto;">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="bg-light border-bottom">
                                 <tr>
-                                    <td colspan="9" class="text-center text-muted py-4">
-                                        No tickets found
-                                    </td>
+                                    <th class="fs-12 text-uppercase fw-bold text-slate-700 py-3 ps-4">Ticket ID</th>
+                                    <th class="fs-12 text-uppercase fw-bold text-slate-700 py-3">Department</th>
+                                    <th class="fs-12 text-uppercase fw-bold text-slate-700 py-3">Branch</th>
+                                    <th class="fs-12 text-uppercase fw-bold text-slate-700 py-3">Reg No / Code</th>
+                                    <th class="fs-12 text-uppercase fw-bold text-slate-700 py-3">Subject / Issue</th>
+                                    <th class="fs-12 text-uppercase fw-bold text-slate-700 py-3">Type</th>
+                                    <th class="fs-12 text-uppercase fw-bold text-slate-700 py-3">Status</th>
+                                    <th class="fs-12 text-uppercase fw-bold text-slate-700 py-3">Date/Time</th>
+                                    <th class="fs-12 text-uppercase fw-bold text-slate-700 py-3 text-end pe-4">Actions</th>
                                 </tr>
-                            @endforelse
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody id="ticketTableBody" class="divide-y divide-gray-100">
+                                @forelse ($tickets as $t)
+                                    <tr data-ticket="#TKT{{ $t->ticketId }}"
+                                        data-department="{{ $t->department->DepartmentName ?? '-' }}"
+                                        data-branch="{{ $t->location->LocationName ?? '-' }}"
+                                        data-reg="{{ $t->customer->RegistrationNo ?? '-' }}"
+                                        data-issue="{{ $t->Subject ?? '' }}" data-type="{{ $t->type ?? 'Ticket' }}"
+                                        data-status="{{ $t->Status }}">
+                                        <td class="ps-4">
+                                            <span class="patient-code-tag font-monospace">#TKT{{ str_pad($t->ticketId, 3, '0', STR_PAD_LEFT) }}</span>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-light text-dark border px-2.5 py-1 fs-11 fw-semibold rounded-2">
+                                                <i class="ti ti-building me-1 text-muted"></i>{{ $t->department->DepartmentName ?? '-' }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <div class="fs-13 text-dark">{{ $t->location->LocationName ?? 'Coop' }}</div>
+                                        </td>
+                                        <td>
+                                            <span class="patient-code-tag font-monospace">{{ $t->customer->RegistrationNo ?? ($t->get_employee->UserCode ?? '-') }}</span>
+                                        </td>
+                                        <td>
+                                            <div class="fw-bold text-dark fs-13" style="max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                                {{ $t->Subject ?? '-' }}
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-0.5 fs-11 fw-bold rounded-2">
+                                                {{ strtoupper($t->type ?? 'TICKET') }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            @php
+                                                $isLeave = false;
+                                                if ($t->type == 'hr' && isset($t->hr[0])) {
+                                                    $isLeave = $t->hr[0]->escalationTypeId == $leaveRequestId;
+                                                }
+                                            @endphp
 
-                    <div id="emptyState" class="empty-state">
-                        No tickets found for the selected filter.
+                                            @if ($t->Status == 0)
+                                                <span class="badge bg-warning-subtle text-warning border border-warning-subtle px-2.5 py-1 fs-11 fw-bold rounded-pill">
+                                                    <i class="ti ti-clock me-1"></i>Pending
+                                                </span>
+                                            @elseif ($t->Status == 1)
+                                                <span class="badge bg-info-subtle text-info border border-info-subtle px-2.5 py-1 fs-11 fw-bold rounded-pill">
+                                                    <i class="ti ti-loader me-1"></i>In Progress
+                                                </span>
+                                            @elseif ($t->Status == 2)
+                                                <span class="badge bg-success-subtle text-success border border-success-subtle px-2.5 py-1 fs-11 fw-bold rounded-pill">
+                                                    <i class="ti ti-circle-check me-1"></i>{{ $isLeave ? 'Approved' : 'Resolved' }}
+                                                </span>
+                                            @elseif ($t->Status == 4)
+                                                <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-2.5 py-1 fs-11 fw-bold rounded-pill">
+                                                    <i class="ti ti-x me-1"></i>Rejected
+                                                </span>
+                                            @else
+                                                <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle px-2.5 py-1 fs-11 fw-bold rounded-pill">
+                                                    <i class="ti ti-lock me-1"></i>Closed
+                                                </span>
+                                            @endif
+                                        </td>
+                                        <td class="fs-12 text-muted">
+                                            <i class="ti ti-calendar me-1"></i>{{ $t->CreatedDate ?? '-' }}
+                                        </td>
+                                        <td class="text-end pe-4">
+                                            @php
+                                                $ticketType = strtolower(trim($t->type ?? ''));
+                                                $subject = strtolower(trim($t->Subject ?? ''));
+                                                $isManpower = $subject === 'manpower';
+                                                $isBiomedical = $subject === 'biomedical';
+                                                $isIOURequest = $subject === 'iou request';
+                                                $isPCRequest = $ticketType === 'petty cash';
+                                                $isPCBill = $ticketType === 'petty bill';
+                                                $isFacility = $ticketType === 'facility';
+                                            @endphp
+                                            <div class="d-flex align-items-center justify-content-end gap-1">
+                                                <a href="@if ($isManpower) {{ route('manpower.view', $t->ticketId) }}
+                                                      @elseif($isBiomedical) {{ route('biomedical.view', $t->ticketId) }}
+                                                      @elseif($isIOURequest) {{ route('iou.view', $t->ticketId) }}
+                                                      @elseif($isPCRequest) {{ route('pc.view', $t->ticketId) }}
+                                                      @elseif($isPCBill) {{ route('pc.bill.view', $t->ticketId) }}
+                                                      @elseif($isFacility) {{ route('facility.view', $t->ticketId) }}
+                                                      @else {{ route('ticket.view', $t->ticketId) }} @endif"
+                                                    class="btn btn-light border btn-sm px-2 py-1 shadow-2xs" title="View Ticket Details">
+                                                    <i class="ti ti-eye fs-15 text-primary"></i>
+                                                </a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                @empty
+                                    <tr>
+                                        <td colspan="9" class="text-center text-muted py-5 fs-13">
+                                            <i class="ti ti-ticket-off fs-36 text-muted mb-2 d-block"></i>
+                                            No tickets found matching criteria.
+                                        </td>
+                                    </tr>
+                                @endforelse
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>
+
+            <!-- TABLE FOOTER / PAGINATION BAR -->
+            <div class="table-footer-bar d-flex flex-column flex-md-row justify-content-between align-items-center mt-3 fs-13 bg-white p-3 rounded-3 shadow-xs border gap-3">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="d-flex align-items-center gap-2">
+                        <span>Row Per Page</span>
+                        <select id="perPageDept" class="form-select form-select-sm d-inline-block" style="width:75px;">
+                            <option value="10" {{ $perPage == 10 ? 'selected' : '' }}>10</option>
+                            <option value="25" {{ $perPage == 25 ? 'selected' : '' }}>25</option>
+                            <option value="50" {{ $perPage == 50 ? 'selected' : '' }}>50</option>
+                        </select>
+                    </div>
+                    <div class="text-muted border-start ps-3">
+                        Showing <span class="fw-semibold text-dark">{{ $tickets->firstItem() ?? 0 }}</span> to <span class="fw-semibold text-dark">{{ $tickets->lastItem() ?? 0 }}</span> of <span class="fw-semibold text-dark">{{ $tickets->total() }}</span> entries
+                    </div>
+                </div>
+                <div>
+                    <x-pagination :paginator="$tickets" :append="['per_page' => $perPage]" />
+                </div>
+            </div>
+            <script>
+                document.getElementById('perPageDept').addEventListener('change', function() {
+                    let perPage = this.value;
+                    let url = new URL(window.location.href);
+                    url.searchParams.set('per_page', perPage);
+                    window.location.href = url.toString();
+                });
+            </script>
             <style>
                 .toolbar-card,
                 .ticket-card {
@@ -542,38 +488,7 @@
                     }
                 }
             </style>
-            {{-- Footer --}}
-            <div class="table-footer-bar d-flex justify-content-between align-items-center">
-                <div class="d-flex align-items-center gap-3">
 
-                    <div>
-                        Row Per Page
-                        <select id="perPageDept" class="form-select form-select-sm d-inline-block" style="width:70px;">
-                            <option value="10" {{ $perPage == 10 ? 'selected' : '' }}>10</option>
-                            <option value="25" {{ $perPage == 25 ? 'selected' : '' }}>25</option>
-                            <option value="50" {{ $perPage == 50 ? 'selected' : '' }}>50</option>
-                        </select>
-                    </div>
-
-                    <div>
-                        Showing {{ $tickets->firstItem() }} to {{ $tickets->lastItem() }}
-                        of {{ $tickets->total() }} entries
-                    </div>
-
-                </div>
-
-                <x-pagination :paginator="$tickets" :append="['per_page' => $perPage]" />
-
-
-            </div>
-            <script>
-                document.getElementById('perPageDept').addEventListener('change', function() {
-                    let perPage = this.value;
-                    let url = new URL(window.location.href);
-                    url.searchParams.set('per_page', perPage);
-                    window.location.href = url.toString();
-                });
-            </script>
         </div>
         @component('components.footer')
         @endcomponent
